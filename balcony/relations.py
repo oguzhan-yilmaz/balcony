@@ -119,7 +119,6 @@ class RelationMap:
                 unique_required_shape_names.add(r_param_name)
         unique_required_shape_names_list = list(unique_required_shape_names)
 
-        # 
         all_found_relations = []
         for __dict in operations_to_required_parameter_list:
             # unpack the dict
@@ -129,7 +128,6 @@ class RelationMap:
             
             operation_model = resource_node.get_operation_model(operation_name)
             output_shape = operation_model.output_shape
-            # TODO MOVE THIS FUNC TO RESOURCE NODE or call resourcenode and get extra relations
             
             resource_nodes_extra_relations = resource_node.define_extra_relations()
             if resource_nodes_extra_relations:
@@ -146,10 +144,12 @@ class RelationMap:
                 if shape_name.lower() in IDENTIFIER_NAMES:
                     prefixed_naked_shape_name = f"{resource_node.name}{shape_name.capitalize()}"
                     all_found_relations.append({
+                        'service_name':self.service_node.name,
+                        'resource_node_name': resource_node.name,
+                        'operation_name': operation_name,
                         'search_shape_name': prefixed_naked_shape_name,
                         'target_shape_name': shape_name,
                         'target_shape_type': shape.type_name,
-                        'operation_name': operation_name,
                         'target_path': target_path,
                         'alias': True
                     })
@@ -158,10 +158,12 @@ class RelationMap:
                     _match = compare_two_camel_case_words(shape_name, required_shape_name)
                     if _match:
                         all_found_relations.append({
+                            'service_name':self.service_node.name,
+                            'resource_node_name': resource_node.name,
+                            'operation_name': operation_name,
                             'search_shape_name': required_shape_name,
                             'target_shape_name': shape_name,
                             'target_shape_type': shape.type_name,
-                            'operation_name': operation_name,
                             'target_path': target_path
                         })
         relations_map = {

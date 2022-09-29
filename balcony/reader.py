@@ -8,7 +8,7 @@ except ImportError:
     from botocore_utils import READ_ONLY_VERBS
     from relations import FindRelationResultTypes, SUCCESSFUL_FIND_RELATION_RESULT_TYPES
     from logs import get_logger
-
+from collections.abc import Iterable
 import jmespath
 from rich.progress import Progress, track, BarColumn, TextColumn, TaskProgressColumn, TimeRemainingColumn
 from rich.table import Column
@@ -132,12 +132,17 @@ class ServiceReader:
         
         return result
 
-    def search_node_data(self, resource_node_name, operation_name):
+    def search_operation_data(self, resource_node_name, operation_name):
         resource_node_exists = self.response_data.get(resource_node_name, False) != False
         if not resource_node_exists:
             return False
         result = self.response_data[resource_node_name].get(operation_name, False)
-        return result 
+        return result
+    
+    def search_resource_node_data(self, resource_node_name):
+        resource_node_data = self.response_data.get(resource_node_name, False) 
+        return resource_node_data 
+   
     
     def add_to_node_data(self, resource_node_name, operation_name, response):
         resource_node_exists = self.response_data.get(resource_node_name, False) != False
@@ -150,9 +155,23 @@ class ServiceReader:
         else:
             self.response_data[resource_node_name][operation_name].append(response)
 
+
     def read_operation(self, resource_node_name, operation_name, refresh=False):
+        """
+        resource_node.get_relations_of_operation
+        
+        reader:
+            - read related resource nodes
+            - combine the outputs to a dict
+            - send it to resource node to create valid api parameters list
+            - call operation for gotten api parameters list
+        
+        """        
         # if it has been read called already, return it
-        already_existing_data = self.search_node_data(resource_node_name, operation_name)
+        if refresh == True:
+            pass # TODO: delete from reader
+        already_existing_data = self.search_operation_data(resource_node_name, operation_name)
+        
         if already_existing_data!=False and refresh == False:
             return already_existing_data
         
@@ -161,79 +180,157 @@ class ServiceReader:
         if not resource_node:
             logger.debug(f"RESOURCE NODE NOT FOUND. While reading the {resource_node_name}.{operation_name}, Resource Node {resource_node_name} could not be loaded.")
             return False
-        
-        relations_of_operation, relation_result_type = self.get_operations_relations(resource_node_name, operation_name)
-        success = relation_result_type in SUCCESSFUL_FIND_RELATION_RESULT_TYPES
+
+        # add service_name and resource_node_name to relation dict
+        relations_of_operation, relation_result_type = resource_node.get_operations_relations(operation_name)
+        success_finding_relations = relation_result_type in SUCCESSFUL_FIND_RELATION_RESULT_TYPES
         # req_params = resource_node.get_required_parameter_names_from_operation_name(operation_name)
-        if not success:
-            # print('\t', colored(operation_name, _color), str(relation_result_type.value), req_params)
-            logger.debug(f"FAILED READING OPERATION: {resource_node_name}.{operation_name}. Failed to find relations: {relation_result_type}")
+        if not success_finding_relations:
+            logger.debug(f"FAILED FINDING RELATIONS for OPERATION: [bold]{resource_node_name}.{operation_name}[/]. Failed to find relations: {relation_result_type}")
             return False
+        # TODO: from relations, get the unique related operation names
         
-        ########################### NO REQUIRED PARAMETERS #############################################
-        if relation_result_type in [FindRelationResultTypes.NoRequiredParameters]:
-            relations_of_operation = []
-            api_parameters = {}
-            raw_api_parameters_list = []
-            api_parameters = resource_node.create_valid_api_parameters_list(operation_name, raw_api_parameters_list, relations_of_operation)
-            self._call_operation(operation_name, api_parameters)
-            return self.search_node_data(resource_node_name, operation_name)
-            # return False # FIXME:
-        ############################### RELATIONS FOUND #########################################
-
-        elif relation_result_type in [FindRelationResultTypes.RelationsFound]:
-            dependent_operations = self.get_dependent_operations(operation_name)
-            if dependent_operations == False:
-                return False
-            self_operation, *other_operations = dependent_operations
-            logger.debug(f"OPERATION HAS DEPENDENTS: {self_operation} has dependent operations: {other_operations}. Relations of operation: {str_relations(relations_of_operation)}")
-            if other_operations:
-                for reverse_other_operation in other_operations[::-1]:
-                    logger.debug(f'CALLING DEPENDENT OPERATION: {reverse_other_operation} from {operation_name}')
-                    self.read_operation(resource_node_name, reverse_other_operation)
-                    if not False:
-                        # check if the dependent call is succeeded 
-                        pass
-                    
-            ########################## READ THE TARGET/DEPENDENT OPERATION ##############################################
-            if len(relations_of_operation)>=2:
-                relations_of_operation
-
-            # get the operation_data
-            first_relation, *_ = relations_of_operation
-            target_operation_name = first_relation.get('operation_name')
-            target_resource_node = self.service_node.find_resource_node_by_operation_name(target_operation_name)
-            self.read_operation(target_resource_node.name, target_operation_name)
-            operation_data = self.search_node_data(target_resource_node.name, target_operation_name)
-
-            if operation_data==False:
-                logger.debug(f"OPERATION DATA NOT FOUND. Tried to read {operation_name}'s dependent [{target_resource_node.name} {target_operation_name}]. Failing.")
-                return False
-            ########################## Generate Parameters for  ##############################################
-
-            generated_jmespath_nested_selector = target_resource_node._generate_jmespath_selector_from_relations(target_operation_name, relations_of_operation)
-            if not generated_jmespath_nested_selector:
-                logger.debug(f"CAN'T GENERATE JMESPATH SELECTOR: {target_resource_node.name} {target_operation_name} {generated_jmespath_nested_selector}")
-                return False
-            logger.debug(f"JMESPATH SELECTOR GENERATED [blue]{generated_jmespath_nested_selector}[/], target operation: [bold][blue][{target_resource_node.name}[/].[green]{target_operation_name}[/]]")
-
-            if not operation_data:
-                logger.debug(f"CANT GENERATE API PARAMETERS LIST. NO OPERATION DATA FOUND. {operation_data=}")
-
-            raw_api_parameters_list = jmespath.search(generated_jmespath_nested_selector, operation_data)
-            if not raw_api_parameters_list:
-                logger.debug(f"CANT GENERATE API PARAMETERS LIST WITH [bold][red]{generated_jmespath_nested_selector}[/], target operation: [bold][blue][{target_resource_node.name}[/].[green]{target_operation_name}[/]], {operation_data=}")
-                return False
-
-            api_parameters_list = target_resource_node.create_valid_api_parameters_list(operation_name, raw_api_parameters_list, relations_of_operation)
-            api_parameters_list
+        if relations_of_operation == True or relation_result_type == FindRelationResultTypes.NoRequiredParameters:
+            # no required parameters
+            generated_api_parameters = resource_node.generate_api_parameters_from_target_data(operation_name, [], {})
+ 
             
-            # FIXME later
-            # for api_parameters in track(api_parameters_list, description=f"Calling Operation: {operation_name} with {len(api_parameters_list)} parameters."):
-            for api_parameters in api_parameters_list:
+            if isinstance(generated_api_parameters, Iterable):
+                for api_parameters in generated_api_parameters:
+                    self._call_operation(operation_name, api_parameters)
+            
+            return self.search_operation_data(resource_node_name, operation_name)
+
+
+        for rel in relations_of_operation:
+            success = self.read_operation(rel.get('resource_node_name'), rel.get('operation_name'))
+            if not success:
+                logger.debug(f"FAILED TO READ RELATED OPERATION from [bold]{resource_node.name}[/]. {rel.get('service_name')}.{rel.get('resource_node_name')}.{rel.get('operation_name')}")
+                return False
+            
+        # gather all their related data, put it under a dict 
+        all_related_operations_data = {}
+        for rel in relations_of_operation:
+            related_operations_data = self.search_operation_data(rel.get('resource_node_name'), rel.get('operation_name'))
+            # all_related_operations_data.extend(related_operations_data)
+            all_related_operations_data.update({
+                rel.get('operation_name'): related_operations_data
+            })
+
+        # send the operations_data to resource_node to create valid_api_parameters
+        generated_api_parameters = resource_node.generate_api_parameters_from_target_data(operation_name, relations_of_operation, related_operations_data)
+
+        if generated_api_parameters == []:
+            logger.debug(f"FAILED TO AUTO-GENERATE API PARAMETERS. Related Resources couldn't found.")
+        elif isinstance(generated_api_parameters, Iterable):
+            for api_parameters in generated_api_parameters:
                 self._call_operation(operation_name, api_parameters)
-            operation_data = self.search_node_data(resource_node_name, operation_name)
-            return operation_data
+        else:
+            logger.debug(f"COULDN'T GENERATE API PARAMETERS. {resource_node_name}.{operation_name}. Generated Parameters: {generated_api_parameters}. Data: {all_related_operations_data}")
+            
+        return self.search_operation_data(resource_node_name, operation_name)
+
+
+
+
+
+    # def read_operation(self, resource_node_name, operation_name, refresh=False):
+    #     # if it has been read called already, return it
+    #     already_existing_data = self.search_operation_data(resource_node_name, operation_name)
+    #     if already_existing_data!=False and refresh == False:
+    #         return already_existing_data
+        
+    #     resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
+        
+    #     if not resource_node:
+    #         logger.debug(f"RESOURCE NODE NOT FOUND. While reading the {resource_node_name}.{operation_name}, Resource Node {resource_node_name} could not be loaded.")
+    #         return False
+        
+        
+    
+    #     relations_of_operation, relation_result_type = self.get_operations_relations(resource_node_name, operation_name)
+    #     success_finding_relations = relation_result_type in SUCCESSFUL_FIND_RELATION_RESULT_TYPES
+    #     # req_params = resource_node.get_required_parameter_names_from_operation_name(operation_name)
+    #     if not success_finding_relations:
+    #         logger.debug(f"FAILED READING OPERATION: [bold]{resource_node_name}.{operation_name}[/]. Failed to find relations: {relation_result_type}")
+    #         return False
+        
+    #     ########################### NO REQUIRED PARAMETERS #############################################
+    #     if relation_result_type in [FindRelationResultTypes.NoRequiredParameters]:
+    #         relations_of_operation = []
+    #         api_parameters = {}
+    #         raw_api_parameters_list = []
+    #         # Even though we know there are no required parameters, 
+    #         # some parameters like MaxResults must be filled.
+    #         api_parameters = resource_node.create_valid_api_parameters_list(operation_name, raw_api_parameters_list, relations_of_operation)
+    #         self._call_operation(operation_name, api_parameters)
+    #         return self.search_operation_data(resource_node_name, operation_name)
+
+    #     ############################### RELATIONS FOUND #########################################
+    #     elif relation_result_type in [FindRelationResultTypes.RelationsFound]:
+    #         dependent_operations = self.get_dependent_operations(operation_name)
+    #         if dependent_operations == False:
+    #             return False
+            
+    #         # dependent_operations always starts with the given operation_name
+    #         self_operation, *other_operations = dependent_operations
+    #         logger.debug(f"OPERATION HAS DEPENDENTS: {self_operation} has dependent operations: {other_operations}. Relations of operation: {str_relations(relations_of_operation)}")
+    #         if other_operations:
+    #             for reverse_other_operation in other_operations[::-1]:
+    #                 logger.debug(f'CALLING DEPENDENT OPERATION: {reverse_other_operation} from {operation_name}')
+    #                 self.read_operation(resource_node_name, reverse_other_operation)
+    #                 if not False:
+    #                     # check if the dependent call is succeeded 
+    #                     pass
+                    
+    #         ########################## READ THE TARGET/DEPENDENT OPERATION ##############################################
+
+
+    #         # get the operation_data
+    #         # FIXME: call each target_node of each relation
+    #         first_relation, *_ = relations_of_operation
+    #         target_operation_name = first_relation.get('operation_name')
+    #         target_resource_node = self.service_node.find_resource_node_by_operation_name(target_operation_name)
+    #         self.read_operation(target_resource_node.name, target_operation_name)
+    #         operation_data = self.search_operation_data(target_resource_node.name, target_operation_name)
+
+    #         if operation_data==False:
+    #             logger.debug(f"OPERATION DATA NOT FOUND. Tried to read {operation_name}'s dependent [{target_resource_node.name} {target_operation_name}]. Failing.")
+    #             return False
+    #         ########################## Generate Parameters for  ##############################################
+
+
+    #         target_resource_node
+            
+            
+
+
+    #         generated_jmespath_nested_selector = target_resource_node.generate_jmespath_selector_from_relations(target_operation_name, relations_of_operation)
+    #         if not generated_jmespath_nested_selector:
+    #             logger.debug(f"CAN'T GENERATE JMESPATH SELECTOR: {target_resource_node.name} {target_operation_name} {generated_jmespath_nested_selector}")
+    #             return False
+    #         logger.debug(f"JMESPATH SELECTOR GENERATED [blue]{generated_jmespath_nested_selector}[/], target operation: [bold][blue][{target_resource_node.name}[/].[green]{target_operation_name}[/]]")
+
+    #         if not operation_data:
+    #             logger.debug(f"CANT GENERATE API PARAMETERS LIST. NO OPERATION DATA FOUND. {operation_data=}")
+
+    #         raw_api_parameters_list = jmespath.search(generated_jmespath_nested_selector, operation_data)
+    #         if not raw_api_parameters_list:
+    #             logger.debug(f"CANT GENERATE API PARAMETERS LIST WITH [bold][red]{generated_jmespath_nested_selector}[/], target operation: [bold][blue][{target_resource_node.name}[/].[green]{target_operation_name}[/]], {operation_data=}")
+    #             return False
+
+
+
+
+    #         api_parameters_list = resource_node.create_valid_api_parameters_list(operation_name, raw_api_parameters_list, relations_of_operation)
+    #         api_parameters_list
+            
+    #         # FIXME later
+    #         # for api_parameters in track(api_parameters_list, description=f"Calling Operation: {operation_name} with {len(api_parameters_list)} parameters."):
+    #         for api_parameters in api_parameters_list:
+    #             self._call_operation(operation_name, api_parameters)
+    #         operation_data = self.search_operation_data(resource_node_name, operation_name)
+    #         return operation_data
 
             
     def read_resource_node(self, resource_node_name):
@@ -258,31 +355,31 @@ class ServiceReader:
             #     print(' >>>>>>>>>>>>>>>> NO PARAMETERS <<<<<<<<<<<<<<<<<<<<<<')
 
 
-    def get_operations_relations(self, resource_node_name, operation_name):
-        resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
-        if not resource_node:
-            return False, FindRelationResultTypes.InternalError
-        relation_map = self.service_node.get_relation_map()
-        required_parameters = resource_node.get_required_parameter_names_from_operation_name(operation_name)
+    # def get_operations_relations(self, resource_node_name, operation_name):
+    #     resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
+    #     if not resource_node:
+    #         return False, FindRelationResultTypes.InternalError
+    #     relation_map = self.service_node.get_relation_map()
+    #     required_parameters = resource_node.get_required_parameter_names_from_operation_name(operation_name)
 
         
-        if not required_parameters:
-            return True, FindRelationResultTypes.NoRequiredParameters
-        else:
-            # there are required parameters, try to find every relation for this operation
-            relations_of_operation, relation_result_type = resource_node.find_best_relations_for_operation(operation_name, relation_map)
-            is_all_parameters_found = self.verify_all_required_parameters_in_selected_relations(required_parameters, relations_of_operation)
-            # return relations, relation_result_type
-            if relation_result_type not in SUCCESSFUL_FIND_RELATION_RESULT_TYPES:
-                # not succeeded
-                return False, relation_result_type
-            elif not is_all_parameters_found:
-                return False, FindRelationResultTypes.SomeRelationsFoundButNotAll
-            elif not relations_of_operation:
-                return False, FindRelationResultTypes.NoRelations
-            else:
-                # success
-                return relations_of_operation, FindRelationResultTypes.RelationsFound
+    #     if not required_parameters:
+    #         return True, FindRelationResultTypes.NoRequiredParameters
+    #     else:
+    #         # there are required parameters, try to find every relation for this operation
+    #         relations_of_operation, relation_result_type = resource_node.find_best_relations_for_operation(operation_name, relation_map)
+    #         is_all_parameters_found = self.verify_all_required_parameters_in_selected_relations(required_parameters, relations_of_operation)
+    #         # return relations, relation_result_type
+    #         if relation_result_type not in SUCCESSFUL_FIND_RELATION_RESULT_TYPES:
+    #             # not succeeded
+    #             return False, relation_result_type
+    #         elif not is_all_parameters_found:
+    #             return False, FindRelationResultTypes.SomeRelationsFoundButNotAll
+    #         elif not relations_of_operation:
+    #             return False, FindRelationResultTypes.NoRelations
+    #         else:
+    #             # success
+    #             return relations_of_operation, FindRelationResultTypes.RelationsFound
              
 
         # if relation_result_type in SUCCESSFUL_FIND_RELATION_RESULT_TYPES:
