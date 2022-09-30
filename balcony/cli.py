@@ -159,7 +159,7 @@ def _cli_read_command(
         # with console.pager():
         #     console.print_json(data=read) 
 
-        console.print_json(data=read) 
+        console.print_json(data=read, default=str) 
         
         # console.print(Panel(read, title=f"[green][bold]{resource_node} RESPONSE"))
         return

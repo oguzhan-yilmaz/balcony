@@ -203,7 +203,8 @@ class ServiceReader:
 
 
         for rel in relations_of_operation:
-            success = self.read_operation(rel.get('resource_node_name'), rel.get('operation_name'))
+            rel_operation_data = self.read_operation(rel.get('resource_node_name'), rel.get('operation_name'))
+            success = rel_operation_data == False
             if not success:
                 logger.debug(f"FAILED TO READ RELATED OPERATION from [bold]{resource_node.name}[/]. {rel.get('service_name')}.{rel.get('resource_node_name')}.{rel.get('operation_name')}")
                 return False
@@ -350,7 +351,8 @@ class ServiceReader:
             # print('--------------------------------')
             # print()
           
-        return self.response_data.get(resource_node.name)
+        # return self.response_data.get(resource_node.name)
+        return self.search_resource_node_data(resource_node.name)
             # if output == True:
             #     print(' >>>>>>>>>>>>>>>> NO PARAMETERS <<<<<<<<<<<<<<<<<<<<<<')
 

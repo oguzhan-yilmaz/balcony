@@ -8,5 +8,6 @@ from .ec2 import *
 from .codebuild import *
 from .ecs import *
 from .lambda_functions import *
-from .s3 import *
 from .iam import *
+from .ssm import *
+from .s3 import *
