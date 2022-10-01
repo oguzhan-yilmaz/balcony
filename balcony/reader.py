@@ -157,16 +157,6 @@ class ServiceReader:
 
 
     def read_operation(self, resource_node_name, operation_name, refresh=False):
-        """
-        resource_node.get_relations_of_operation
-        
-        reader:
-            - read related resource nodes
-            - combine the outputs to a dict
-            - send it to resource node to create valid api parameters list
-            - call operation for gotten api parameters list
-        
-        """        
         # if it has been read called already, return it
         if refresh == True:
             pass # TODO: delete from reader
@@ -203,8 +193,8 @@ class ServiceReader:
 
 
         for rel in relations_of_operation:
-            rel_operation_data = self.read_operation(rel.get('resource_node_name'), rel.get('operation_name'))
-            success = rel_operation_data == False
+            rel_operation_data = self.read_operation(rel.get('resource_node_name'), rel.get('operation_name'), refresh=refresh)
+            success = rel_operation_data != False
             if not success:
                 logger.debug(f"FAILED TO READ RELATED OPERATION from [bold]{resource_node.name}[/]. {rel.get('service_name')}.{rel.get('resource_node_name')}.{rel.get('operation_name')}")
                 return False

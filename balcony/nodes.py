@@ -280,12 +280,15 @@ class ResourceNode:
             result[max_results_key]=max_results_value
         # sometimes MaxResults can be seen as non required parameter, but in fact is
         if not required_parameter_names:
-            return [{}]
+            return [result]
         
         
         search_to_target_names = {relation.get('target_shape_name'):relation.get('search_shape_name') for relation in relations_of_operation}
         
         generated_api_params = []
+        if raw_api_parameters_list == False:
+            # TODO: add logic here
+            pass
         for raw_api_parameter_dict in raw_api_parameters_list:
             result_copy = copy.deepcopy(result)
             for raw_key in raw_api_parameter_dict.keys():
@@ -420,20 +423,7 @@ class ResourceNode:
             all_tokens_match = compare_two_token_lists(
                 non_id_parameter_tokens, operation_name_tokens)
             if all_tokens_match:
-                # merge same operations different target paths
-                target_concat_flag = False        
-                for i, current_ in enumerate(same_resource_name_relations):
-                    # if current_.get('alias', False):
-                    #     continue
-                    cur_op_name, rel_op_name = current_.get('operation_name'), relation_dict.get('operation_name')
-                    cur_target_path, rel_target_path = current_.get('target_path'), relation_dict.get('target_path')
-                    if cur_op_name==rel_op_name and rel_target_path not in cur_target_path:
-                        current_['target_path'] = ','.join([cur_target_path, rel_target_path])
-                        same_resource_name_relations[i]=current_
-                        target_concat_flag = True
-                        break
-                if not target_concat_flag:
-                    same_resource_name_relations.append(relation_dict)
+                same_resource_name_relations.append(relation_dict)
                     
         # what we are left with is different operations names 
         selected_relation = self.select_between_possible_relation_combinations_list(same_resource_name_relations)
