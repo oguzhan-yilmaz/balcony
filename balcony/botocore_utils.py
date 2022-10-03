@@ -3,10 +3,10 @@ from typing import List, Union
 from botocore.model import Shape, DenormalizedStructureBuilder, OperationModel
 
 try:
-    from .utils import compare_two_camel_case_words
+    from .utils import icompare_two_camel_case_words
     from .logs import get_rich_console
 except ImportError:
-    from utils import compare_two_camel_case_words
+    from utils import icompare_two_camel_case_words
     from logs import get_rich_console
 
 
@@ -233,7 +233,7 @@ def get_required_parameter_shapes_from_operation_model(operation_model: Operatio
     for input_member in input_shape_members:
         input_member_name = get_shape_name(input_member)
         for required_name in input_required_member_names:
-            if compare_two_camel_case_words(required_name, input_member_name):
+            if icompare_two_camel_case_words(required_name, input_member_name):
                 required_member_shapes.append(input_member)
             
     return required_member_shapes

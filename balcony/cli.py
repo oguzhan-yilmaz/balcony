@@ -7,14 +7,14 @@ try:
     from .nodes import ServiceNode
     from .reader import ServiceReader
     from .custom_nodes import *
-    from .factories import Boto3SessionSingleton
+    from .factories import Boto3SessionSingleton, BalconyAWS
 except ImportError:
     from utils import *
     from logs import get_logger, get_rich_console
     from nodes import ServiceNode
     from reader import ServiceReader
     from custom_nodes import *
-    from factories import Boto3SessionSingleton
+    from factories import Boto3SessionSingleton, BalconyAWS
 from rich.json import JSON
 import boto3
 from rich.columns import Columns
@@ -28,7 +28,7 @@ import os
 console = get_rich_console()
 logger = get_logger(__name__)
 session = Boto3SessionSingleton().get_session()
-
+balcony_client = BalconyAWS(session)
 
 app = typer.Typer(no_args_is_help=True)
 aws_app = typer.Typer() # no_args_is_help=True
@@ -57,7 +57,7 @@ def _complete_resource_node_name(ctx: typer.Context, incomplete: str):
     service = ctx.params.get("service", False)
     if not service:
         return []
-    service_node = ServiceNode(service, session)
+    service_node = balcony_client.get_service(service)
     if not service_node:
         return []
     resource_nodes = service_node.get_resource_nodes()
@@ -103,7 +103,7 @@ def _cli_ls_command(
             else:
                 raise typer.Exit(f"Invalid service name: {service}. Please pick a proper one.")
             
-        service_node = ServiceNode(service, session)
+        service_node = balcony_client.get_service(service)
         resource_nodes = service_node.get_resource_nodes()
         
         resource_node_names = []
@@ -119,7 +119,7 @@ def _cli_ls_command(
         
     elif service and resource_node:
         # we got both options filled
-        service_node = ServiceNode(service, session)
+        service_node = balcony_client.get_service(service) 
         resource_nodes = service_node.get_resource_nodes()
         resource_node_names = [ _rn.name for _rn in resource_nodes]
         resource_node_obj = service_node.get_resource_node_by_name(resource_node)
@@ -153,8 +153,8 @@ def _cli_read_command(
         console.print(Panel(f"[bold]Please pick one of the Resource Nodes from [green]{service}[/] Service", title="[red][bold]ERROR"))
         return
     elif service and resource_node:
-        service_node = ServiceNode(service, session)
-        service_reader = ServiceReader(service_node)
+        service_node = balcony_client.get_service(service)
+        service_reader = service_node.get_service_reader()
         read = service_reader.read_resource_node(resource_node)
         # with console.pager():
         #     console.print_json(data=read) 
@@ -171,7 +171,7 @@ def run_app():
 if __name__ == "__main__":
     # typer.run(main)
     app()
-    
+    aws_app
     
 
 

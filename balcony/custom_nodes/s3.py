@@ -17,6 +17,8 @@ class S3_BucketLifecycleConfiguration(ResourceNode, ResourceNodeRegistry, servic
     def define_extra_relations(self):
         r= super().define_extra_relations()
         return [{
+            "service_name": "s3",
+            "resource_node_name": "Buckets",
             "search_shape_name": "Bucket",
             "target_shape_name": "Name",
             "target_shape_type": "string",

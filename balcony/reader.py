@@ -1,10 +1,10 @@
 try:
-    from .utils import compare_two_camel_case_words, str_relations, ifind_similar_names_in_list
+    from .utils import icompare_two_camel_case_words, str_relations, ifind_similar_names_in_list
     from .botocore_utils import READ_ONLY_VERBS
     from .relations import FindRelationResultTypes, SUCCESSFUL_FIND_RELATION_RESULT_TYPES
     from .logs import get_logger
 except ImportError:
-    from utils import compare_two_camel_case_words, str_relations, ifind_similar_names_in_list
+    from utils import icompare_two_camel_case_words, str_relations, ifind_similar_names_in_list
     from botocore_utils import READ_ONLY_VERBS
     from relations import FindRelationResultTypes, SUCCESSFUL_FIND_RELATION_RESULT_TYPES
     from logs import get_logger
@@ -31,7 +31,7 @@ class ServiceReader:
         parameter_to_relation_map = {required_parameter_name: None for required_parameter_name in required_parameters}
         for required_parameter_name in parameter_to_relation_map.keys():
             is_parameter_in_relation_map = any([
-                compare_two_camel_case_words(required_parameter_name, relation_dict.get('search_shape_name')) 
+                icompare_two_camel_case_words(required_parameter_name, relation_dict.get('search_shape_name')) 
                  for relation_dict in selected_relations
             ])
             parameter_to_relation_map[required_parameter_name]=is_parameter_in_relation_map
@@ -182,7 +182,7 @@ class ServiceReader:
         
         if relations_of_operation == True or relation_result_type == FindRelationResultTypes.NoRequiredParameters:
             # no required parameters
-            generated_api_parameters = resource_node.generate_api_parameters_from_target_data(operation_name, [], {})
+            generated_api_parameters = resource_node.generate_api_parameters_from_operation_data(operation_name, [], {})
  
             
             if isinstance(generated_api_parameters, Iterable):
@@ -209,7 +209,7 @@ class ServiceReader:
             })
 
         # send the operations_data to resource_node to create valid_api_parameters
-        generated_api_parameters = resource_node.generate_api_parameters_from_target_data(operation_name, relations_of_operation, related_operations_data)
+        generated_api_parameters = resource_node.generate_api_parameters_from_operation_data(operation_name, relations_of_operation, related_operations_data)
 
         if generated_api_parameters == []:
             logger.debug(f"FAILED TO AUTO-GENERATE API PARAMETERS. Related Resources couldn't found.")

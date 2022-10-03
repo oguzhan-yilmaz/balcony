@@ -50,6 +50,16 @@ def compare_two_token_lists(token_list_one, token_list_two):
     if len(token_list_one) != len(token_list_two):
         return False
     token_by_token_match = [
+        w1.lower()==w2.lower()
+        for w1, w2 in zip(token_list_one, token_list_two)
+    ]
+    has_token_by_token_match = all(token_by_token_match)
+    return has_token_by_token_match
+
+def icompare_two_token_lists(token_list_one, token_list_two):
+    if len(token_list_one) != len(token_list_two):
+        return False
+    token_by_token_match = [
         bool(inflect_engine.compare_nouns(w1.lower(), w2.lower()))
         for w1, w2 in zip(token_list_one, token_list_two)
     ]
@@ -63,11 +73,16 @@ def camel_case_split(identifier: str) -> List[str]:
     )
     return [m.group(0) for m in matches]
 
-
 def compare_two_camel_case_words(word1, word2):
     token_list_1 = [_.lower() for _ in camel_case_split(word1)]
     token_list_2 = [_.lower() for _ in camel_case_split(word2)]
     return compare_two_token_lists(token_list_1, token_list_2)
+
+
+def icompare_two_camel_case_words(word1, word2):
+    token_list_1 = [_.lower() for _ in camel_case_split(word1)]
+    token_list_2 = [_.lower() for _ in camel_case_split(word2)]
+    return icompare_two_token_lists(token_list_1, token_list_2)
 
 def compare_two_tokens(token_one, token_two):
     return bool(inflect_engine.compare_nouns(token_one, token_two))

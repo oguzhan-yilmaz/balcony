@@ -1,11 +1,11 @@
 try:
     from .botocore_utils import get_shape_name, flatten_shape_to_its_non_collection_shape_and_target_paths, IDENTIFIER_NAMES
     from .logs import get_logger
-    from .utils import compare_two_camel_case_words
+    from .utils import icompare_two_camel_case_words
 except ImportError:
     from botocore_utils import get_shape_name, flatten_shape_to_its_non_collection_shape_and_target_paths, IDENTIFIER_NAMES
     from logs import get_logger
-    from utils import compare_two_camel_case_words
+    from utils import icompare_two_camel_case_words
 
 import json
 import os
@@ -155,7 +155,7 @@ class RelationMap:
                     })
                 for required_shape_name in unique_required_shape_names_list:
                     # TODO: compare lower names
-                    _match = compare_two_camel_case_words(shape_name, required_shape_name)
+                    _match = icompare_two_camel_case_words(shape_name, required_shape_name)
                     if _match:
                         all_found_relations.append({
                             'service_name':self.service_node.name,

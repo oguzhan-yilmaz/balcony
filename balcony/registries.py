@@ -1,7 +1,7 @@
 try:
-    from .utils import compare_two_camel_case_words
+    from .utils import icompare_two_camel_case_words
 except ImportError:
-    from utils import compare_two_camel_case_words
+    from utils import icompare_two_camel_case_words
 class ResourceNodeRegistry:
     _registry = {}
 

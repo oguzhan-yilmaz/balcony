@@ -1,9 +1,42 @@
 import boto3
 try:
-    from .utils import _create_boto_session
+    from .utils import get_all_available_services, _create_boto_session
+    from .nodes import ServiceNode
 except ImportError:
-    from utils import _create_boto_session
+    from utils import get_all_available_services, _create_boto_session
+    from nodes import ServiceNode
     
+class BalconyAWS:
+    def __init__(self, boto3_session) -> None:
+        self.boto3_session = boto3_session
+        self.service_node_factory = ServiceNodeFactory(self.boto3_session)
+        
+    def get_available_service_node_names(self):
+        return get_all_available_services(self.boto3_session)
+    
+    
+    def get_service(self, service_name:str) -> ServiceNode:
+        service_node = self.service_node_factory.get_service_node(service_name)
+        return service_node
+    
+
+class ServiceNodeFactory:
+    def __init__(self, boto3_session):
+        self.boto3_session = boto3_session
+        self._service_nodes_map = {}
+
+    def _create_service_node(self, service_name):
+        service_node = ServiceNode(service_name, self.boto3_session)
+        self._service_nodes_map[service_name] = service_node
+
+    def get_service_node(self, service_name):
+        if not service_name in self._service_nodes_map:
+            self._create_service_node(service_name)            
+        return self._service_nodes_map.get(service_name)
+    
+
+
+
 class Boto3SessionSingleton(object):
     _instance = None
     _session = None

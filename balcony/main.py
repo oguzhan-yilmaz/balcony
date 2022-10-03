@@ -3,17 +3,17 @@ try:
     from .nodes import *
     from .logs import get_logger
     from .factories import Boto3SessionSingleton
-    from .utils import get_all_available_services
-    from .config import AppConfig
-    from .custom_nodes import *
+    from .utils import get_all_available_services, _create_boto_session
+    from .app import app_registry
 
 except ImportError:
     from custom_nodes import *
     from nodes import *
     from logs import get_logger, get_rich_console
     from factories import Boto3SessionSingleton
-    from utils import get_all_available_services
-    from config import AppConfig
+    from utils import get_all_available_services, _create_boto_session
+    from app import app_registry
+
     from custom_nodes import *
 
 
@@ -21,6 +21,9 @@ import boto3
 
 logger = get_logger(__name__)
 console = get_rich_console()
+app_registry.populate(['balcony_app.iamhelper'])
+print(app_registry.app_configs)
+print(app_registry.app_configs)
 # x = AppConfig.create('balcony_app.myservice')
 # print(x)
 # x
@@ -62,30 +65,18 @@ if __name__ == '__main__':
     # for service_name in all_service_names:
         # continue
     # for service_name in []:
-    for service_name in ['lambda']:
+    for service_name in ['s3']:
         service_node = ServiceNode(service_name, session)
         service_node
-        # print(colored(service_name, 'yellow'))
-        # service_model = service_node.get_service_model()
-        # for shape_name in service_model.shape_names:
-        #     shape = service_model.shape_for(shape_name)
-        #     shape
-        #     pattern = shape.metadata.get('pattern', False)
-        #     if shape.metadata.get('pattern', False):
-        #         print('\t', colored(shape_name, 'blue'),colored(pattern, 'green'))
-    
-    
-    
-    
-    #     # if not service_name=='amplifybackend':
-    #     #     continue
+        
+   
+
         console.print('-'*50)
         console.print('#'*10, colored(service_name, 'yellow'), '#'*10)
         # resource_nodes = service_node.get_resource_nodes()
-        service_reader = ServiceReader(service_node)
-        # a = relation_map.get_relations_map()
-        # a = service_reader.recursively_get_dependent_operations('GetAnalyzer')
-        
+        service_reader = service_node.get_service_reader()
+
+
         read_operation_names = service_node.get_read_operation_names()
         for r_ops_name in read_operation_names:
             verb, *resource_name_tokens = camel_case_split(r_ops_name)

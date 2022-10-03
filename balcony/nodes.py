@@ -1,12 +1,12 @@
 try:
-    from .utils import camel_case_split, ifind_similar_names_in_list , compare_two_token_lists, str_relations
+    from .utils import camel_case_split, ifind_similar_names_in_list , icompare_two_token_lists, compare_two_camel_case_words, str_relations
     from .botocore_utils import *
     from .relations import RelationMap, FindRelationResultTypes
     from .reader import ServiceReader
     from .registries import ResourceNodeRegistry
     from .logs import get_logger, get_rich_console
 except ImportError:
-    from utils import camel_case_split, ifind_similar_names_in_list , compare_two_token_lists, str_relations
+    from utils import camel_case_split, ifind_similar_names_in_list , icompare_two_token_lists, compare_two_camel_case_words, str_relations
     from botocore_utils import *
     from relations import RelationMap, FindRelationResultTypes
     from reader import ServiceReader
@@ -48,46 +48,11 @@ class ResourceNode:
         self.name = name
         self.operation_names = operation_names
         self._operation_models = {}
-        
-    def generate_api_parameters_from_target_data(self, operation_name, relations_of_operation, related_operations_data):
-        resource_node = self
-        resource_node_name = resource_node.name
-        no_required_parameters = relations_of_operation == []
 
-        if no_required_parameters:
-            # Even though we know there are no required parameters, 
-            # some parameters like MaxResults must be filled.
-            api_parameters = resource_node.create_valid_api_parameters_list(operation_name, related_operations_data, [], [])
-            return api_parameters
 
-        related_operations_data
-        raw_api_parameters_list = self.try_to_generate(operation_name, relations_of_operation, related_operations_data)
-                
-        api_parameters_list = resource_node.create_valid_api_parameters_list(operation_name, related_operations_data, relations_of_operation, raw_api_parameters_list)
-        return api_parameters_list
-    
-    def try_to_generate(self, operation_name, relations_of_operation, related_operations_data):
-        resource_node = self
-        generated_jmespath_nested_selector = resource_node.generate_jmespath_selector_from_relations(operation_name, relations_of_operation)
-        if not generated_jmespath_nested_selector:
-            logger.debug(f"CAN'T GENERATE JMESPATH SELECTOR: {resource_node.name} {operation_name} {generated_jmespath_nested_selector}")
-            return False
-        logger.debug(f"JMESPATH SELECTOR GENERATED: [blue]{generated_jmespath_nested_selector}[/], target operation: [bold][blue][{resource_node.name}[/].[green]{operation_name}[/]]")
-
-        if not related_operations_data:
-            logger.debug(f"NO OPERATION DATA FOUND. {related_operations_data=}")
-
-        raw_api_parameters_list = jmespath.search(generated_jmespath_nested_selector, related_operations_data)
-        
-        if raw_api_parameters_list == []:
-            # successfull jmespath search that yielded no results. operation data might be empty
-            return raw_api_parameters_list
-        elif not raw_api_parameters_list:
-            logger.debug(f"CANT GENERATE API PARAMETERS LIST WITH [bold][red]{generated_jmespath_nested_selector}[/] {related_operations_data=}")
-            return False
-        
-        return raw_api_parameters_list
-    
+    # NOTE: +overrideable
+    def define_extra_relations(self):
+        return []
     
     # NOTE: +overrideable
     def get_operations_relations(self, operation_name:str, relation_map: RelationMap=None):
@@ -182,11 +147,6 @@ class ResourceNode:
                 logger.debug(f"CAN'T DECIDE BTWN RELATIONS. {self.service_node.name}.{operation_name} has req parameters: {required_parameter_names}.")
                 return False, FindRelationResultTypes.CantDecideBetweenGeneratedParameters
 
-        
-    # NOTE: +overrideable
-    def define_extra_relations(self):
-        return []
-    
     # NOTE: +overrideable
     def generate_jmespath_selector_from_relations(self, operation_name, relation_list):
         _for_all_the_responses = '[*].'
@@ -256,6 +216,29 @@ class ResourceNode:
         return flattened_jmespath_nested_selector
 
     # NOTE: +overrideable
+    def _generate_raw_api_parameters_from_operation_data(self, operation_name, relations_of_operation, related_operations_data):
+        resource_node = self
+        generated_jmespath_nested_selector = resource_node.generate_jmespath_selector_from_relations(operation_name, relations_of_operation)
+        if not generated_jmespath_nested_selector:
+            logger.debug(f"CAN'T GENERATE JMESPATH SELECTOR: {resource_node.name} {operation_name} {generated_jmespath_nested_selector}")
+            return False
+        logger.debug(f"JMESPATH SELECTOR GENERATED: [blue]{generated_jmespath_nested_selector}[/], target operation: [bold][blue][{resource_node.name}[/].[green]{operation_name}[/]]")
+
+        if not related_operations_data:
+            logger.debug(f"NO OPERATION DATA FOUND. {related_operations_data=}")
+
+        raw_api_parameters_list = jmespath.search(generated_jmespath_nested_selector, related_operations_data)
+        
+        if raw_api_parameters_list == []:
+            # successfull jmespath search that yielded no results. operation data might be empty
+            return raw_api_parameters_list
+        elif not raw_api_parameters_list:
+            logger.debug(f"CANT GENERATE API PARAMETERS LIST WITH [bold][red]{generated_jmespath_nested_selector}[/] {related_operations_data=}")
+            return False
+        
+        return raw_api_parameters_list
+    
+    # NOTE: +overrideable
     def create_valid_api_parameters_list(self, operation_name, related_operations_data, relations_of_operation, raw_api_parameters_list ):
         operation_model = self.get_operation_model(operation_name)
         required_parameter_names = self.get_required_parameter_names_from_operation_name(operation_name)
@@ -288,7 +271,8 @@ class ResourceNode:
         generated_api_params = []
         if raw_api_parameters_list == False:
             # TODO: add logic here
-            pass
+            logger.debug(f"FAILED TO CREATE VALID API PARAMETERS. Required Parameters are: [bold]{required_parameter_names}[/]")
+            return False
         for raw_api_parameter_dict in raw_api_parameters_list:
             result_copy = copy.deepcopy(result)
             for raw_key in raw_api_parameter_dict.keys():
@@ -316,6 +300,24 @@ class ResourceNode:
         #     # result[r_parameter_name_key] = ?
         # generated
         return generated_api_params
+    
+    # NOTE: +overrideable
+    def generate_api_parameters_from_operation_data(self, operation_name, relations_of_operation, related_operations_data):
+        resource_node = self
+        resource_node_name = resource_node.name
+        no_required_parameters = relations_of_operation == []
+
+        if no_required_parameters:
+            # Even though we know there are no required parameters, 
+            # some parameters like MaxResults must be filled.
+            api_parameters = resource_node.create_valid_api_parameters_list(operation_name, related_operations_data, [], [])
+            return api_parameters
+
+        related_operations_data
+        raw_api_parameters_list = self._generate_raw_api_parameters_from_operation_data(operation_name, relations_of_operation, related_operations_data)
+                
+        api_parameters_list = resource_node.create_valid_api_parameters_list(operation_name, related_operations_data, relations_of_operation, raw_api_parameters_list)
+        return api_parameters_list
     
     def print_operation(self, operation_name):
         operation_panel = self._rich_operation_details_panel(operation_name)
@@ -420,7 +422,7 @@ class ResourceNode:
             operation_verb, *operation_name_tokens = camel_case_split(operation_name)
             # relation_dict.update({'operation_verb': operation_verb, 'operation_name_tokens': operation_name_tokens})
             # TODO: here
-            all_tokens_match = compare_two_token_lists(
+            all_tokens_match = icompare_two_token_lists(
                 non_id_parameter_tokens, operation_name_tokens)
             if all_tokens_match:
                 same_resource_name_relations.append(relation_dict)
@@ -484,7 +486,13 @@ class ServiceNode:
         self.client = self.session.client(self.name)
         self.resource_nodes = None
         self._relation_map = None
+        self._reader = None
         self._read_operation_name_to_tokens_map = None
+
+    def get_service_reader(self):
+        if not self._reader:
+            self._reader = ServiceReader(self)
+        return self._reader
 
     def print_resource_node(self, resource_node_name):
         # TODO: check if resource node exists
@@ -507,8 +515,13 @@ class ServiceNode:
         return Panel(operations_group, title=f'Resource Node: [blue][bold]{resource_node.name} ', title_align='left')
         
     def get_resource_node_by_name(self, resource_node_name):
+        if not resource_node_name:
+            return False
+        
         for r_node in self.get_resource_nodes():
-            if r_node.name == resource_node_name:
+            # FIXME: laterr
+            # if r_node.name == resource_node_name:
+            if icompare_two_camel_case_words(r_node.name, resource_node_name):
                 return r_node
         return False
     
@@ -584,6 +597,7 @@ class ServiceNode:
             if gen_resource_node in _used_for_combining_resource_nodes:
                 continue
             for other_resource_node in generated_resouce_nodes[i+1:]:
+                # FIXME: IMPORTANT
                 if compare_two_camel_case_words(gen_resource_node.name, other_resource_node.name):
                     # select the shortest name, meaning singular
                     singular_named_resource_node = gen_resource_node
@@ -640,30 +654,3 @@ class ServiceNode:
         service_model = self.get_service_model()
         operation_names = service_model.operation_names
         return operation_names
-
-    # def get_operations_relations(self, operation_name):
-    #     resource_node = self
-    #     if not resource_node:
-    #         return False, FindRelationResultTypes.InternalError
-    #     relation_map = self.service_node.get_relation_map()
-    #     required_parameters = resource_node.get_required_parameter_names_from_operation_name(operation_name)
-
-        
-    #     if not required_parameters:
-    #         return True, FindRelationResultTypes.NoRequiredParameters
-    #     else:
-    #         # there are required parameters, try to find every relation for this operation
-    #         relations_of_operation, relation_result_type = resource_node.get_operations_relations(operation_name, relation_map)
-    #         is_all_parameters_found = self.verify_all_required_parameters_in_selected_relations(required_parameters, relations_of_operation)
-    #         # return relations, relation_result_type
-    #         if relation_result_type not in SUCCESSFUL_FIND_RELATION_RESULT_TYPES:
-    #             # not succeeded
-    #             return False, relation_result_type
-    #         elif not is_all_parameters_found:
-    #             return False, FindRelationResultTypes.SomeRelationsFoundButNotAll
-    #         elif not relations_of_operation:
-    #             return False, FindRelationResultTypes.NoRelations
-    #         else:
-    #             # success
-    #             return relations_of_operation, FindRelationResultTypes.RelationsFound
-             
