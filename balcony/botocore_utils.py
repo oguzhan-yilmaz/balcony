@@ -46,6 +46,24 @@ def find_key_in_dict_keys(key:str, dict_keys: Union[list, dict]) -> str:
             return dict_key
     return False
 
+def ifind_key_in_dict_keys(key:str, dict_keys: Union[list, dict]) -> str:
+    """Case insensitive search for a `key` in a `list` or `dict.keys()`. 
+
+    Args:
+        key (str): Search case insensively for
+        dict_keys (Union[list, dict]): In a list or keys of dictionary
+
+    Returns:
+        str: Found key that case insensively matches the given key.
+    """
+    dict_keys_list = dict_keys
+    if type(dict_keys) == dict:
+        dict_keys_list = dict_keys.keys()
+    for dict_key in dict_keys_list:
+        if icompare_two_camel_case_words(key, dict_key):
+            return dict_key
+    return False
+
 def get_max_results_value_from_shape(input_shape: Shape) -> int:
     """Finds the `MaxResults` highest value for an input shape.
 

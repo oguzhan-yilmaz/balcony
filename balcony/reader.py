@@ -48,7 +48,7 @@ class ServiceReader:
             logger.debug(f"CALLING OPERATION: [blue]{operation_name}[/] with parameters: {api_parameters}")
             response = client._make_api_call(operation_name, api_parameters)
             # response = None
-            
+            response
         except ClientError as e:
             # print(colored(str(e),'red'))
             logger.debug(f"FAILED: CALLING OPERATION. {operation_name} with parameters: {api_parameters}. Exception: {str(e)} ")
@@ -158,14 +158,16 @@ class ServiceReader:
 
     def read_operation(self, resource_node_name, operation_name, refresh=False):
         # if it has been read called already, return it
+
+        resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
+
         if refresh == True:
             pass # TODO: delete from reader
-        already_existing_data = self.search_operation_data(resource_node_name, operation_name)
+        already_existing_data = self.search_operation_data(resource_node.name, operation_name)
         
         if already_existing_data!=False and refresh == False:
             return already_existing_data
         
-        resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
         
         if not resource_node:
             logger.debug(f"RESOURCE NODE NOT FOUND. While reading the {resource_node_name}.{operation_name}, Resource Node {resource_node_name} could not be loaded.")
@@ -194,9 +196,8 @@ class ServiceReader:
 
         for rel in relations_of_operation:
             rel_operation_data = self.read_operation(rel.get('resource_node_name'), rel.get('operation_name'), refresh=refresh)
-            success = rel_operation_data != False
-            if not success:
-                logger.debug(f"FAILED TO READ RELATED OPERATION from [bold]{resource_node.name}[/]. {rel.get('service_name')}.{rel.get('resource_node_name')}.{rel.get('operation_name')}")
+            if not rel_operation_data:
+                logger.debug(f"[red]FAILED TO FIND RELATED RESOURCES[/] from [bold]{resource_node_name}[/], while reading:  [bold]{rel.get('service_name')}.{rel.get('resource_node_name')}.{rel.get('operation_name')}[/] operation.")
                 return False
             
         # gather all their related data, put it under a dict 

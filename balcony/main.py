@@ -4,26 +4,26 @@ try:
     from .logs import get_logger
     from .factories import Boto3SessionSingleton
     from .utils import get_all_available_services, _create_boto_session
-    from .app import app_registry
-
+    from .registries import AppRegistry, app_registry
 except ImportError:
     from custom_nodes import *
     from nodes import *
     from logs import get_logger, get_rich_console
     from factories import Boto3SessionSingleton
     from utils import get_all_available_services, _create_boto_session
-    from app import app_registry
+    from registries import AppRegistry, app_registry
 
     from custom_nodes import *
 
 
 import boto3
+import sys
 
 logger = get_logger(__name__)
 console = get_rich_console()
-app_registry.populate(['balcony_app.iamhelper'])
-print(app_registry.app_configs)
-print(app_registry.app_configs)
+
+# print(app_registry.app_configs)
+# print(app_registry.app_configs)
 # x = AppConfig.create('balcony_app.myservice')
 # print(x)
 # x

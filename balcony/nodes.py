@@ -1,12 +1,12 @@
 try:
-    from .utils import camel_case_split, ifind_similar_names_in_list , icompare_two_token_lists, compare_two_camel_case_words, str_relations
+    from .utils import camel_case_split, compare_nouns, ifind_similar_names_in_list , icompare_two_token_lists, compare_two_camel_case_words, str_relations
     from .botocore_utils import *
     from .relations import RelationMap, FindRelationResultTypes
     from .reader import ServiceReader
     from .registries import ResourceNodeRegistry
     from .logs import get_logger, get_rich_console
 except ImportError:
-    from utils import camel_case_split, ifind_similar_names_in_list , icompare_two_token_lists, compare_two_camel_case_words, str_relations
+    from utils import camel_case_split, compare_nouns, ifind_similar_names_in_list , icompare_two_token_lists, compare_two_camel_case_words, str_relations
     from botocore_utils import *
     from relations import RelationMap, FindRelationResultTypes
     from reader import ServiceReader
@@ -67,7 +67,7 @@ class ResourceNode:
         
         if not required_parameter_names:
             # no required parameters
-            logger.debug(f"NO REQUIRED PARAMETERS. {self.service_node.name}.{operation_name} has no required parameters")
+            logger.debug(f"NO REQUIRED PARAMETERS. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has no required parameters")
             return True, FindRelationResultTypes.NoRequiredParameters
 
         if len(required_parameter_names) == 1:
@@ -76,16 +76,16 @@ class ResourceNode:
             single_parameter_name = required_parameter_names[0]
             generated_relations_for_parameter = relation_map.get_parameters_generated_relations(single_parameter_name, operation_name)
             if not generated_relations_for_parameter:
-                logger.debug(f"NO RELATIONS GENERATED. {self.service_node.name}.{operation_name} has req parameter: {single_parameter_name}. {generated_relations_for_parameter=}")
+                logger.debug(f"NO RELATIONS GENERATED. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameter: {single_parameter_name}. {generated_relations_for_parameter=}")
                 return False, FindRelationResultTypes.NoGeneratedParameters
 
             selected_relations = resource_node.find_best_relation_for_single_parameter(single_parameter_name, generated_relations_for_parameter)
             # required_parameter_names_to_relations_map[single_parameter_name]=selected_relations
             if selected_relations:
-                logger.debug(f"SINGLE PARAMETER FOUND. {self.service_node.name}.{operation_name} has req parameter: {single_parameter_name}. Relation found: {str_relations(selected_relations)}")
+                logger.debug(f"SINGLE PARAMETER FOUND. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameter: [bold]{single_parameter_name}[/]. Relation found: [yellow]{str_relations(selected_relations)}[/]")
                 return selected_relations, FindRelationResultTypes.RelationsFound
             else:
-                logger.debug(f"CAN'T DECIDE BTWN RELATIONS. {self.service_node.name}.{operation_name} has req parameters: {required_parameter_names}.")
+                logger.debug(f"CAN'T DECIDE BTWN RELATIONS. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameters: {required_parameter_names}.")
                 return False, FindRelationResultTypes.CantDecideBetweenGeneratedParameters
         else:
             # multiple required parameters, zip and check
@@ -114,11 +114,11 @@ class ResourceNode:
                         for _found_relations in required_parameter_names_to_relations_map.values()
                         if _found_relations
                     ])
-                    logger.debug(f"NOT ALL RELATIONS FOUND. {self.service_node.name}.{operation_name} has req parameter: {required_parameter_names}. Partially found relations: {partial_relations_str}")
+                    logger.debug(f"NOT ALL RELATIONS FOUND. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameter: {required_parameter_names}. Partially found relations: {partial_relations_str}")
                     return False, FindRelationResultTypes.SomeRelationsFoundButNotAll
                 else:
                     # nothing found
-                    logger.debug(f"NO RELATIONS FOUND. {self.service_node.name}.{operation_name} has req parameter: {required_parameter_names}.")
+                    logger.debug(f"NO RELATIONS FOUND. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameter: {required_parameter_names}.")
                     return False, FindRelationResultTypes.NoRelations
             
             def check(list_of_relations):
@@ -134,17 +134,17 @@ class ResourceNode:
                 possible_relation_combinations = list(filter(check, relations_cartesian_product))            
             
             if not possible_relation_combinations:
-                logger.debug(f"CAN'T DECIDE BTWN RELATIONS. {self.service_node.name}.{operation_name} has req parameters: {required_parameter_names}.")
+                logger.debug(f"CAN'T DECIDE BTWN RELATIONS. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameters: {required_parameter_names}.")
                 return False, FindRelationResultTypes.CantDecideBetweenGeneratedParameters
                 # TODO: add required parameters to attributes + making them available as relations. add metadata.
             
             # find common target_operation relations across the permutation.
             relation_chosen_from_possible_combinations = self.select_between_possible_relation_combinations_matrix(possible_relation_combinations)    
             if relation_chosen_from_possible_combinations:
-                logger.debug(f"MULTIPLE PARAMETERS FOUND. {self.service_node.name}.{operation_name} has req parameters: {required_parameter_names}. Relations found: {str_relations(relation_chosen_from_possible_combinations)}")
+                logger.debug(f"MULTIPLE PARAMETERS FOUND. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameters: {required_parameter_names}. Relations found: {str_relations(relation_chosen_from_possible_combinations)}")
                 return relation_chosen_from_possible_combinations, FindRelationResultTypes.RelationsFound
             else:
-                logger.debug(f"CAN'T DECIDE BTWN RELATIONS. {self.service_node.name}.{operation_name} has req parameters: {required_parameter_names}.")
+                logger.debug(f"CAN'T DECIDE BTWN RELATIONS. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameters: {required_parameter_names}.")
                 return False, FindRelationResultTypes.CantDecideBetweenGeneratedParameters
 
     # NOTE: +overrideable
@@ -489,6 +489,11 @@ class ServiceNode:
         self._reader = None
         self._read_operation_name_to_tokens_map = None
 
+
+    def read(self, resource_node_name):
+        reader = self.get_service_reader()
+        return reader.read_resource_node(resource_node_name)
+    
     def get_service_reader(self):
         if not self._reader:
             self._reader = ServiceReader(self)
@@ -558,7 +563,7 @@ class ServiceNode:
         _custom_cls_for_resource_node = _resource_node_registry.find_custom_class_for_resource_node(service_name, resource_node_name)
         if _custom_cls_for_resource_node:
             # print(_custom_cls_for_resource_node, 'is used for ', service_name, resource_node_name)
-            logger.debug(f"Registry: {_custom_cls_for_resource_node} class is used for  {service_name} {resource_node_name}")
+            logger.debug(f"Registry: {_custom_cls_for_resource_node} class is used for  [bold][green]{service_name}[/].[blue]{resource_node_name}")
             _ResourceNodeClass = _custom_cls_for_resource_node
         return _ResourceNodeClass(**kwargs)
     
@@ -569,13 +574,23 @@ class ServiceNode:
         for operation_name, op_name_tokens in op_name_to_tokens_map.items():
             verb, *resource_name_list = op_name_tokens
             resource_node_name = ''.join(resource_name_list)
-            if resource_node_name not in resource_name_to_operations_map:
+            
+            found_key = ifind_key_in_dict_keys(resource_node_name, resource_name_to_operations_map.keys())
+            if found_key:
+                # decide if we want to keep the plural or singular name
+                
+                sp_comparison = compare_nouns(resource_node_name, found_key)
+                if sp_comparison == 's:p':
+                    # swap the found_key with resource_node_name as dict key
+                    resource_name_to_operations_map[resource_node_name] = [operation_name] + resource_name_to_operations_map[found_key]
+                    resource_name_to_operations_map.pop(found_key)
+                else:
+                    resource_name_to_operations_map[found_key].append(operation_name)                
+            else:
                 resource_name_to_operations_map[resource_node_name] = [
                     operation_name]
-            else:
-                resource_name_to_operations_map[resource_node_name].append(
-                    operation_name)
-                
+
+        # createt the resource nodes
         for resource_node_name, operations_list in resource_name_to_operations_map.items():
             created_resource_node = self.create_resource_node(
                 service_node=self, 

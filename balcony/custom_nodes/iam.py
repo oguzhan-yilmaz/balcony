@@ -19,6 +19,8 @@ class IAM_Policy(ResourceNode, ResourceNodeRegistry, service_name="iam", name="P
     def define_extra_relations(self):
         r= super().define_extra_relations()
         return [{
+            "service_name": "iam",
+            "resource_node_name": "Policy",
             "search_shape_name": "PolicyArn",
             "target_shape_name": "Arn",
             "target_shape_type": "string",
@@ -33,6 +35,8 @@ class IAM_User(ResourceNode, ResourceNodeRegistry, service_name="iam", name="Use
     def define_extra_relations(self):
         r= super().define_extra_relations()
         return [{
+                "service_name": "iam",
+            "resource_node_name": "User",
             "search_shape_name": "UserName",
             "target_shape_name": "UserName",
             "target_shape_type": "string",
@@ -47,6 +51,8 @@ class IAM_Role(ResourceNode, ResourceNodeRegistry, service_name="iam", name="Rol
     def define_extra_relations(self):
         r= super().define_extra_relations()
         return [{
+            "service_name": "iam",
+            "resource_node_name": "Role",
             "search_shape_name": "RoleName",
             "target_shape_name": "RoleName",
             "target_shape_type": "string",
@@ -61,6 +67,8 @@ class IAM_AccessKeys(ResourceNode, ResourceNodeRegistry, service_name="iam", nam
     def define_extra_relations(self):
         r= super().define_extra_relations()
         return [{
+            "service_name": "iam",
+            "resource_node_name": "AccessKeys",
             "search_shape_name": "AccessKeyId",
             "target_shape_name": "AccessKeyId",
             "target_shape_type": "string",

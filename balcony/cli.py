@@ -1,12 +1,12 @@
 from typing import Optional
 import typer
-
 try:
     from .utils import *
     from .logs import get_logger, get_rich_console
     from .nodes import ServiceNode
     from .reader import ServiceReader
     from .custom_nodes import *
+    from .registries import app_registry
     from .factories import Boto3SessionSingleton, BalconyAWS
 except ImportError:
     from utils import *
@@ -15,6 +15,9 @@ except ImportError:
     from reader import ServiceReader
     from custom_nodes import *
     from factories import Boto3SessionSingleton, BalconyAWS
+    from registries import app_registry
+
+# TODO allow single parameter selection with optional arg
 from rich.json import JSON
 import boto3
 from rich.columns import Columns
@@ -28,13 +31,43 @@ import os
 console = get_rich_console()
 logger = get_logger(__name__)
 session = Boto3SessionSingleton().get_session()
-balcony_client = BalconyAWS(session)
-
+balcony_aws = BalconyAWS(session)
 app = typer.Typer(no_args_is_help=True)
 aws_app = typer.Typer() # no_args_is_help=True
+awsx_app = typer.Typer(no_args_is_help=True) # no_args_is_help=True
 app.add_typer(aws_app, name="aws")
+app.add_typer(awsx_app, name="awsx")
 # aws_ls_app = typer.Typer(no_args_is_help=True)
 # aws_app.add_typer(aws_ls_app, name="ls")
+
+app_registry.import_balcony_apps(['balconyapp'])
+print(app_registry._registry)
+
+# for each author have a different namespace?
+
+app_objects = []
+registered_apps = app_registry.get_registered_apps()
+for author, app_dict_list in registered_apps.items():
+    for app_dict in app_dict_list:
+        app_cls = app_dict.get('cls')
+        app_name = app_dict.get('app_name')
+        app_obj = app_cls()
+        app_objects.append(app_obj)
+
+        try:
+            _typer_app = app_obj.get_cli_app()
+            if _typer_app:
+                awsx_app.add_typer(_typer_app, name=app_name)
+        except NotImplementedError:
+            print(app_name, 'has not implemented get_cli_app()') 
+            
+# app_cls = app_registry._registry['og'][0]['cls']()
+# x = app_cls.get_data()
+
+# ap__  = app_cls.get_cli_app()
+
+# ap__
+
 
 def _get_available_service_node_names():
     return get_all_available_services(session)
@@ -57,7 +90,7 @@ def _complete_resource_node_name(ctx: typer.Context, incomplete: str):
     service = ctx.params.get("service", False)
     if not service:
         return []
-    service_node = balcony_client.get_service(service)
+    service_node = balcony_aws.get_service(service)
     if not service_node:
         return []
     resource_nodes = service_node.get_resource_nodes()
@@ -103,7 +136,7 @@ def _cli_ls_command(
             else:
                 raise typer.Exit(f"Invalid service name: {service}. Please pick a proper one.")
             
-        service_node = balcony_client.get_service(service)
+        service_node = balcony_aws.get_service(service)
         resource_nodes = service_node.get_resource_nodes()
         
         resource_node_names = []
@@ -119,7 +152,7 @@ def _cli_ls_command(
         
     elif service and resource_node:
         # we got both options filled
-        service_node = balcony_client.get_service(service) 
+        service_node = balcony_aws.get_service(service) 
         resource_nodes = service_node.get_resource_nodes()
         resource_node_names = [ _rn.name for _rn in resource_nodes]
         resource_node_obj = service_node.get_resource_node_by_name(resource_node)
@@ -153,7 +186,7 @@ def _cli_read_command(
         console.print(Panel(f"[bold]Please pick one of the Resource Nodes from [green]{service}[/] Service", title="[red][bold]ERROR"))
         return
     elif service and resource_node:
-        service_node = balcony_client.get_service(service)
+        service_node = balcony_aws.get_service(service)
         service_reader = service_node.get_service_reader()
         read = service_reader.read_resource_node(resource_node)
         # with console.pager():

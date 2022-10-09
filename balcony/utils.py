@@ -38,13 +38,15 @@ def ifind_similar_names_in_list(search_for, search_in_list):
 
 def str_relations(relations):
     return ", ".join([
-        f"[{r.get('operation_name')} > {r.get('target_path')}]"
+        f"[{r.get('service_name')}.{r.get('operation_name')} > {r.get('target_path')}]"
         for r in relations
     ])
 
 def get_all_available_services(session) -> List[str]:
     return session.get_available_services()
 
+def compare_nouns(word1: str, word2: str):
+    return inflect_engine.compare_nouns(word1, word2)
 
 def compare_two_token_lists(token_list_one, token_list_two):
     if len(token_list_one) != len(token_list_two):
