@@ -26,6 +26,15 @@ class IAM_Policy(ResourceNode, ResourceNodeRegistry, service_name="iam", name="P
             "target_shape_type": "string",
             "operation_name": "ListPolicies",
             "target_path": "Policies[*].Arn"
+        },
+        {
+            "service_name": "iam",
+            "resource_node_name": "Policy",
+            "search_shape_name": "VersionId",
+            "target_shape_name": "DefaultVersionId",
+            "target_shape_type": "string",
+            "operation_name": "ListPolicies",
+            "target_path": "Policies[*].DefaultVersionId"
         }]
 
 class IAM_User(ResourceNode, ResourceNodeRegistry, service_name="iam", name="User"):
@@ -35,7 +44,7 @@ class IAM_User(ResourceNode, ResourceNodeRegistry, service_name="iam", name="Use
     def define_extra_relations(self):
         r= super().define_extra_relations()
         return [{
-                "service_name": "iam",
+            "service_name": "iam",
             "resource_node_name": "User",
             "search_shape_name": "UserName",
             "target_shape_name": "UserName",

@@ -2,10 +2,12 @@ try:
     from .botocore_utils import get_shape_name, flatten_shape_to_its_non_collection_shape_and_target_paths, IDENTIFIER_NAMES
     from .logs import get_logger
     from .utils import icompare_two_camel_case_words
+    from .settings import BALCONY_RELATIONS_DIR
 except ImportError:
     from botocore_utils import get_shape_name, flatten_shape_to_its_non_collection_shape_and_target_paths, IDENTIFIER_NAMES
     from logs import get_logger
     from utils import icompare_two_camel_case_words
+    from settings import BALCONY_RELATIONS_DIR
 
 import json
 import os
@@ -76,7 +78,8 @@ class RelationMap:
         result = resource_node.find_best_relations_for_operation(operation_name, relation_map)
         return result
             
-    def _save_relations_map_to_file(self, relations_map=None, directory='relations'):
+    def _save_relations_map_to_file(self, relations_map=None):
+        directory = BALCONY_RELATIONS_DIR
         service_name = self.service_node.name
         filepath = os.path.join(directory, f"{service_name}.json")
         relations_map = self.get_relations_map()
@@ -84,7 +87,8 @@ class RelationMap:
             json.dump(relations_map, file, indent=2, default=str)
         return True
 
-    def _load_relations_from_file(self, directory='relations'):
+    def _load_relations_from_file(self):
+        directory = BALCONY_RELATIONS_DIR
         service_name = self.service_node.name
         filepath = os.path.join(directory, f"{service_name}.json")
         if not os.path.isfile(filepath):

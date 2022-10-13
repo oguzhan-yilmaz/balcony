@@ -2,17 +2,18 @@ try:
     from .utils import icompare_two_camel_case_words, str_relations, ifind_similar_names_in_list
     from .botocore_utils import READ_ONLY_VERBS
     from .relations import FindRelationResultTypes, SUCCESSFUL_FIND_RELATION_RESULT_TYPES
-    from .logs import get_logger
+    from .logs import get_logger, get_rich_console
 except ImportError:
     from utils import icompare_two_camel_case_words, str_relations, ifind_similar_names_in_list
     from botocore_utils import READ_ONLY_VERBS
     from relations import FindRelationResultTypes, SUCCESSFUL_FIND_RELATION_RESULT_TYPES
-    from logs import get_logger
+    from logs import get_logger, get_rich_console
 from collections.abc import Iterable
 import jmespath
 from rich.progress import Progress, track, BarColumn, TextColumn, TaskProgressColumn, TimeRemainingColumn
 from rich.table import Column
 logger = get_logger(__name__)
+console = get_rich_console()
 class ServiceReader:
     def __init__(self, service_node):
         self.service_node = service_node
@@ -215,7 +216,7 @@ class ServiceReader:
         if generated_api_parameters == []:
             logger.debug(f"FAILED TO AUTO-GENERATE API PARAMETERS. Related Resources couldn't found.")
         elif isinstance(generated_api_parameters, Iterable):
-            for api_parameters in generated_api_parameters:
+            for api_parameters in track(generated_api_parameters, description=f"Calling [green]{operation_name}[/] for [bold]{len(generated_api_parameters)}[/] resources...",transient=True, console=console):
                 self._call_operation(operation_name, api_parameters)
         else:
             logger.debug(f"COULDN'T GENERATE API PARAMETERS. {resource_node_name}.{operation_name}. Generated Parameters: {generated_api_parameters}. Data: {all_related_operations_data}")

@@ -15,8 +15,8 @@ class EC2_SecurityGroups(ResourceNode, ResourceNodeRegistry, service_name="ec2",
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-    def get_operations_relations(self, operation_name, relation_map):
-        r = super().get_operations_relations(operation_name, relation_map)
+    # def get_operations_relations(self, operation_name, relation_map):
+    #     r = super().get_operations_relations(operation_name, relation_map)
         
 """
 1. check for already existing operation data
