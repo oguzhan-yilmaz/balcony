@@ -49,6 +49,10 @@ class ResourceNode:
         self._operation_models = {}
 
 
+    def get_operation_names(self) -> List[str]:
+        """Returns the `operation_names` defined in the Resource Node"""
+        return self.operation_names
+
     # NOTE: +overrideable
     def define_extra_relations(self):
         return []
