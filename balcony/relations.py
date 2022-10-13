@@ -94,8 +94,11 @@ class RelationMap:
         if not os.path.isfile(filepath):
             return False
         relations_map = None
-        with open(filepath, 'r') as file:
-            relations_map = json.load(file)
+        try:
+            with open(filepath, 'r') as file:
+                relations_map = json.load(file)
+        except:
+            pass
         return relations_map
 
     def _generate_resource_node_parameters_list(self, resource_nodes):

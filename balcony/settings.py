@@ -7,3 +7,10 @@ BALCONY_RELATIONS_DIR = os.getenv('BALCONY_RELATIONS_DIR', os.path.join(BALCONY_
 
 # create the relations directory if not exists
 Path(BALCONY_RELATIONS_DIR).mkdir(parents=True, exist_ok=True)
+
+
+LOG_LEVEL = 'INFO'
+
+INSTALLED_BALCONY_APPS = (
+    'balconyapp',
+)

@@ -175,7 +175,7 @@ class ServiceReader:
             return False
 
         # add service_name and resource_node_name to relation dict
-        relations_of_operation, relation_result_type = resource_node.get_operations_relations(operation_name)
+        relations_of_operation, relation_result_type = resource_node.get_operations_relations(operation_name, None)
         success_finding_relations = relation_result_type in SUCCESSFUL_FIND_RELATION_RESULT_TYPES
         # req_params = resource_node.get_required_parameter_names_from_operation_name(operation_name)
         if not success_finding_relations:

@@ -19,7 +19,6 @@ import boto3
 from itertools import product as cartesian_product
 from enum import Enum
 import copy
-from termcolor import colored
 from botocore.utils import ArgumentGenerator
 from botocore.validate import validate_parameters
 from botocore.hooks import EventAliaser

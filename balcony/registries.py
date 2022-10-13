@@ -10,8 +10,8 @@ class AppRegistry:
     _registry = {}
     
     def __init__(self) -> None:
-        print('AppRegistry initialized', hash(id(self)))
-   
+        pass
+    
     def get_registered_apps(self):
        return self._registry
    
@@ -35,7 +35,6 @@ class AppRegistry:
         for entry in insalled_apps:
             # import the entry
             try:
-                print(f'importing {entry}')
                 app_module = import_module(entry)
                 app_module
             except Exception as e:

@@ -23,9 +23,10 @@ class CodeBuild_BuildsForProject(ResourceNode, ResourceNodeRegistry, service_nam
         return r
 
     def get_operations_relations(self, operation_name, relation_map):
-        r = super().get_operations_relations(operation_name, relation_map)
         if operation_name == 'ListBuildsForProject':
             return [{
+                "service_name": "codebuild",
+                "resource_node_name": "BuildsForProject",
                 "search_shape_name": "projectName",
                 "target_shape_name": "projectName",
                 "target_shape_type": "list",
@@ -33,5 +34,6 @@ class CodeBuild_BuildsForProject(ResourceNode, ResourceNodeRegistry, service_nam
                 "target_path": "[].projects"
             }
             ], FindRelationResultTypes.RelationsFound
+        r = super().get_operations_relations(operation_name, relation_map)
         return r
         
