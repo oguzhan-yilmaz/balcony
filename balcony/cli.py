@@ -160,15 +160,28 @@ def _list_service_or_resource(
         console.print(operations_panel)
         return    
 
+from enum import Enum
 
+
+class OperationType(str, Enum):
+    GET = "get"
+    GETS = "gets"
+    LIST = "list"
+    DESC = "describe"
+    DESCRIBE = "describe"
+    
+    
 @app.command('aws')
 def aws_main_command(
         service: Optional[str] = typer.Argument(None, show_default=False,help='The AWS service name', autocompletion=_complete_service_name),
         resource_node: Optional[str] = typer.Argument(None, show_default=False, help='The AWS Resource Node', autocompletion=_complete_resource_node_name),
+        # operation: Optional[OperationType] = typer.Argument(None, show_default=False, help='#TODO'),
         list_contents: bool = typer.Option(False, "--list", '-l', help='Print the list or details'),
         debug: bool = typer.Option(False, "--debug", '-d', help='Enable debug messages'),
         paginate: bool = typer.Option(False, "--paginate", '-p', help='Open the data on a separate paginator on shell.'),
     ):
+    # console.print(f"[blue bold]{operation=} ")
+
     if debug:
         set_log_level_at_runtime(logging.DEBUG)
     
