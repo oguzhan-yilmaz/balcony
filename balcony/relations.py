@@ -8,7 +8,7 @@ except ImportError:
     from logs import get_logger
     from utils import icompare_two_camel_case_words
     from settings import BALCONY_RELATIONS_DIR
-
+from typing import List, Dict, Tuple, Union
 import json
 import os
 from enum import Enum
@@ -32,9 +32,18 @@ SUCCESSFUL_FIND_RELATION_RESULT_TYPES = (
 class RelationMap:
     def __init__(self, service_node):
         self.service_node = service_node
-        self._relations_map = None
+        self._relations_map: Dict = None
 
-    def get_relations_map(self, refresh=False): # FIXME False
+    def get_relations_map(self, refresh:bool=False) -> Dict:
+        """Tries the fetch the cached RelationMap from file,
+        or generates and saves it to file.
+
+        Args:
+            refresh (bool, optional): Disables cache. Defaults to False.
+
+        Returns:
+            Dict: _description_
+        """
         if self._relations_map is not None and not refresh:
             return self._relations_map
 
@@ -49,7 +58,16 @@ class RelationMap:
         return self._relations_map
 
     # def check_parameter_name_inside_map(self, )
-    def get_parameters_generated_relations(self, parameter_name, exclude_operation_name):
+    def get_parameters_generated_relations(self, parameter_name:str, exclude_operation_name:str) -> List[Dict]:
+        """_summary_
+
+        Args:
+            parameter_name (str): Parameter name to search for its relations
+            exclude_operation_name (str): Exclude the given operation_name across found relation dicts
+
+        Returns:
+            List[Dict]: List of relations
+        """
         relation_map = self.get_relations_map()
         relation_list = list()
 
@@ -70,7 +88,7 @@ class RelationMap:
 
 
 
-    def find_best_relations_for_operations_parameters(self, operation_name):
+    def find_best_relations_for_operations_parameters(self, operation_name:str) -> List[Dict]:
         resource_node = self.service_node.find_resource_node_by_operation_name(operation_name)
         if not resource_node:
             return False
@@ -78,14 +96,19 @@ class RelationMap:
         result = resource_node.find_best_relations_for_operation(operation_name, relation_map)
         return result
             
-    def _save_relations_map_to_file(self, relations_map=None):
+    def _save_relations_map_to_file(self, relations_map:List[Dict]=None) -> None:
+        """Saves the generated relations map to `{BALCONY_RELATIONS_DIR}/{service_name}.json`
+        # TODO: remove the parameter as it's not needed
+        Args:
+            relations_map (List[Dict], optional): _description_. Defaults to None.
+        """
+        
         directory = BALCONY_RELATIONS_DIR
         service_name = self.service_node.name
         filepath = os.path.join(directory, f"{service_name}.json")
         relations_map = self.get_relations_map()
         with open(filepath, 'w') as file:
             json.dump(relations_map, file, indent=2, default=str)
-        return True
 
     def _load_relations_from_file(self):
         directory = BALCONY_RELATIONS_DIR

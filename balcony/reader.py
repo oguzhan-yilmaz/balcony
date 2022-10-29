@@ -216,7 +216,8 @@ class ServiceReader:
         if generated_api_parameters == []:
             logger.debug(f"FAILED TO AUTO-GENERATE API PARAMETERS. Related Resources couldn't found.")
         elif isinstance(generated_api_parameters, Iterable):
-            for api_parameters in track(generated_api_parameters, description=f"Calling [green]{operation_name}[/] for [bold]{len(generated_api_parameters)}[/] resources...",transient=True, console=console):
+            # FIXME # for api_parameters in track(generated_api_parameters, description=f"Calling [green]{operation_name}[/] for [bold]{len(generated_api_parameters)}[/] resources...",transient=True, console=console):
+            for api_parameters in generated_api_parameters:
                 self._call_operation(operation_name, api_parameters)
         else:
             logger.debug(f"COULDN'T GENERATE API PARAMETERS. {resource_node_name}.{operation_name}. Generated Parameters: {generated_api_parameters}. Data: {all_related_operations_data}")

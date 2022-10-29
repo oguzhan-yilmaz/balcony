@@ -13,11 +13,9 @@ except ImportError:
     from registries import ResourceNodeRegistry
     from logs import get_logger, get_rich_console
 
-from pprint import pprint
-import json
-import boto3
+
+from typing import List, Set, Dict, Tuple, Optional
 from itertools import product as cartesian_product
-from enum import Enum
 import copy
 from botocore.utils import ArgumentGenerator
 from botocore.validate import validate_parameters
@@ -28,37 +26,49 @@ from rich.panel import Panel
 from rich.console import Group
 from rich.layout import Layout
 import jmespath
-from abc import ABC, abstractmethod
-# class AbstractResourceNode(ABC):
-    
-#     @abstractmethod
-#     def get_resource_nodes(self): ...
-    
-logger = get_logger(__name__)
 
+
+logger = get_logger(__name__)
 
 _resource_node_registry = ResourceNodeRegistry()
 argument_generator = ArgumentGenerator()
 console = get_rich_console()
 
 class ResourceNode:
-    def __init__(self, service_node: 'ServiceNode', name: str, operation_names: List[str]):
+    def __init__(self, service_node: 'ServiceNode', name: str, operation_names: List[str]) -> None:
         self.service_node = service_node
         self.name = name
         self.operation_names = operation_names
         self._operation_models = {}
 
-
     def get_operation_names(self) -> List[str]:
-        """Returns the `operation_names` defined in the Resource Node"""
+        """Returns the available operation names in the ResourceNode. 
+
+        Returns:
+            List[str]: Operation names tied to the ResourceNode
+        """
         return self.operation_names
 
     # NOTE: +overrideable
-    def define_extra_relations(self):
+    def define_extra_relations(self) -> List[Dict]:
+        """Extra relations defined in the custom subclasses of ResourceNode
+
+        Returns:
+            List[Dict]: List of relations
+        """
         return []
     
     # NOTE: +overrideable
-    def get_operations_relations(self, operation_name:str, relation_map: RelationMap=None):
+    def get_operations_relations(self, operation_name:str, relation_map: Optional[RelationMap]=None) -> List[Dict]:
+        """_summary_
+
+        Args:
+            operation_name (str): Name of the operation.
+            relation_map (Optional[RelationMap], optional): RelationMap object for the Service Node. Defaults to None.
+
+        Returns:
+            List[Dict]: _description_
+        """
         resource_node = self
         if relation_map is None:
             relation_map = self.service_node.get_relation_map()
@@ -151,7 +161,18 @@ class ResourceNode:
                 return False, FindRelationResultTypes.CantDecideBetweenGeneratedParameters
 
     # NOTE: +overrideable
-    def generate_jmespath_selector_from_relations(self, operation_name, relation_list):
+    def generate_jmespath_selector_from_relations(self, operation_name: str, relation_list: List[Dict]) -> str:
+        """
+        Tries to generate the jmespath selector string from given relations. Could be overridden with custom subclasses. 
+
+        Args:
+            operation_name (str): Name of the operation
+            relation_list (List[Dict]): List of relations for the operation. Used to generate the jmespath selector.
+
+        Returns:
+            str: Jmespath selector string
+        """
+        #TODO: (a better way for generating multiple same level args.) https://kyverno.io/docs/writing-policies/jmespath/  $ yq e pod.yaml -o json | kyverno jp "spec.[initContainers, containers][]"
         _for_all_the_responses = '[*].'
         _flatten_two_times = '[][]'
         if not relation_list:
@@ -219,7 +240,21 @@ class ResourceNode:
         return flattened_jmespath_nested_selector
 
     # NOTE: +overrideable
-    def _generate_raw_api_parameters_from_operation_data(self, operation_name, relations_of_operation, related_operations_data):
+    def _generate_raw_api_parameters_from_operation_data(self, operation_name:str, 
+                                                         relations_of_operation:List[dict], 
+                                                         related_operations_data: Union[Dict, List]) -> List:
+        """Generates the jmespath selector and search the data with it. Output is the list of api_parameters dictionaries.
+        Only considers the required parameters(raw parameters) of the operation. 
+        >Note: Pagination parameters (e.g. `NextToken`, `MaxResults`) are not included. 
+
+        Args:
+            operation_name (str): Name of the operation
+            relations_of_operation (List[dict]): Relations of the operation
+            related_operations_data (Union[Dict, List]): All related operations data
+
+        Returns:
+            List: List of required _raw_ API parameters, not including pagination parameters
+        """
         resource_node = self
         generated_jmespath_nested_selector = resource_node.generate_jmespath_selector_from_relations(operation_name, relations_of_operation)
         if not generated_jmespath_nested_selector:
@@ -242,7 +277,22 @@ class ResourceNode:
         return raw_api_parameters_list
     
     # NOTE: +overrideable
-    def create_valid_api_parameters_list(self, operation_name, related_operations_data, relations_of_operation, raw_api_parameters_list ):
+    def create_valid_api_parameters_list(self, operation_name:str,
+                                         related_operations_data: Union[List, Dict], 
+                                         relations_of_operation:List[Dict], 
+                                         raw_api_parameters_list:List) -> List:
+        """Uses the raw API parameters list and appends pagination and other kind of parameters to them.
+
+        Args:
+            operation_name (str): Name of the operation.
+            related_operations_data (Union[List, Dict]): All related operations data
+            relations_of_operation (List[Dict]): Relations of the operation
+            raw_api_parameters_list (List): Generated raw API parameters 
+
+        Returns:
+            List: Valid API parameters to call the boto operation with
+        """
+        
         operation_model = self.get_operation_model(operation_name)
         required_parameter_names = self.get_required_parameter_names_from_operation_name(operation_name)
 
@@ -305,7 +355,19 @@ class ResourceNode:
         return generated_api_params
     
     # NOTE: +overrideable
-    def generate_api_parameters_from_operation_data(self, operation_name, relations_of_operation, related_operations_data):
+    def generate_api_parameters_from_operation_data(self, operation_name:str, 
+                                                    relations_of_operation:List[Dict], 
+                                                    related_operations_data: Union[List, Dict]) -> List:
+        """Generates API parameters for the given operation including pagination parameters.
+
+        Args:
+            operation_name (str): Name of the operation
+            relations_of_operation (List[Dict]): Relations of the operation
+            related_operations_data (Union[List, Dict]): All related operations data
+
+        Returns:
+            List: _description_
+        """
         resource_node = self
         resource_node_name = resource_node.name
         no_required_parameters = relations_of_operation == []
@@ -322,11 +384,11 @@ class ResourceNode:
         api_parameters_list = resource_node.create_valid_api_parameters_list(operation_name, related_operations_data, relations_of_operation, raw_api_parameters_list)
         return api_parameters_list
     
-    def print_operation(self, operation_name):
+    def print_operation(self, operation_name:str) -> None:
         operation_panel = self._rich_operation_details_panel(operation_name)
         console.print(operation_panel)
 
-    def _rich_operation_details_panel(self, operation_name):
+    def _rich_operation_details_panel(self, operation_name:str) -> Panel:
         
         operation_model = self.get_operation_model(operation_name)
         input_shape = get_input_shape(operation_model)
@@ -350,8 +412,16 @@ class ResourceNode:
         return operation_panel
 
 
-    # todo: move to Reader
-    def select_between_possible_relation_combinations_matrix(self, possible_relation_combinations):
+    def select_between_possible_relation_combinations_matrix(self, possible_relation_combinations: List[List[Dict]])->List[Dict]:
+        """For given relation combinations matrix, select the best possible combination of relations.
+        Gives scores to relation combinations, selects the one with the highest score.
+
+        Args:
+            possible_relation_combinations (List[List[Dict]]): Matrix of all possible combinations of multiple relations
+
+        Returns:
+            List[Dict]: Selected relations list
+        """
         if len(possible_relation_combinations)==1:
             return possible_relation_combinations[0]
         # each combination will have the same operation name
@@ -368,8 +438,8 @@ class ResourceNode:
             current_combination_point -= len(combinations_required_parameters)
             
             # negative point if its a get function, we'd like to prefer list or describe functions
-            if combinations_operation_name.lower().startswith('get'):
-                current_combination_point -= 1
+            # if combinations_operation_name.lower().startswith('get'):
+            #     current_combination_point -= 1
             
             combination_index_to_score_map[str(i)] = current_combination_point
         selected_index_str, selected_score = max(combination_index_to_score_map.items(), key=lambda index_and_score: index_and_score[1])
@@ -377,7 +447,6 @@ class ResourceNode:
         
         return selected_combination
 
-    # todo: move to Reader
     def select_between_possible_relation_combinations_list(self, possible_relation_list):
         if len(possible_relation_list)<1:
             return False
@@ -397,6 +466,7 @@ class ResourceNode:
             combinations_required_parameters = self.get_required_parameter_names_from_operation_name(relations_operation_name)
             current_combination_point -= len(combinations_required_parameters)
             
+            # todo: add if not plural!
             # negative point if its a get function, we'd like to prefer list or describe functions
             if get_operation_count <= 1 and relations_operation_name.lower().startswith('get'):
                 current_combination_point -= 1
@@ -407,8 +477,7 @@ class ResourceNode:
         
         return selected_combination
     
-    # todo: move to Reader
-    def find_best_relation_for_single_parameter(self, parameter_name, relation_list):
+    def find_best_relation_for_single_parameter(self, parameter_name:str, relation_list:List[Dict])-> List[Dict]:
         _parameter_name_tokens = camel_case_split(parameter_name)
         non_id_parameter_tokens = [
             p_token for p_token in _parameter_name_tokens
@@ -436,7 +505,7 @@ class ResourceNode:
             return [selected_relation]
         return False
     
-    def get_required_parameter_names_from_operation_name(self, operation_name):
+    def get_required_parameter_names_from_operation_name(self, operation_name:str)-> List[str]:
         
         operation_model = self.get_operation_model(operation_name)
         input_shape = get_input_shape(operation_model)
@@ -448,7 +517,7 @@ class ResourceNode:
             required_parameter_names.remove(max_results_key)
         return required_parameter_names
     
-    def get_all_required_parameter_names(self):
+    def get_all_required_parameter_names(self)-> List[str]:
         all_required_names = []
         for operation_name in self.operation_names:
             required_shapes = self.get_required_parameter_names_from_operation_name(
@@ -457,7 +526,6 @@ class ResourceNode:
         return all_required_names
     
     def get_operation_model(self, operation_name: str) -> OperationModel:
-        """client._service_model"""
         if operation_name in self._operation_models:
             return self._operation_models[operation_name]
         service_model = self.service_node.get_service_model()
@@ -465,18 +533,18 @@ class ResourceNode:
         self._operation_models[operation_name] = operation_model
         return operation_model
 
-    def json(self):
+    def json(self) -> Dict:
         return {
             "service_node_name": self.service_node.name,
             "name": self.name,
             "operation_names": self.operation_names
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
         # return f"[{self.service_node.name}.{self.name}]"
         return f"[{self.name}]"
 
-    def __rich__(self):
+    def __rich__(self) -> str:
         return 'ss'
  
  
@@ -497,18 +565,23 @@ class ServiceNode:
         reader = self.get_service_reader()
         return reader.read_resource_node(resource_node_name)
     
-    def get_service_reader(self):
+    def get_service_reader(self) -> ServiceReader:
+        """Returns/creates the ServiceReader for the current ServiceNode
+
+        Returns:
+            ServiceReader: ServiceReader object for current ServiceNode
+        """
         if not self._reader:
             self._reader = ServiceReader(self)
         return self._reader
 
-    def print_resource_node(self, resource_node_name):
+    def print_resource_node(self, resource_node_name:str) -> None:
         # TODO: check if resource node exists
         operations_panel = self._get_operation_details_panel(resource_node_name)
         if operations_panel:
             console.print(operations_panel)
         
-    def _get_operation_details_panel(self, resource_node_name):
+    def _get_operation_details_panel(self, resource_node_name:str) -> Panel:
         resource_node =  self.get_resource_node_by_name(resource_node_name)
         if not resource_node:
             return False
@@ -522,7 +595,16 @@ class ServiceNode:
         )
         return Panel(operations_group, title=f'Resource Node: [blue][bold]{resource_node.name} ', title_align='left')
         
-    def get_resource_node_by_name(self, resource_node_name):
+    def get_resource_node_by_name(self, resource_node_name:str) -> ResourceNode:
+        """Searches the current ServiceNode for the given `resource_node_name`,
+        and returns it.
+
+        Args:
+            resource_node_name (str): Name of the ResourceNode
+
+        Returns:
+            ResourceNode: The ResourceNode object, `False` if not found.
+        """
         if not resource_node_name:
             return False
         
@@ -533,30 +615,59 @@ class ServiceNode:
                 return r_node
         return False
     
-    def json(self):
+    def json(self) -> Dict:
         return {
             "service_name": self.name,
             # TODO:
         }
 
-    def find_resource_node_by_operation_name(self, operation_name):
+    def find_resource_node_by_operation_name(self, operation_name:str) -> ResourceNode:
+        """Traverses the ResourceNodes of the current ServiceNode and tries to find
+        the ResourceNode that has the `operation_name` in it.
+
+        Args:
+            operation_name (str): Name of the operation
+
+        Returns:
+            ResourceNode: ResourceNode object that has the `operation_name`, or None.
+        """
         for r_node in self.get_resource_nodes():
             if operation_name in r_node.operation_names:
                 return r_node
         return None
 
-    def get_relation_map(self):
+    def get_relation_map(self) -> RelationMap:
+        """Gets the relation map object.
+
+        Returns:
+            RelationMap: RelationMap object for the current ServiceNode
+        """
         if self._relation_map is not None:
             return self._relation_map
         self._relation_map = RelationMap(self)
         return self._relation_map
 
-    def get_resource_nodes(self):
+    def get_resource_nodes(self) -> List[ResourceNode]:
+        """Gets the available `ResourceNode`s of the current ServiceNode
+
+        Returns:
+            List[ResourceNode]: List of `ResourceNode`s available in the ServiceNode
+        """
         if self.resource_nodes is None:
             self.resource_nodes = self._generate_resource_nodes()
         return self.resource_nodes
 
-    def create_resource_node(self, **kwargs):
+    def create_resource_node(self, **kwargs: Dict) -> ResourceNode:
+        """Creates the ResourceNode object with the given `kwargs`.
+        Uses the `ResourceNodeRegistry` to find the custom subclasses of the
+        `ResourceNode` class, else defaults to use the ResourceNode class
+
+        Raises: # TODO: fix this, return false instead
+            Exception: _description_
+
+        Returns:
+            ResourceNode: _description_
+        """
         service_name = self.name
         resource_node_name = kwargs.get('name', False)
         _ResourceNodeClass = ResourceNode
@@ -570,7 +681,13 @@ class ServiceNode:
             _ResourceNodeClass = _custom_cls_for_resource_node
         return _ResourceNodeClass(**kwargs)
     
-    def _generate_resource_nodes(self):
+    def _generate_resource_nodes(self) -> List[ResourceNode]:
+        """Parses `botocore` client for the AWS service and generates ResourceNodes.
+        Generated `ResourceNode`s can be subclasses of `ResourceNode`.
+
+        Returns:
+            List[ResourceNode]: List of generated `ResourceNode`s
+        """
         generated_resouce_nodes = []
         op_name_to_tokens_map = self.get_read_operation_name_to_tokens_map()
         resource_name_to_operations_map = {}
@@ -632,7 +749,15 @@ class ServiceNode:
 
         return combined_resource_nodes
 
-    def get_read_operation_name_to_tokens_map(self):
+    def get_read_operation_name_to_tokens_map(self) -> Dict:
+        """Generate `operation name to word tokens` map for the 
+        available read operations in the ServiceNode. 
+        
+        Caches the output in the class attr. `_read_operation_name_to_tokens_map`.
+
+        Returns:
+            Dict: dictionary 
+        """
         if self._read_operation_name_to_tokens_map is not None:
             return self._read_operation_name_to_tokens_map
         read_operation_names = self.get_read_operation_names()
@@ -640,7 +765,7 @@ class ServiceNode:
             read_operation_names)
         return self._read_operation_name_to_tokens_map
 
-    def _generate_operation_name_to_tokens_map(self, operation_names:List[str]=None):
+    def _generate_operation_name_to_tokens_map(self, operation_names:List[str]=None) -> Dict:
         if operation_names is None:
             operation_names = self.get_operation_names()
 

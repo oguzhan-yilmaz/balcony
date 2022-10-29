@@ -7,7 +7,7 @@ try:
 except ImportError:
     from settings import LOG_LEVEL
     
-_console = Console()
+_console = Console(record=True)
 _balcony_loggers = []
 
 def get_rich_console() -> Console:

@@ -113,7 +113,7 @@ def _list_service_or_resource(
     if not service and not resource_node:
         # nothing is given
         console.print(Columns(available_service_names, equal=True, expand=True))
-        return
+        return available_service_names
     
     if service and not resource_node:
         # we only have service name
@@ -139,7 +139,7 @@ def _list_service_or_resource(
         
         resource_node_name_as_columns =  Columns(resource_node_names, equal=True, expand=True)
         console.print(resource_node_name_as_columns)
-        return
+        return resource_node_names
         
     elif service and resource_node:
         # we got both options filled
@@ -162,12 +162,12 @@ def _list_service_or_resource(
 
 
 @app.command('aws')
-def _cli_aws_command(
+def aws_main_command(
         service: Optional[str] = typer.Argument(None, show_default=False,help='The AWS service name', autocompletion=_complete_service_name),
         resource_node: Optional[str] = typer.Argument(None, show_default=False, help='The AWS Resource Node', autocompletion=_complete_resource_node_name),
-        list_contents: bool = typer.Option(False, "--list", '-l'),
-        debug: bool = typer.Option(False, "--debug", '-d'),
-        paginate: bool = typer.Option(False, "--paginate", '-p'),
+        list_contents: bool = typer.Option(False, "--list", '-l', help='Print the list or details'),
+        debug: bool = typer.Option(False, "--debug", '-d', help='Enable debug messages'),
+        paginate: bool = typer.Option(False, "--paginate", '-p', help='Open the data on a separate paginator on shell.'),
     ):
     if debug:
         set_log_level_at_runtime(logging.DEBUG)
@@ -176,15 +176,16 @@ def _cli_aws_command(
         _list_service_or_resource(service, resource_node)
         return
 
-    available_service_names = _get_available_service_node_names()
+    # available_service_names = _get_available_service_node_names()
     if not service and not resource_node:
-        _list_service_or_resource(service, resource_node)
+        available_services = _list_service_or_resource(service, resource_node)
         console.print(Panel(f"[bold]Please pick one of the AWS Services", title="[red][bold]ERROR"))
-        return
+        return {'services':available_services}
+    
     if service and not resource_node:
-        _list_service_or_resource(service, resource_node)
+        available_resources = _list_service_or_resource(service, resource_node)
         console.print(Panel(f"[bold]Please pick one of the Resource Nodes from [green]{service}[/] Service", title="[red][bold]ERROR"))
-        return
+        return {'service':service, 'resources': available_resources}
     elif service and resource_node:
         service_node = balcony_aws.get_service(service)
         service_reader = service_node.get_service_reader()
@@ -194,11 +195,13 @@ def _cli_aws_command(
               console.print_json(data=read, default=str)
         else:    
             console.print_json(data=read, default=str)
-        return
+        return read
     
     
 def run_app():
     app(prog_name="balcony")
+    
+
     
 if __name__ == "__main__":
     run_app()
