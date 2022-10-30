@@ -3,17 +3,21 @@ try:
     from .botocore_utils import READ_ONLY_VERBS
     from .relations import FindRelationResultTypes, SUCCESSFUL_FIND_RELATION_RESULT_TYPES
     from .logs import get_logger, get_rich_console
+    from .errors import Error
 except ImportError:
     from utils import icompare_two_camel_case_words, str_relations, ifind_similar_names_in_list
     from botocore_utils import READ_ONLY_VERBS
     from relations import FindRelationResultTypes, SUCCESSFUL_FIND_RELATION_RESULT_TYPES
     from logs import get_logger, get_rich_console
+    from errors import Error
+    
 from collections.abc import Iterable
 import jmespath
 from rich.progress import Progress, track, BarColumn, TextColumn, TaskProgressColumn, TimeRemainingColumn
 from rich.table import Column
 logger = get_logger(__name__)
 console = get_rich_console()
+from typing import List, Set, Dict, Tuple, Optional, Union
 class ServiceReader:
     def __init__(self, service_node):
         self.service_node = service_node
@@ -104,7 +108,7 @@ class ServiceReader:
             self.response_data[resource_node_name][operation_name].append(response)
 
 
-    def read_operation(self, resource_node_name, operation_name, refresh=False):
+    def read_operation(self, resource_node_name:str, operation_name:str, refresh:bool=False) -> Tuple[Union[List, bool], Union[Error, None]]:
         # if it has been read called already, return it
 
         resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
@@ -122,18 +126,20 @@ class ServiceReader:
             return False
 
         # add service_name and resource_node_name to relation dict
-        relations_of_operation, relations_error = resource_node.get_operations_relations(operation_name, None)
+        relations_of_operation, relations_error = resource_node.get_operations_relations(operation_name)
         success_finding_relations = relations_error is None
         
         
         if not success_finding_relations:
             logger.debug(f"FAILED FINDING RELATIONS for OPERATION: [bold]{resource_node_name}.{operation_name}[/]. Failed to find relations: {relations_error}")
-            return False
+            return False, relations_error
         
         if relations_of_operation == True:
             # no required parameters
-            generated_api_parameters = resource_node.generate_api_parameters_from_operation_data(operation_name, [], {})
+            generated_api_parameters, generation_error = resource_node.generate_api_parameters_from_operation_data(operation_name, [], {})
             
+            if generation_error is not None:
+                return False, generation_error
             if isinstance(generated_api_parameters, Iterable):
                 for api_parameters in generated_api_parameters:
                     self._call_operation(operation_name, api_parameters)
@@ -152,7 +158,7 @@ class ServiceReader:
             })
 
         # send the operations_data to resource_node to create valid_api_parameters
-        generated_api_parameters = resource_node.generate_api_parameters_from_operation_data(operation_name, relations_of_operation, all_related_operations_data)
+        generated_api_parameters, generation_error = resource_node.generate_api_parameters_from_operation_data(operation_name, relations_of_operation, all_related_operations_data)
 
         if generated_api_parameters == []:
             logger.debug(f"FAILED TO AUTO-GENERATE API PARAMETERS. Related Resources couldn't found.")
@@ -190,39 +196,4 @@ class ServiceReader:
             #     print(' >>>>>>>>>>>>>>>> NO PARAMETERS <<<<<<<<<<<<<<<<<<<<<<')
 
 
-    # def get_operations_relations(self, resource_node_name, operation_name):
-    #     resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
-    #     if not resource_node:
-    #         return False, FindRelationResultTypes.InternalError
-    #     relation_map = self.service_node.get_relation_map()
-    #     required_parameters = resource_node.get_required_parameter_names_from_operation_name(operation_name)
-
-        
-    #     if not required_parameters:
-    #         return True, FindRelationResultTypes.NoRequiredParameters
-    #     else:
-    #         # there are required parameters, try to find every relation for this operation
-    #         relations_of_operation, relation_result_type = resource_node.find_best_relations_for_operation(operation_name, relation_map)
-    #         is_all_parameters_found = self.verify_all_required_parameters_in_selected_relations(required_parameters, relations_of_operation)
-    #         # return relations, relation_result_type
-    #         if relation_result_type not in SUCCESSFUL_FIND_RELATION_RESULT_TYPES:
-    #             # not succeeded
-    #             return False, relation_result_type
-    #         elif not is_all_parameters_found:
-    #             return False, FindRelationResultTypes.SomeRelationsFoundButNotAll
-    #         elif not relations_of_operation:
-    #             return False, FindRelationResultTypes.NoRelations
-    #         else:
-    #             # success
-    #             return relations_of_operation, FindRelationResultTypes.RelationsFound
-             
-
-        # if relation_result_type in SUCCESSFUL_FIND_RELATION_RESULT_TYPES:
-            # FindRelationResultTypes.SomeRelationsFoundButNotAll
-    # def list_available_methods(self):
-    #     read_operation_names = self.service_node.get_read_operation_names()
-    #     for r_ops_name in read_operation_names:
-    #         for read_verb in READ_ONLY_VERBS:
-    #             if r_ops_name.startswith(read_verb):
-
-    #     pass
+ 

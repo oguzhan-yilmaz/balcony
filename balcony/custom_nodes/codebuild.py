@@ -1,18 +1,14 @@
 try:
     from ..nodes import ResourceNode
-    from ..registries import ResourceNodeRegistry
     from ..logs import get_logger
-    from ..relations import FindRelationResultTypes
 except ImportError:
     from nodes import ResourceNode
-    from registries import ResourceNodeRegistry
     from logs import get_logger
-    from relations import FindRelationResultTypes
 logger = get_logger(__name__)
 
 
 
-class CodeBuild_BuildsForProject(ResourceNode, ResourceNodeRegistry, service_name="codebuild", name="BuildsForProject"):
+class BuildsForProject(ResourceNode, service_name="codebuild", name="BuildsForProject"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -22,7 +18,9 @@ class CodeBuild_BuildsForProject(ResourceNode, ResourceNodeRegistry, service_nam
             return '[].projects'
         return r
 
-    def get_operations_relations(self, operation_name, relation_map):
+    def get_operations_relations(self, operation_name):
+        r = super().get_operations_relations(operation_name)
+        
         if operation_name == 'ListBuildsForProject':
             return [{
                 "service_name": "codebuild",
@@ -34,6 +32,5 @@ class CodeBuild_BuildsForProject(ResourceNode, ResourceNodeRegistry, service_nam
                 "target_path": "[].projects"
             }
             ], FindRelationResultTypes.RelationsFound
-        r = super().get_operations_relations(operation_name, relation_map)
         return r
         

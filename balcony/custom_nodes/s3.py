@@ -1,16 +1,12 @@
 try:
     from ..nodes import ResourceNode
-    from ..registries import ResourceNodeRegistry
     from ..logs import get_logger
-    from ..relations import FindRelationResultTypes
 except ImportError:
     from nodes import ResourceNode
-    from registries import ResourceNodeRegistry
     from logs import get_logger
-    from relations import FindRelationResultTypes
 logger = get_logger(__name__)
 
-class S3_BucketLifecycleConfiguration(ResourceNode, ResourceNodeRegistry, service_name="s3", name="BucketLifecycleConfiguration"):
+class BucketLifecycleConfiguration(ResourceNode, service_name="s3", name="BucketLifecycleConfiguration"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     

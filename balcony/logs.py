@@ -7,7 +7,7 @@ try:
 except ImportError:
     from settings import LOG_LEVEL
     
-_console = Console(record=True)
+_console = Console(color_system="auto", markup=True)
 _balcony_loggers = []
 
 def get_rich_console() -> Console:
@@ -38,7 +38,7 @@ def get_logger(name: str) -> logging.Logger:
     """Logger creation with RichHandler. 
 
     Args:
-        name (str): Logger name. Usually `__name__`.
+        name (str): Logger name. Usually given `__name__`.
 
     Returns:
         logging.Logger: Logger obj
@@ -50,6 +50,7 @@ def get_logger(name: str) -> logging.Logger:
         datefmt="[%X]",
         handlers=[RichHandler(rich_tracebacks=True, markup=True, console=_console)]
     )
+    # logging.FileHandler("debug.log", mode='w')
     
     _logger = logging.getLogger(name)
     _balcony_loggers.append(_logger)

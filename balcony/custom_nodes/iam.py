@@ -1,18 +1,14 @@
 try:
     from ..nodes import ResourceNode
-    from ..registries import ResourceNodeRegistry
     from ..logs import get_logger
-    from ..relations import FindRelationResultTypes
 except ImportError:
     from nodes import ResourceNode
-    from registries import ResourceNodeRegistry
     from logs import get_logger
-    from relations import FindRelationResultTypes
 logger = get_logger(__name__)
 
 
 
-class IAM_Policy(ResourceNode, ResourceNodeRegistry, service_name="iam", name="Policy"):
+class Policy(ResourceNode, service_name="iam", name="Policy"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     
@@ -37,7 +33,7 @@ class IAM_Policy(ResourceNode, ResourceNodeRegistry, service_name="iam", name="P
             "target_path": "Policies[*].DefaultVersionId"
         }]
 
-class IAM_User(ResourceNode, ResourceNodeRegistry, service_name="iam", name="User"):
+class User(ResourceNode, service_name="iam", name="User"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     
@@ -53,7 +49,7 @@ class IAM_User(ResourceNode, ResourceNodeRegistry, service_name="iam", name="Use
             "target_path": "Users[*].UserName"
         }]
 
-class IAM_Role(ResourceNode, ResourceNodeRegistry, service_name="iam", name="Role"):
+class Role(ResourceNode, service_name="iam", name="Role"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     
@@ -69,7 +65,7 @@ class IAM_Role(ResourceNode, ResourceNodeRegistry, service_name="iam", name="Rol
             "target_path": "Roles[*].RoleName"
         }]
     
-class IAM_AccessKeys(ResourceNode, ResourceNodeRegistry, service_name="iam", name="AccessKeys"):
+class AccessKeys(ResourceNode, service_name="iam", name="AccessKeys"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     
