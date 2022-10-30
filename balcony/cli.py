@@ -176,12 +176,13 @@ def aws_main_command(
         service: Optional[str] = typer.Argument(None, show_default=False,help='The AWS service name', autocompletion=_complete_service_name),
         resource_node: Optional[str] = typer.Argument(None, show_default=False, help='The AWS Resource Node', autocompletion=_complete_resource_node_name),
         # operation: Optional[OperationType] = typer.Argument(None, show_default=False, help='#TODO'),
+        patterns: Optional[List[str]] = typer.Option(None, "--pattern", '-p'),
         list_contents: bool = typer.Option(False, "--list", '-l', help='Print the list or details'),
         debug: bool = typer.Option(False, "--debug", '-d', help='Enable debug messages'),
-        paginate: bool = typer.Option(False, "--paginate", '-p', help='Open the data on a separate paginator on shell.'),
+        paginate: bool = typer.Option(False, "--screen", '-s', help='Open the data on a separate paginator on shell.'),
     ):
     # console.print(f"[blue bold]{operation=} ")
-
+    console.print(f"[blue bold]{patterns}")
     if debug:
         set_log_level_at_runtime(logging.DEBUG)
     
@@ -202,7 +203,7 @@ def aws_main_command(
     elif service and resource_node:
         service_node = balcony_aws.get_service(service)
         service_reader = service_node.get_service_reader()
-        read = service_reader.read_resource_node(resource_node)
+        read = service_reader.read_resource_node(resource_node, match_patterns=patterns)
         if paginate:
             with console.pager(styles=True):
               console.print_json(data=read, default=str)

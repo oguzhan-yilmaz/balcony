@@ -9,7 +9,7 @@ import textwrap
 
 logger = get_logger(__name__)
 
-def generate_py_code_for_customization(error, func_signature, help_text=''):
+def generate_py_code_for_customization(error, func_signature, func_ret_type='', help_text=''):
     error_msg = error.message
     resource_node = error.context.get('resource_node')
     service = error.context.get('service')
@@ -18,7 +18,7 @@ def generate_py_code_for_customization(error, func_signature, help_text=''):
     file_line = f"[bold]File to edit: [green]balcony/custom_nodes/[/][blue]{service}.py[/][/]"
     class_line = f"class {resource_node}(ResourceNode, service_name='{service}', name='{resource_node}'):"
     # [reverse bold ]Please create a custom class and do something about this issue.[/]
-        
+    r = '{r}'
     return textwrap.dedent(f"""
     [yellow bold reverse] ~~ HELP NEEDED! ~~[/]
     {err_heading}
@@ -26,14 +26,24 @@ def generate_py_code_for_customization(error, func_signature, help_text=''):
     
     [underline]{file_line}[/]
     
+    try:
+        from ..nodes import ResourceNode
+        from ..logs import get_logger
+    except ImportError:
+        from nodes import ResourceNode
+        from logs import get_logger
+    from typing import List, Set, Dict, Tuple, Optional, Union
+    logger = get_logger(__name__)
+        
     {class_line}
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             
-        def {func_signature}:
-            r = super().{func_signature}
-            # manipulate `r` or return your own value
-            return r         
+        def {func_signature}{func_ret_type}:
+            result, err = super().{func_signature}
+            # manipulate `result` or return your own value
+            # logger.debug(result, err)
+            return result, None        
     """, ).lstrip()
 
 class Error(Exception):
@@ -49,11 +59,11 @@ class Error(Exception):
         error_msg = self.message
 
         if error_msg == "failed to generate relations":
-            return generate_py_code_for_customization(self, 'get_operations_relations(operation_name)')
+            return generate_py_code_for_customization(self, 'get_operations_relations(operation_name)', ' -> Tuple[List[Dict], None]')
         elif error_msg == "failed to choose the best relation":
-            return generate_py_code_for_customization(self, 'get_operations_relations(operation_name)')
+            return generate_py_code_for_customization(self, 'get_operations_relations(operation_name)', ' -> Tuple[List[Dict], None]')
         elif error_msg == "missing relations for parameter":
-            return generate_py_code_for_customization(self, 'get_operations_relations(operation_name)')
+            return generate_py_code_for_customization(self, 'get_operations_relations(operation_name)', ' -> Tuple[List[Dict], None]')
         elif error_msg == "failed to generate api parameters":
             pass
         elif error_msg == "failed to generate jmespath selector":

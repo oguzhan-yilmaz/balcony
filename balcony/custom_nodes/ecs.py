@@ -56,7 +56,7 @@ class Services(ResourceNode, service_name="ecs", name="Services"):
                 "operation_name": "ListServices",
                 "target_path": "__args__.cluster"
             }
-            ]
+            ], None
         return r
     
     # def define_extra_relations(self):

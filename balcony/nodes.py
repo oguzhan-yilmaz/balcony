@@ -95,24 +95,27 @@ class ResourceNode:
             # logger.debug(f"NO REQUIRED PARAMETERS. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has no required parameters")
             return True, None
 
+        operation_markup = f"[bold][green]{self.service_node.name}[/].[blue]{operation_name}[/][/]"
+        req_param_markup = f"[bold magenta]{', '.join(required_parameter_names)}[/]"
+        
         if len(required_parameter_names) == 1:
             # only one parameter exists
             selected_relations = None
             single_parameter_name = required_parameter_names[0]
             generated_relations_for_parameter = relation_map.get_parameters_generated_relations(single_parameter_name, operation_name)
             if not generated_relations_for_parameter:
-                logger.debug(f"NO RELATIONS GENERATED. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameter: {single_parameter_name}. {generated_relations_for_parameter=}")
+                logger.debug(f"Failed to generate relations. {operation_markup} has a required parameter: {req_param_markup}")
                 return False, Error("failed to generate relations", {'required_parameter_names': required_parameter_names, 'service':self.service_node.name, 'resource_node':self.name, 'operation_name':operation_name})
                 # return False, FindRelationResultTypes.NoGeneratedParameters
 
             selected_relations = resource_node.find_best_relation_for_single_parameter(single_parameter_name, generated_relations_for_parameter)
             # required_parameter_names_to_relations_map[single_parameter_name]=selected_relations
             if selected_relations:
-                logger.debug(f"SINGLE PARAMETER FOUND. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameter: [bold]{single_parameter_name}[/]. Relation found: [yellow]{str_relations(selected_relations)}[/]")
+                logger.debug(f"[green]Success finding relations.[/] {operation_markup} has a required parameter: {req_param_markup}. Relation found: [yellow]{str_relations(selected_relations)}[/]")
                 # return selected_relations, FindRelationResultTypes.RelationsFound
                 return selected_relations, None
             else:
-                logger.debug(f"Failed to Choose the Best Relation [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameters: {required_parameter_names}.")
+                logger.debug(f"Failed to choose the best relation for operation. {operation_markup} has required parameters: {req_param_markup}")
                 return False, Error("failed to choose the best relation", {'service':self.service_node.name, 'resource_node':self.name, 'operation_name':operation_name, 'generated_relations_for_parameter':generated_relations_for_parameter})
                 # return False, FindRelationResultTypes.CantDecideBetweenGeneratedParameters
         else:
@@ -142,12 +145,12 @@ class ResourceNode:
                         for _found_relations in required_parameter_names_to_relations_map.values()
                         if _found_relations
                     ])
-                    logger.debug(f"NOT ALL RELATIONS FOUND. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameter: {required_parameter_names}. Partially found relations: {partial_relations_str}")
+                    logger.debug(f"NOT ALL RELATIONS FOUND. {operation_markup} has required parameters: {req_param_markup}. Partially found relations: {partial_relations_str}")
                     return False, Error("missing relations for parameter", {'service':self.service_node.name, 'resource_node':self.name, 'operation_name':operation_name, 'required_parameter_names_to_relations':required_parameter_names_to_relations_map})
                     # return False, FindRelationResultTypes.SomeRelationsFoundButNotAll
                 else:
                     # nothing found
-                    logger.debug(f"NO RELATIONS FOUND. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameter: {required_parameter_names}.")
+                    logger.debug(f"NO RELATIONS FOUND. {operation_markup} has required parameters: {req_param_markup}.")
                     # return False, FindRelationResultTypes.NoRelations
                     return False, Error("failed to generate relations", {'service':self.service_node.name, 'resource_node':self.name,'operation_name':operation_name,  'required_parameter_names_to_relations':required_parameter_names_to_relations_map})
             
@@ -164,7 +167,7 @@ class ResourceNode:
                 possible_relation_combinations = list(filter(check, relations_cartesian_product))            
             
             if not possible_relation_combinations:
-                logger.debug(f"CAN'T DECIDE BTWN RELATIONS. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameters: {required_parameter_names}.")
+                logger.debug(f"CAN'T DECIDE BTWN RELATIONS. {operation_markup} has required parameters: {req_param_markup}.")
                 # return False, FindRelationResultTypes.CantDecideBetweenGeneratedParameters
                 return False, Error("failed to choose the best relation", {'service':self.service_node.name, 'resource_node':self.name, 'operation_name':operation_name, 'generated_relations_for_parameter':generated_relations_for_parameter})
                 
@@ -172,10 +175,10 @@ class ResourceNode:
             # find common target_operation relations across the permutation.
             relation_chosen_from_possible_combinations = self.select_between_possible_relation_combinations_matrix(possible_relation_combinations)    
             if relation_chosen_from_possible_combinations:
-                logger.debug(f"MULTIPLE PARAMETERS FOUND. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameters: {required_parameter_names}. Relations found: {str_relations(relation_chosen_from_possible_combinations)}")
+                logger.debug(f"MULTIPLE PARAMETERS FOUND. {operation_markup} has req parameters: {req_param_markup}. Relations found: {str_relations(relation_chosen_from_possible_combinations)}")
                 return relation_chosen_from_possible_combinations, None
             else:
-                logger.debug(f"CAN'T DECIDE BTWN RELATIONS. [bold][blue]{self.service_node.name}[/].[green]{operation_name}[/][/] has req parameters: {required_parameter_names}.")
+                logger.debug(f"CAN'T DECIDE BTWN RELATIONS. {operation_markup} has req parameters: {req_param_markup}.")
                 # return False, FindRelationResultTypes.CantDecideBetweenGeneratedParameters
                 return False, Error("failed to choose the best relation", {'service':self.service_node.name, 'resource_node':self.name,'operation_name':operation_name, 'generated_relations_for_parameter':generated_relations_for_parameter})
 
@@ -708,8 +711,7 @@ class ServiceNode:
             raise Exception('ResourceNode name must be provided.')
         _custom_cls_for_resource_node = _resource_node_registry.find_custom_class_for_resource_node(service_name, resource_node_name)
         if _custom_cls_for_resource_node:
-            # print(_custom_cls_for_resource_node, 'is used for ', service_name, resource_node_name)
-            logger.debug(f"Registry: {_custom_cls_for_resource_node} class is used for  [bold][green]{service_name}[/].[blue]{resource_node_name}")
+            logger.debug(f"ResourceNodeRegistry: [bold][green]{service_name}[/].[blue]{resource_node_name}[/][/] has extended with: {_custom_cls_for_resource_node}")
             _ResourceNodeClass = _custom_cls_for_resource_node
         return _ResourceNodeClass(**kwargs)
     
