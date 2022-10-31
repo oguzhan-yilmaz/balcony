@@ -128,7 +128,7 @@ def get_members_shapes(shape: Shape) -> List[Shape]:
     return found_members_shapes
 
 
-def filter_non_collection_shape(shape_and_target_path: ShapeAndTargetPath) -> bool:
+def is_shape_non_collection_type(shape_and_target_path: ShapeAndTargetPath) -> bool:
     """Bool function to check ShapeAndTargetPath Named Tuple 
 
     Args:
@@ -143,7 +143,7 @@ def filter_non_collection_shape(shape_and_target_path: ShapeAndTargetPath) -> bo
     return has_key_name and is_non_collection
 
 
-def _flatten_shape_to_its_members_and_target_paths(shape, target_str='', ):
+def _flatten_shape_to_its_members_and_target_paths(shape: Shape, target_str:str='') -> List[ShapeAndTargetPath]:
     result = []
     members = get_members_shapes(shape)
     for member in members:
@@ -161,9 +161,9 @@ def _flatten_shape_to_its_members_and_target_paths(shape, target_str='', ):
             result.append(ShapeAndTargetPath(member, new_target_str))
     return result
 
-def flatten_shape_to_its_non_collection_shape_and_target_paths(shape):
+def flatten_shape_to_its_non_collection_shape_and_target_paths(shape: Shape) -> List[ShapeAndTargetPath]:
     all_flat_members_and_target_paths = _flatten_shape_to_its_members_and_target_paths(shape)
-    non_collection_shapes_and_target_paths = list(filter(filter_non_collection_shape, all_flat_members_and_target_paths))
+    non_collection_shapes_and_target_paths = list(filter(is_shape_non_collection_type, all_flat_members_and_target_paths))
     return non_collection_shapes_and_target_paths
 
 """

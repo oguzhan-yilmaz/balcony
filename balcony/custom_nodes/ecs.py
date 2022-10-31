@@ -1,19 +1,14 @@
 try:
     from ..nodes import ResourceNode
-    from ..registries import ResourceNodeRegistry
     from ..logs import get_logger
-    from ..relations import FindRelationResultTypes
 except ImportError:
     from nodes import ResourceNode
-    from registries import ResourceNodeRegistry
     from logs import get_logger
-    from relations import FindRelationResultTypes
 logger = get_logger(__name__)
 
 
 
-
-class ECS_Cluster(ResourceNode, ResourceNodeRegistry, service_name="ecs", name="Clusters"):
+class Cluster(ResourceNode, service_name="ecs", name="Clusters"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     
@@ -34,7 +29,7 @@ class ECS_Cluster(ResourceNode, ResourceNodeRegistry, service_name="ecs", name="
         }]
         
         
-class ECS_Services(ResourceNode, ResourceNodeRegistry, service_name="ecs", name="Services"):
+class Services(ResourceNode, service_name="ecs", name="Services"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -44,8 +39,8 @@ class ECS_Services(ResourceNode, ResourceNodeRegistry, service_name="ecs", name=
             return ['cluster']
         return r
 
-    def get_operations_relations(self, operation_name, relation_map):
-        r = super().get_operations_relations(operation_name, relation_map)
+    def get_operations_relations(self, operation_name):
+        r = super().get_operations_relations(operation_name)
         if operation_name == 'DescribeServices':
             return [{
                 "search_shape_name": "services",
@@ -61,7 +56,7 @@ class ECS_Services(ResourceNode, ResourceNodeRegistry, service_name="ecs", name=
                 "operation_name": "ListServices",
                 "target_path": "__args__.cluster"
             }
-            ]
+            ], None
         return r
     
     # def define_extra_relations(self):

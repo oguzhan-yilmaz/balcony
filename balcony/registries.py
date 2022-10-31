@@ -49,20 +49,20 @@ class AppRegistry:
 app_registry = AppRegistry()
 class ResourceNodeRegistry:
     _registry = {}
-
-    def __init_subclass__(cls, service_name=None, name=None, **kwargs):
-        super().__init_subclass__(**kwargs)
+    
+    def register_class(self, cls, service_name=None, name=None):
         # TODO: check if service_name is correct get_available_service_names
-        service_dict = cls._registry.get(service_name, False)
+        service_dict = self._registry.get(service_name, False)
         if not service_dict:
-            cls._registry[service_name] = {name: cls}
+            self._registry[service_name] = {name: cls}
         else:
             custom_resource_node = service_dict.get(name, False)
             if custom_resource_node:
                 raise Exception(
                     f"A custom ResourceNode is already registered with Service: {service_name}, Resource Node: {name}. Duplication is not allowed.")
             else:
-                cls._registry[service_name][name] = cls
+                self._registry[service_name][name] = cls
+
 
     def _search_registry_for_service(cls, service_name):
         return cls._registry.get(service_name, {})

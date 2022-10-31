@@ -1,16 +1,12 @@
 try:
     from ..nodes import ResourceNode
-    from ..registries import ResourceNodeRegistry
     from ..logs import get_logger
-    from ..relations import FindRelationResultTypes
 except ImportError:
     from nodes import ResourceNode
-    from registries import ResourceNodeRegistry
     from logs import get_logger
-    from relations import FindRelationResultTypes
 logger = get_logger(__name__)
 
-class Lambda_Function(ResourceNode, ResourceNodeRegistry, service_name="lambda", name="Function"):
+class Function(ResourceNode, service_name="lambda", name="Function"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
     

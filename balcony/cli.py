@@ -1,9 +1,8 @@
-from typing import Optional
 import typer
 try:
     from .utils import *
     from .logs import get_logger, get_rich_console, set_log_level_at_runtime
-    from .nodes import ServiceNode
+    from .nodes import ServiceNode, OperationType
     from .reader import ServiceReader
     from .custom_nodes import *
     from .registries import app_registry
@@ -12,22 +11,20 @@ try:
 except ImportError:
     from utils import *
     from logs import get_logger, get_rich_console, set_log_level_at_runtime
-    from nodes import ServiceNode
+    from nodes import ServiceNode, OperationType
     from reader import ServiceReader
     from custom_nodes import *
     from factories import Boto3SessionSingleton, BalconyAWS
     from registries import app_registry
     from settings import INSTALLED_BALCONY_APPS
 
-# TODO allow single parameter selection with optional arg
-from rich.json import JSON
+from typing import Optional
 import boto3
 from rich.columns import Columns
 from rich.panel import Panel
 from rich.console import Console
 from rich.layout import Layout
 from rich.pretty import Pretty
-import os
 import logging
 
 console = get_rich_console()
@@ -160,14 +157,22 @@ def _list_service_or_resource(
         console.print(operations_panel)
         return    
 
-
+def aa():
+    # for sname in balcony_aws.get_available_service_node_names():
+    service_node = balcony_aws.get_service('iam')
+    for rn in service_node.get_resource_nodes():
+        for operation in rn.get_operation_names():
+            print(operation)
+    
 @app.command('aws')
 def aws_main_command(
-        service: Optional[str] = typer.Argument(None, show_default=False,help='The AWS service name', autocompletion=_complete_service_name),
-        resource_node: Optional[str] = typer.Argument(None, show_default=False, help='The AWS Resource Node', autocompletion=_complete_resource_node_name),
-        list_contents: bool = typer.Option(False, "--list", '-l', help='Print the list or details'),
-        debug: bool = typer.Option(False, "--debug", '-d', help='Enable debug messages'),
-        paginate: bool = typer.Option(False, "--paginate", '-p', help='Open the data on a separate paginator on shell.'),
+        service: Optional[str] = typer.Argument(None, show_default=False,help='Name of the AWS Service', autocompletion=_complete_service_name),
+        resource_node: Optional[str] = typer.Argument(None, show_default=False, help='Name of the AWS Resource Node', autocompletion=_complete_resource_node_name),
+        operation: Optional[OperationType] = typer.Option(None, "--operation", '-o', show_default=False, help='Select a specific operation type.', ),
+        patterns: Optional[List[str]] = typer.Option(None, "--pattern", '-p', show_default=False, help='UNIX pattern matching for generated parameters. Should be quoted. e.g. (-p "*prod-*")'),
+        list_contents: bool = typer.Option(False, "--list", '-l', help='Print the details of Service or Resource. Does not make requests.'),
+        debug: bool = typer.Option(False, "--debug", '-d', help='Enable debug messages.'),
+        paginate: bool = typer.Option(False, "--screen", '-s', help='Open the data on a separate paginator on shell.'),
     ):
     if debug:
         set_log_level_at_runtime(logging.DEBUG)
@@ -189,14 +194,31 @@ def aws_main_command(
     elif service and resource_node:
         service_node = balcony_aws.get_service(service)
         service_reader = service_node.get_service_reader()
-        read = service_reader.read_resource_node(resource_node)
+        
+        is_operation_selected = operation is not None
+        read_data = None
+        if not is_operation_selected:
+            read_data = service_reader.read_resource_node(resource_node, match_patterns=patterns)
+          
+        else: # Operation is selected
+            
+            resource_node_obj = service_node.get_resource_node_by_name(resource_node)
+            types_to_op_names = resource_node_obj.get_operation_types_and_names()
+            supported_operation_types = list(types_to_op_names.keys())
+            operation_name = types_to_op_names.get(operation.value, False)
+            if not operation_name:
+                console.print(f"[red bold]Given {operation.value} is not supported by {resource_node}. Try: {supported_operation_types}")
+                return False
+            console.print(patterns)
+            read_data = service_reader.read_operation(resource_node, operation_name, match_patterns=patterns)
+
         if paginate:
             with console.pager(styles=True):
-              console.print_json(data=read, default=str)
+                console.print_json(data=read_data, default=str)
         else:    
-            console.print_json(data=read, default=str)
-        return read
-    
+            console.print_json(data=read_data, default=str)
+        return read_data
+
     
 def run_app():
     app(prog_name="balcony")
@@ -206,7 +228,3 @@ def run_app():
 if __name__ == "__main__":
     run_app()
     
-
-
-
-
