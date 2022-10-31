@@ -14,5 +14,4 @@ class BuildsForProject(ResourceNode, service_name='codebuild', name='BuildsForPr
     def get_operations_relations(self, operation_name) -> Tuple[List[Dict], None]:                                                                                                               
         result, err = super().get_operations_relations(operation_name)                                                                                                                     
         # manipulate `result` or return your own value                                                                                                                                     
-        logger.debug(result)                                                                                                                                                        
         return result, err
