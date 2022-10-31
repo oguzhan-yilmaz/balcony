@@ -136,10 +136,13 @@ class ServiceReader:
             matched_parameters = []
             
             for api_param in api_parameters:
+                has_api_param_added = False
                 for api_param_value in api_param.values():
                     for pattern in patterns:
-                        if fnmatch.fnmatch(api_param_value, pattern) and api_param not in matched_parameters:
+                        if not has_api_param_added and fnmatch.fnmatch(api_param_value, pattern) \
+                                and api_param not in matched_parameters:
                             matched_parameters.append(api_param)
+                            has_api_param_added = True
             return matched_parameters
         
             

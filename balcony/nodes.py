@@ -27,16 +27,20 @@ from rich.panel import Panel
 from rich.console import Group
 from rich.layout import Layout
 import jmespath
-from rich.markdown import Markdown
 import textwrap
+from enum import Enum
 
 logger = get_logger(__name__)
 
 _resource_node_registry = ResourceNodeRegistry()
 argument_generator = ArgumentGenerator()
 console = get_rich_console()
-
-
+class OperationType(str, Enum):
+    GET = "get"
+    GETS = "gets"
+    LIST = "list"
+    DESC = "desc"
+    
 
 class ResourceNode:
     def __init__(self, service_node: 'ServiceNode', name: str, operation_names: List[str]) -> None:
@@ -49,6 +53,25 @@ class ResourceNode:
     def __init_subclass__(cls, service_name=None, name=None, **kwargs):
         super().__init_subclass__(**kwargs)
         _resource_node_registry.register_class(cls, service_name, name)
+
+    def get_operation_types_and_names(self) -> Dict[OperationType, str]:
+        operation_names = self.get_operation_names()
+        types_to_operation_names = {}
+        for op_name in operation_names:
+            verb, *resource_node_name_tokens = camel_case_split(op_name)
+            resource_node_name = ''.join(resource_node_name_tokens)
+            if verb.lower() == 'describe':
+                types_to_operation_names[OperationType.DESC.value] = op_name
+            if verb.lower() == 'list':
+                types_to_operation_names[OperationType.LIST.value] = op_name
+
+            if verb.lower() == 'get':
+                if self.name != resource_node_name:
+                    types_to_operation_names[OperationType.GETS.value] = op_name
+                else:
+                    types_to_operation_names[OperationType.GET.value] = op_name
+        return types_to_operation_names
+        
 
     def get_operation_names(self) -> List[str]:
         """Returns the available operation names in the ResourceNode. 
