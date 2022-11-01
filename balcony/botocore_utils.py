@@ -10,7 +10,7 @@ except ImportError:
     from logs import get_rich_console
 
 
-
+import re
 from collections import namedtuple
 from rich.text import Text
 from rich.tree import Tree
@@ -25,6 +25,7 @@ READ_ONLY_VERBS = ('Describe', 'List', 'Get')
 IDENTIFIER_NAMES = ('arn', 'id', 'name', 'arns', 'ids',
                     'names', 'identifier', 'identifiers', 'number', 'url')
 BLACKLISTED_SHAPE_NAMES = ('ComponentChildList','FirewallManagerRuleGroups', 'Rules','HeaderNames', 'ExcludedRules', 'CountryCodes', 'CookieNames', 'TextTransformations', 'ComponentSummaryList','AnomalyMonitors','ConfigurationList','HandshakeResources','JsonPointerPaths','AdministrativeActions','DataValueList','ThemeValuesList','Expressions','CostCategoryRulesList')
+HTML_CLEANER_REGEX = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 
 console = get_rich_console()
 
@@ -187,13 +188,17 @@ therewillbebeloodthere
     console.print(root)
 """
 
+def cleanhtml(raw_html):
+  cleantext = re.sub(HTML_CLEANER_REGEX, '', raw_html)
+  return cleantext
+
 
 def rich_str_shape(shape: Shape) -> str:
     """Transforms a Shape to rich supported string.
 
     Args:
         shape (Shape): botocore.model.Shape object.
-
+    
     Returns:
         str: Rich string for shape.
     """
@@ -203,14 +208,15 @@ def rich_str_shape(shape: Shape) -> str:
         type_name = ''
     if type_name:
         type_name = f"({type_name})"
-    shape_str = f"[blue]{key_name} [white]{type_name}"
+    shape_str = f"[blue bold]{key_name}[/] [white]{type_name}[/]: {cleanhtml(shape.documentation)}"
     return shape_str
 
 
 def generate_rich_tree_from_shape(shape: Shape) -> Tree:
     """Genereate a rich Tree containing `shape` and it's members."""
     tree = Tree(rich_str_shape(shape), guide_style="red")
-    def _recursive_stringify_shape(shape, node):
+    
+    def _recursive_stringify_shape(shape, node: Tree):
 
         members = get_members_shapes(shape)
         for member in members:
