@@ -25,6 +25,7 @@ from botocore.model import OperationModel, ServiceModel
 from rich.text import Text
 from rich.panel import Panel
 from rich.console import Group
+from rich.padding import Padding
 from rich.layout import Layout
 import jmespath
 import textwrap
@@ -455,17 +456,21 @@ class ResourceNode:
         if input_shape:
             input_shape_tree = generate_rich_tree_from_shape(input_shape)
         output_shape_tree = generate_rich_tree_from_shape(output_shape)
-        layout = Layout()
-        layout.split_row(
-            Panel(input_shape_tree, title='[yellow]Input Shape'),# subtitle=get_shape_name(input_shape)),
-            Panel(output_shape_tree, title='[yellow]Output Shape'),# subtitle=get_shape_name(output_shape)),
+        
+        operation_docs = cleanhtml(operation_model.documentation)
+        panel_group = Group(
+            Padding(f"[bold underline]Documentation:[/] {operation_docs}", (1, 2)),
+            Panel(input_shape_tree, title=f'Input: [yellow]{input_shape.name}', title_align='left', padding=(1,1)),
+            Panel(output_shape_tree, title=f'Output: [yellow]{output_shape.name}', title_align='left', padding=(1,1)),
+            
         )
-      
+        Group()
+        
         required_parameters = self.get_required_parameter_names_from_operation_name(operation_name)
-        _title = f"Operation: [green][bold]{operation_name}[/]"
+        _title = f"[bold]Operation[/]: [magenta bold]{operation_name}[/]"
         if required_parameters:
             _title = f"{_title}   [white][Required: {', '.join(required_parameters)}]"
-        operation_panel = Panel(layout, title=_title, highlight=True, title_align='left')
+        operation_panel = Panel(panel_group, title=_title, highlight=True, title_align='left')
         return operation_panel
 
     def select_between_possible_relation_combinations_matrix(self, possible_relation_combinations: List[List[Dict]])->List[Dict]:
@@ -650,7 +655,7 @@ class ServiceNode:
         operations_group = Group(
             *panels_for_operations
         )
-        return Panel(operations_group, title=f'Resource Node: [blue][bold]{resource_node.name} ', title_align='left')
+        return Panel(operations_group, title=f'[bold]Resource Node: [blue]{resource_node.name} ', title_align='left')
         
     def get_resource_node_by_name(self, resource_node_name:str) -> ResourceNode:
         """Searches the current ServiceNode for the given `resource_node_name`,

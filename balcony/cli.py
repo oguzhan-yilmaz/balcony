@@ -97,7 +97,21 @@ def _complete_resource_node_name(ctx: typer.Context, incomplete: str):
             resource_node_names.append(_rn_name)
     return resource_node_names
 
-
+def _complete_operation_type(ctx: typer.Context, incomplete: str):
+    service = ctx.params.get("service", False)
+    resource_node = ctx.params.get("resource_node", False)
+    if not service or not resource_node:
+        return []
+    service_node = balcony_aws.get_service(service)
+    if not service_node:
+        return []
+    resource_node_obj = service_node.get_resource_node_by_name(resource_node)
+    if not resource_node_obj:
+        return []
+    
+    operation_types_and_names = resource_node_obj.get_operation_types_and_names()
+    
+    return list(operation_types_and_names.keys())
         
         
 # @aws_app.command('ls')
@@ -169,7 +183,7 @@ def aws_main_command(
         service: Optional[str] = typer.Argument(None, show_default=False,help='Name of the AWS Service', autocompletion=_complete_service_name),
         resource_node: Optional[str] = typer.Argument(None, show_default=False, help='Name of the AWS Resource Node', autocompletion=_complete_resource_node_name),
         operation: Optional[OperationType] = typer.Option(None, "--operation", '-o', show_default=False, help='Select a specific operation type.', ),
-        patterns: Optional[List[str]] = typer.Option(None, "--pattern", '-p', show_default=False, help='UNIX pattern matching for generated parameters. Should be quoted. e.g. (-p "*prod-*")'),
+        patterns: Optional[List[str]] = typer.Option(None, "--pattern", '-p', show_default=False, help='UNIX pattern matching for generated parameters. Should be quoted. e.g. (-p "*prod-*")', auto_complete=_complete_operation_type),
         list_contents: bool = typer.Option(False, "--list", '-l', help='Print the details of Service or Resource. Does not make requests.'),
         debug: bool = typer.Option(False, "--debug", '-d', help='Enable debug messages.'),
         paginate: bool = typer.Option(False, "--screen", '-s', help='Open the data on a separate paginator on shell.'),
