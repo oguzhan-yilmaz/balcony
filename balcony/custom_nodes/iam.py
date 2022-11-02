@@ -1,10 +1,14 @@
 try:
     from ..nodes import ResourceNode
     from ..logs import get_logger
+    from ..errors import Error
 except ImportError:
     from nodes import ResourceNode
     from logs import get_logger
+    from errors import Error
+
 logger = get_logger(__name__)
+from typing import List, Set, Dict, Tuple, Optional, Union
 
 
 
@@ -32,6 +36,25 @@ class Policy(ResourceNode, service_name="iam", name="Policy"):
             "operation_name": "ListPolicies",
             "target_path": "Policies[*].DefaultVersionId"
         }]
+        
+    
+    def generate_api_parameters_from_operation_data(self, operation_name:str, 
+                                                    relations_of_operation:List[Dict], 
+                                                    related_operations_data: Union[List, Dict]) -> Tuple[Union[List, bool], Union[Error, None]]:
+        generated_api_parameters, err = super().generate_api_parameters_from_operation_data(operation_name, relations_of_operation, related_operations_data)
+
+        if err is not None:
+            return generated_api_parameters, err
+        
+        if operation_name == "ListPolicies":
+            api_parameters = []
+            for api_param in generated_api_parameters:
+                api_param.update({'Scope':'Local'})
+                api_parameters.append(api_param)
+            return api_parameters, None
+            
+        return generated_api_parameters, err
+            
 
 class User(ResourceNode, service_name="iam", name="User"):
     def __init__(self, *args, **kwargs):

@@ -25,6 +25,7 @@ from botocore.model import OperationModel, ServiceModel
 from rich.text import Text
 from rich.panel import Panel
 from rich.console import Group
+from rich.padding import Padding
 from rich.layout import Layout
 import jmespath
 import textwrap
@@ -456,10 +457,14 @@ class ResourceNode:
             input_shape_tree = generate_rich_tree_from_shape(input_shape)
         output_shape_tree = generate_rich_tree_from_shape(output_shape)
         
+        operation_docs = cleanhtml(operation_model.documentation)
         panel_group = Group(
-            Panel(input_shape_tree, title=f'[yellow]Input Shape: [bold]{input_shape.name}'),
-            Panel(output_shape_tree, title=f'[yellow]Output Shape: [bold]{output_shape.name}'),
+            Padding(f"[bold underline]Documentation:[/] {operation_docs}", (1, 2)),
+            Panel(input_shape_tree, title=f'Input: [yellow]{input_shape.name}', title_align='left', padding=(1,1)),
+            Panel(output_shape_tree, title=f'Output: [yellow]{output_shape.name}', title_align='left', padding=(1,1)),
+            
         )
+        Group()
         
         required_parameters = self.get_required_parameter_names_from_operation_name(operation_name)
         _title = f"[bold]Operation[/]: [magenta bold]{operation_name}[/]"
