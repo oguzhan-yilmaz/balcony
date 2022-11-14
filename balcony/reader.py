@@ -2,13 +2,13 @@ try:
     from .utils import icompare_two_camel_case_words, str_relations, ifind_similar_names_in_list
     from .botocore_utils import READ_ONLY_VERBS
     from .relations import FindRelationResultTypes, SUCCESSFUL_FIND_RELATION_RESULT_TYPES
-    from .logs import get_logger, get_rich_console
+    from .config import get_logger, get_rich_console
     from .errors import Error
 except ImportError:
     from utils import icompare_two_camel_case_words, str_relations, ifind_similar_names_in_list
     from botocore_utils import READ_ONLY_VERBS
     from relations import FindRelationResultTypes, SUCCESSFUL_FIND_RELATION_RESULT_TYPES
-    from logs import get_logger, get_rich_console
+    from config import get_logger, get_rich_console
     from errors import Error
 import fnmatch
 from collections.abc import Iterable
@@ -18,7 +18,10 @@ from rich.table import Column
 logger = get_logger(__name__)
 console = get_rich_console()
 from typing import List, Set, Dict, Tuple, Optional, Union
+
+
 class ServiceReader:
+    """service reader class"""
     def __init__(self, service_node):
         self.service_node = service_node
         self.response_data = {}
@@ -88,7 +91,8 @@ class ServiceReader:
         resource_node_exists = self.response_data.get(resource_node_name, False) != False
         if not resource_node_exists:
             return False
-        result = self.response_data[resource_node_name].get(operation_name, False)
+        resource_data = self.search_resource_node_data(resource_node_name)
+        result = resource_data.get(operation_name, False)
         return result
     
     def search_resource_node_data(self, resource_node_name):

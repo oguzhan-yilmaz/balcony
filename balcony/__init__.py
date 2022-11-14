@@ -7,9 +7,9 @@ try:
     from .registries import app_registry, AppRegistry
     from .app import BaseBalconyApp
     from .factories import BalconyAWS
-    from .logs import get_rich_console, get_logger
+    from .config import get_rich_console, get_logger
 except ImportError:
     from registries import app_registry, AppRegistry
     from app import BaseBalconyApp
     from factories import BalconyAWS
-    from logs import get_rich_console, get_logger
+    from config import get_rich_console, get_logger

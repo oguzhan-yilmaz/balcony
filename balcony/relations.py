@@ -1,13 +1,11 @@
 try:
     from .botocore_utils import get_shape_name, flatten_shape_to_its_non_collection_shape_and_target_paths, IDENTIFIER_NAMES
-    from .logs import get_logger
+    from .config import get_logger, BALCONY_RELATIONS_DIR
     from .utils import icompare_two_camel_case_words
-    from .settings import BALCONY_RELATIONS_DIR
 except ImportError:
     from botocore_utils import get_shape_name, flatten_shape_to_its_non_collection_shape_and_target_paths, IDENTIFIER_NAMES
-    from logs import get_logger
+    from config import get_logger, BALCONY_RELATIONS_DIR
     from utils import icompare_two_camel_case_words
-    from settings import BALCONY_RELATIONS_DIR
 from typing import List, Dict, Tuple, Union
 import json
 import os

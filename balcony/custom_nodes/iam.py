@@ -1,10 +1,10 @@
 try:
     from ..nodes import ResourceNode
-    from ..logs import get_logger
+    from ..config import get_logger
     from ..errors import Error
 except ImportError:
     from nodes import ResourceNode
-    from logs import get_logger
+    from config import get_logger
     from errors import Error
 
 logger = get_logger(__name__)
@@ -59,6 +59,15 @@ class Policy(ResourceNode, service_name="iam", name="Policy"):
 class User(ResourceNode, service_name="iam", name="User"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+    
+    
+    def get_required_parameter_names_from_operation_name(self, operation_name:str):
+        if operation_name == 'GetUser':
+            return ['UserName']
+        return super().get_required_parameter_names_from_operation_name(operation_name)
+
+    # def get_all_required_parameter_names(self)-> List[str]:
+    #     return ['UserName']
     
     def define_extra_relations(self):
         r= super().define_extra_relations()

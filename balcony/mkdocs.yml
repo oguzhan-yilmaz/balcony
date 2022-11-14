@@ -1,0 +1,46 @@
+site_name: balcony
+repo_url: https://github.com/oguzhan-yilmaz/balcony
+repo_name: oguzhan-yilmaz/balcony
+
+nav:
+    - Home: index.md
+    - QuickStart: quickstart.md
+    - 'How it Works? ': 
+      - 'About boto3': how-it-works/about-boto3.md
+      - 'Reading Operations': how-it-works/about-balcony.md
+    - Cookbook: practical-usage.md
+    - 'App Development':
+      - development/local-env.md
+    - Reference:
+      - reference/resource-node.md
+      - reference/service-node.md
+      - reference/service-reader.md
+      - reference/relations.md
+
+theme:
+  name: material
+  font:
+    text: Roboto
+  features:
+    - navigation.tracking
+    - navigation.expand
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/oguzhan-yilmaz
+    - icon: fontawesome/brands/linkedin 
+      link: https://www.linkedin.com/in/oguzhan-y/
+    - icon: fontawesome/brands/twitter 
+      link: https://twitter.com/oguzhan_y_
+
+      
+      
+
+
+plugins:
+- search
+- mkdocstrings
+- autorefs

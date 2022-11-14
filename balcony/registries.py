@@ -1,10 +1,18 @@
+try:
+    from .config import get_logger, get_rich_console
+except ImportError:
+    from config import get_logger, get_rich_console
+    
 import os
 from importlib import import_module
-class ImproperlyConfigured(Exception): pass
 import sys
-APPS_MODULE_NAME = 'app'
 import sys
 from importlib.util import find_spec as importlib_find
+class ImproperlyConfigured(Exception): pass
+
+console = get_rich_console()
+logger = get_logger(__name__)
+APPS_MODULE_NAME = 'app'
 
 class AppRegistry:
     _registry = {}
@@ -31,19 +39,24 @@ class AppRegistry:
             self._registry[author].append(app_dict)
 
     @staticmethod
-    def import_balcony_apps(insalled_apps=None):
-        for entry in insalled_apps:
+    def import_balcony_apps(installed_apps=None):
+        if not installed_apps:
+            logger.debug("There's no installed apps given")
+            return
+        for entry in installed_apps:
             # import the entry
             try:
                 app_module = import_module(entry)
+                logger.debug(f"Successfully imported app: {entry}, module: {app_module}")
                 app_module
             except Exception as e:
+                logger.debug(f"Failed to import app: {entry}")
                 pass
             else:
                 if module_has_submodule(app_module, APPS_MODULE_NAME):
                     mod_path = "%s.%s" % (entry, APPS_MODULE_NAME)
                     mod = import_module(mod_path)
-                    mod
+                    logger.debug(f"Successfully imported 'app submodule' from: {entry}, module: {mod}")
     # TODO: save the module info and return it
     
 app_registry = AppRegistry()
