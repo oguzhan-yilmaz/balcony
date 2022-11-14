@@ -4,7 +4,7 @@ try:
     from .relations import RelationMap, FindRelationResultTypes
     from .reader import ServiceReader
     from .registries import ResourceNodeRegistry
-    from .logs import get_logger, get_rich_console
+    from .config import get_logger, get_rich_console
     from .errors import Error
 except ImportError:
     from utils import camel_case_split, compare_nouns, ifind_similar_names_in_list , icompare_two_token_lists, compare_two_camel_case_words, str_relations
@@ -12,7 +12,7 @@ except ImportError:
     from relations import RelationMap, FindRelationResultTypes
     from reader import ServiceReader
     from registries import ResourceNodeRegistry
-    from logs import get_logger, get_rich_console
+    from config import get_logger, get_rich_console
     from errors import Error
 
 from typing import List, Set, Dict, Tuple, Optional, Union
@@ -55,6 +55,9 @@ class ResourceNode:
         super().__init_subclass__(**kwargs)
         _resource_node_registry.register_class(cls, service_name, name)
 
+    def filter_result_with_jmespath(self, data, jmespath_selector: str):
+        return jmespath.search(jmespath_selector, data)
+
     def get_operation_types_and_names(self) -> Dict[OperationType, str]:
         operation_names = self.get_operation_names()
         types_to_operation_names = {}
@@ -62,15 +65,15 @@ class ResourceNode:
             verb, *resource_node_name_tokens = camel_case_split(op_name)
             resource_node_name = ''.join(resource_node_name_tokens)
             if verb.lower() == 'describe':
-                types_to_operation_names[OperationType.DESC.value] = op_name
+                types_to_operation_names['describe'] = op_name
             if verb.lower() == 'list':
-                types_to_operation_names[OperationType.LIST.value] = op_name
+                types_to_operation_names['list'] = op_name
 
             if verb.lower() == 'get':
                 if self.name != resource_node_name:
-                    types_to_operation_names[OperationType.GETS.value] = op_name
+                    types_to_operation_names['gets'] = op_name
                 else:
-                    types_to_operation_names[OperationType.GET.value] = op_name
+                    types_to_operation_names['get'] = op_name
         return types_to_operation_names
         
 
@@ -97,7 +100,6 @@ class ResourceNode:
 
         Args:
             operation_name (str): Name of the operation.
-            relation_map (Optional[RelationMap], optional): RelationMap object for the Service Node. Defaults to None.
 
         Returns:
             Tuple[Union[List[Dict], bool], Union[Error, None]]: Returns value and error. 
@@ -622,7 +624,9 @@ class ServiceNode:
         self._reader = None
         self._read_operation_name_to_tokens_map = None
 
-
+    def get_client(self):
+        return self.client
+    
     def read(self, resource_node_name):
         reader = self.get_service_reader()
         return reader.read_resource_node(resource_node_name)

@@ -1,8 +1,8 @@
 
 try:
-    from .logs import get_logger, get_rich_console
+    from .config import get_logger, get_rich_console
 except ImportError:
-    from logs import get_logger, get_rich_console
+    from config import get_logger, get_rich_console
     
 from typing import List, Set, Dict, Tuple, Optional, Union
 import textwrap
@@ -28,10 +28,10 @@ def generate_py_code_for_customization(error, func_signature, func_ret_type='', 
     
     try:
         from ..nodes import ResourceNode
-        from ..logs import get_logger
+        from ..config import get_logger
     except ImportError:
         from nodes import ResourceNode
-        from logs import get_logger
+        from config import get_logger
     from typing import List, Set, Dict, Tuple, Optional, Union
     logger = get_logger(__name__)
         

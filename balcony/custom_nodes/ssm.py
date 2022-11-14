@@ -2,10 +2,10 @@
 
 try:
     from ..nodes import ResourceNode
-    from ..logs import get_logger
+    from ..config import get_logger
 except ImportError:
     from nodes import ResourceNode
-    from logs import get_logger
+    from config import get_logger
 logger = get_logger(__name__)
 
 

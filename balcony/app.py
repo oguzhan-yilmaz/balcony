@@ -24,16 +24,11 @@ class BaseBalconyApp:
         cls.description =description
         cls.tags = tags
         app_registry.register_app_class(cls, author, app_name, description, tags, **kwargs)
-
-        
-
             
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        print('BaseBalconyApp initialized.')
         # self.name = name
         
-
     def get_data(self, *args, **kwargs) -> dict:
         """"""
         raise NotImplementedError("Please Implement this method")

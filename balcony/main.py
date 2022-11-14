@@ -1,14 +1,14 @@
 try:
     from .custom_nodes import *
     from .nodes import *
-    from .logs import get_logger
+    from .config import get_logger
     from .factories import Boto3SessionSingleton
     from .utils import get_all_available_services, _create_boto_session
     from .registries import AppRegistry, app_registry
 except ImportError:
     from custom_nodes import *
     from nodes import *
-    from logs import get_logger, get_rich_console
+    from config import get_logger, get_rich_console
     from factories import Boto3SessionSingleton
     from utils import get_all_available_services, _create_boto_session
     from registries import AppRegistry, app_registry

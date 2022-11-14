@@ -1,23 +1,22 @@
 import typer
 try:
     from .utils import *
-    from .logs import get_logger, get_rich_console, set_log_level_at_runtime
+    from .config import get_logger, get_rich_console, set_log_level_at_runtime, get_installed_apps, add_installed_app_to_config
     from .nodes import ServiceNode, OperationType
     from .reader import ServiceReader
     from .custom_nodes import *
     from .registries import app_registry
     from .factories import Boto3SessionSingleton, BalconyAWS
-    from .settings import INSTALLED_BALCONY_APPS
 except ImportError:
     from utils import *
-    from logs import get_logger, get_rich_console, set_log_level_at_runtime
+    from config import get_logger, get_rich_console, set_log_level_at_runtime, get_installed_apps, add_installed_app_to_config
     from nodes import ServiceNode, OperationType
     from reader import ServiceReader
     from custom_nodes import *
     from factories import Boto3SessionSingleton, BalconyAWS
     from registries import app_registry
-    from settings import INSTALLED_BALCONY_APPS
 
+import jmespath
 from typing import Optional
 import boto3
 from rich.columns import Columns
@@ -37,6 +36,12 @@ app = typer.Typer(no_args_is_help=True)
 awsx_app = typer.Typer(no_args_is_help=True) # no_args_is_help=True
 # app.add_typer(aws_app, name="aws")
 app.add_typer(awsx_app, name="apps")
+
+add_app = typer.Typer(no_args_is_help=True) # no_args_is_help=True
+app.add_typer(add_app, name="add")
+
+INSTALLED_BALCONY_APPS = get_installed_apps()
+logger.debug(f"Dynamically importing {INSTALLED_BALCONY_APPS} apps.")
 app_registry.import_balcony_apps(INSTALLED_BALCONY_APPS)
 
 
@@ -56,7 +61,13 @@ for author, app_dict_list in registered_apps.items():
         except NotImplementedError:
             print(app_name, 'has not implemented get_cli_app()') 
             
-
+@app.callback()
+def _main_app_callback(        
+        debug: bool = typer.Option(False, "--debug", '-d', help='Enable debug messages.'),
+    ):
+    if debug:
+        set_log_level_at_runtime(logging.DEBUG)
+    
 def _get_available_service_node_names():
     return get_all_available_services(session)
 
@@ -97,7 +108,8 @@ def _complete_resource_node_name(ctx: typer.Context, incomplete: str):
             resource_node_names.append(_rn_name)
     return resource_node_names
 
-def _complete_operation_type(ctx: typer.Context, incomplete: str):
+def _complete_operation_type(ctx: typer.Context):
+    # service, resource_node = 'ec2', 'BundleTasks'
     service = ctx.params.get("service", False)
     resource_node = ctx.params.get("resource_node", False)
     if not service or not resource_node:
@@ -108,13 +120,16 @@ def _complete_operation_type(ctx: typer.Context, incomplete: str):
     resource_node_obj = service_node.get_resource_node_by_name(resource_node)
     if not resource_node_obj:
         return []
-    
     operation_types_and_names = resource_node_obj.get_operation_types_and_names()
-    
     return list(operation_types_and_names.keys())
         
+@add_app.command('app')
+def _install_app_command(
+        app_name: str = typer.Argument(None, show_default=False,help='Balcony app name to enable. Must be pip installed beforehand!'),
+    ):
+    logger.debug(f'App Registry: Installing {app_name}')
+    add_installed_app_to_config(app_name)
         
-# @aws_app.command('ls')
 def _list_service_or_resource(
         service: Optional[str] = typer.Argument(None, show_default=False,help='The AWS service name', autocompletion=_complete_service_name),
         resource_node: Optional[str] = typer.Argument(None, show_default=False, help='The AWS Resource Node', autocompletion=_complete_resource_node_name),
@@ -171,30 +186,55 @@ def _list_service_or_resource(
         console.print(operations_panel)
         return    
 
-def aa():
-    # for sname in balcony_aws.get_available_service_node_names():
+def vvv():
     service_node = balcony_aws.get_service('iam')
-    for rn in service_node.get_resource_nodes():
-        for operation in rn.get_operation_names():
-            print(operation)
+    rns = service_node.get_resource_nodes()
+    
+    a = []
+    for k, v in service_node.client._PY_TO_OP_NAME.items():
+        console.print(f"| {k} | {v} |")
+    
+def aa():
+    s_count = 0
+    total_rn_count = 0
+    total_o_count = 0
+    all_o_count = 0 
+    for sname in balcony_aws.get_available_service_node_names():
+        service_node = balcony_aws.get_service(sname)
+        s_count += 1
+        all_o_count += len(service_node.client._PY_TO_OP_NAME)
+        rns = service_node.get_resource_nodes()
+        rn_count = len(rns)
+        total_rn_count += rn_count
+        o_count = 0
+        for rn in rns:
+            o_count += len(rn.get_operation_names())
+        console.print(sname, rn_count, o_count)
+
+        total_o_count += o_count
+    console.print(s_count, total_rn_count, total_o_count)    
+    console.print(all_o_count)   
     
 @app.command('aws')
 def aws_main_command(
         service: Optional[str] = typer.Argument(None, show_default=False,help='Name of the AWS Service', autocompletion=_complete_service_name),
         resource_node: Optional[str] = typer.Argument(None, show_default=False, help='Name of the AWS Resource Node', autocompletion=_complete_resource_node_name),
-        operation: Optional[OperationType] = typer.Option(None, "--operation", '-o', show_default=False, help='Select a specific operation type.', ),
-        patterns: Optional[List[str]] = typer.Option(None, "--pattern", '-p', show_default=False, help='UNIX pattern matching for generated parameters. Should be quoted. e.g. (-p "*prod-*")', auto_complete=_complete_operation_type),
-        list_contents: bool = typer.Option(False, "--list", '-l', help='Print the details of Service or Resource. Does not make requests.'),
+        operation: Optional[str] = typer.Argument(None, show_default=False, help='Select a specific operation type. <get, gets, list, describe>', autocompletion=_complete_operation_type),
+        patterns: Optional[List[str]] = typer.Option(None, "--pattern", '-p', show_default=False, help='UNIX pattern matching for generated parameters. Should be quoted. e.g. (-p "*prod-*")'),
+        jmespath_selector: Optional[str]= typer.Option(None, "--jmespath-selector", '-js', show_default=False, help='JMESPath query selector to filter resulted data. Visit for tutorial: https://jmespath.org/tutorial.html'),
         debug: bool = typer.Option(False, "--debug", '-d', help='Enable debug messages.'),
+        formatter: Optional[str]= typer.Option(None, "--format", '-f', show_default=False, help='Python f-string expression to generate a line for each item.'),
+        list_contents: bool = typer.Option(False, "--list", '-l', help='Print the details of Service or Resource. Does not make requests.'),
         paginate: bool = typer.Option(False, "--screen", '-s', help='Open the data on a separate paginator on shell.'),
     ):
     if debug:
         set_log_level_at_runtime(logging.DEBUG)
-    
     if list_contents:
         _list_service_or_resource(service, resource_node)
         return
 
+    # vvv()
+    # return
     # available_service_names = _get_available_service_node_names()
     if not service and not resource_node:
         available_services = _list_service_or_resource(service, resource_node)
@@ -219,20 +259,34 @@ def aws_main_command(
             resource_node_obj = service_node.get_resource_node_by_name(resource_node)
             types_to_op_names = resource_node_obj.get_operation_types_and_names()
             supported_operation_types = list(types_to_op_names.keys())
-            operation_name = types_to_op_names.get(operation.value, False)
+            operation_name = types_to_op_names.get(operation, False)
             if not operation_name:
-                console.print(f"[red bold]Given {operation.value} is not supported by {resource_node}. Try: {supported_operation_types}")
+                console.print(f"[red bold]Given {operation} is not supported by {resource_node}. Try: {supported_operation_types}")
                 return False
-            console.print(patterns)
             read_data = service_reader.read_operation(resource_node, operation_name, match_patterns=patterns)
-
+   
+        if jmespath_selector:
+            
+            
+            logger.debug(f"Using jmespath selector: {jmespath_selector} to query the returned data.")
+            
+            
+            read_data = jmespath.search(jmespath_selector, read_data)
+        
+        if formatter:
+            if read_data:
+                for r_data in read_data:
+                    console.print(formatter.format(**r_data))
+                return read_data
+            else:
+                logger.debug(f"[red]No data read.[/] Failed to use format: '{formatter}'")
+    
         if paginate:
             with console.pager(styles=True):
                 console.print_json(data=read_data, default=str)
         else:    
             console.print_json(data=read_data, default=str)
         return read_data
-
     
 def run_app():
     app(prog_name="balcony")

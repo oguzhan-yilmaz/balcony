@@ -4,10 +4,10 @@ from botocore.model import Shape, DenormalizedStructureBuilder, OperationModel
 
 try:
     from .utils import icompare_two_camel_case_words
-    from .logs import get_rich_console
+    from .config import get_rich_console
 except ImportError:
     from utils import icompare_two_camel_case_words
-    from logs import get_rich_console
+    from config import get_rich_console
 
 
 import re
