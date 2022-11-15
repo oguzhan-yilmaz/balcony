@@ -9,7 +9,7 @@ import boto3
 print(dir(boto3))
 ```
 
-When a module is imported, it can be queried for it's composite objects on runtime. 
+When a module is imported, it can be queried for its composite objects on runtime. 
 
 AWS SDK exposes the AWS API on service basis, accessible through service `clients`. 
 
@@ -107,6 +107,7 @@ Every data type used in a service is available on `.shapes` definition.
 ```
 
 **operations**
+
 Types of requests you can make to AWS API are internally called `Operation`.
 
 
