@@ -2,9 +2,22 @@ site_name: balcony
 repo_url: https://github.com/oguzhan-yilmaz/balcony
 repo_name: oguzhan-yilmaz/balcony
 
+markdown_extensions:
+  - admonition
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - def_list
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tabbed:
+      alternate_style: true 
 nav:
     - Home: index.md
     - QuickStart: quickstart.md
+    - mdfeat: how-it-works/md-features.md
     - 'How it Works? ': 
       - 'About boto3': how-it-works/about-boto3.md
       - 'Reading Operations': how-it-works/about-balcony.md
@@ -16,7 +29,10 @@ nav:
       - reference/service-node.md
       - reference/service-reader.md
       - reference/relations.md
-
+      - reference/registries.md
+      - 'Utilities': 
+        - reference/utils.md
+        - reference/botocore_utils.md
 theme:
   name: material
   font:
@@ -26,6 +42,23 @@ theme:
     - navigation.expand
   icon:
     repo: fontawesome/brands/github
+
+  palette: 
+    # Palette toggle for light mode
+    - scheme: default
+      media: "(prefers-color-scheme: light)"
+      primary: deep orange
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      media: "(prefers-color-scheme: dark)"
+      primary: deep orange
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
 
 extra:
   social:

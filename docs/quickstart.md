@@ -2,27 +2,37 @@
 
 ## Shell Autocompletion
 
-### Setup for the current shell session
-```bash
-balcony --help
-# give your shell as an argument
-balcony --show-completion bash|zsh|fish
 
-# copy and paste the output to your shell
-```
-### Install for your user
-```
-balcony --help
-# give your shell as an argument
-balcony --install-completion bash|zsh|fish
-```
+=== "Setup for the current shell session"
+
+    ```bash title=""
+    balcony --help
+
+    # give your shell as an argument
+    balcony --show-completion <your-shell>
+
+    # run the output on your shell
+    ```
+
+=== "Setup for your user"
+
+    ```bash
+    balcony --help
+
+    # give your shell as an argument
+    balcony --install-completion <your-shell>
+
+    # restart your shell
+    ```
 
 
-## Remember to get `--help`
-```bash
-balcony --help
-balcony aws --help
-```
+
+!!! note "Remember to get **--help**" 
+
+    ```bash  title=""
+    balcony --help
+    balcony aws --help
+    ```
 
 ## List all available AWS Services
 
@@ -32,8 +42,10 @@ balcony aws
 ## List all Resource Nodes of a Service
 ```bash
 balcony aws iam
+
+balcony aws ec2
 ```
-## See the details of a Resource Node and its Operations
+## See the documentation of a Resource Node and its Operations
 ```bash
 balcony aws iam Policy -l
 # or

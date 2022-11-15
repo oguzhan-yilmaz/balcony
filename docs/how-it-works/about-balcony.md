@@ -10,7 +10,6 @@ services = boto3.session.Session().get_available_services()
 ```
 
 
-
 Balcony only uses the ReadOnly Operations. 
 
 

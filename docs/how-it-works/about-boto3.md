@@ -1,30 +1,13 @@
-# About `boto3` and AWS SDK & API
+# About **boto3** and AWS SDK & API
 
-## Everything is an object!
-In Python, everything is an object. Even the `modules` are objects.
 
-```python
-import boto3
-# print the symbols of boto3
-print(dir(boto3))
-```
-
-When a module is imported, it can be queried for its composite objects on runtime. 
-
-AWS SDK exposes the AWS API on service basis, accessible through service `clients`. 
-
-```python
-iam_client = boto3.client('iam')
-```
-
-## Something is _generated_ about `boto3`...
 **Size of AWS SDK & API**
 
 | Type | Count | 
 |:-- |:-- | 
-| Services | 318 | 
-| ReadOnly Operations | 4577 | 
-| All Operations | 12129 | 
+| Services | 318+ | 
+| ReadOnly Operations | 4577+ | 
+| All Operations | 12129+ | 
 
 `boto3` is only a wrapper for the existing AWS HTTP API.
 
@@ -32,7 +15,7 @@ AWS team didn't code each operation of `boto3` individually for Python, that'd b
 
 Instead, they used [underlying service definition json files](https://github.com/boto/botocore/blob/develop/botocore/data/iam/2010-05-08/service-2.json) which is used to generate all of AWS Services. 
 
-```python
+```python 
 import boto3
 iam_client = boto3.client('iam')
 ```
@@ -177,3 +160,20 @@ You might be already familiar with `Operations` because they are the exact same 
 }
 ```
 
+## Something is _generated_ about **boto3**...
+
+In Python, everything is an object. Even the `modules` are objects.
+
+```python
+import boto3
+# print the symbols of boto3
+print(dir(boto3))
+```
+
+When a module is imported, it can be queried for its composite objects on runtime. 
+
+AWS SDK exposes the AWS API on service basis, accessible through service `clients`. 
+
+```python
+iam_client = boto3.client('iam')
+```
