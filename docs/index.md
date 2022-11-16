@@ -5,6 +5,9 @@ Balcony helps to lift the undifferentiated heavy lifting that is reading from AW
 
 Balcony fills out the **required parameters** for any operation, automatically. 
 
+# todo: which problem it solves
+# todo: install and basic usage
+
 ## Installation
 
 ```bash

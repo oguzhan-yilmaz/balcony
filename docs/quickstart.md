@@ -1,6 +1,6 @@
 # Quick Start
 
-## Shell Autocompletion
+### Shell Autocompletion
 
 
 === "Setup for the current shell session"
@@ -34,18 +34,18 @@
     balcony aws --help
     ```
 
-## List all available AWS Services
+### List all available AWS Services
 
 ```bash
 balcony aws
 ```
-## List all Resource Nodes of a Service
+### List all Resource Nodes of a Service
 ```bash
 balcony aws iam
 
 balcony aws ec2
 ```
-## See the documentation of a Resource Node and its Operations
+### See the documentation of a Resource Node and its Operations
 ```bash
 balcony aws iam Policy -l
 # or
@@ -53,7 +53,7 @@ balcony aws iam Policy --list
 ```
 
 
-## Read a Resource Node
+### Read a Resource Node
 
 
 ```bash
@@ -65,7 +65,7 @@ balcony aws iam Policy -d
 # or
 balcony aws iam Policy --debug
 ```
-## Read a Resource Nodes specific operation
+### Read a Resource Nodes specific operation
 
 ```bash
 balcony aws iam Policy get
@@ -73,7 +73,7 @@ balcony aws iam Policy get
 balcony aws iam Policy list
 ```
 
-## Filter generated parameters with UNIX style pattern matching
+### Filter generated parameters with UNIX style pattern matching
 ```bash
 balcony aws iam Policy get  -p "*service-role/*"
 
@@ -82,13 +82,16 @@ balcony aws iam Policy -p "*service-role/*" -p "*prod-*"
 
 ```
 
-## Use queries for the json data -- like `jq`
+### Use queries for the json data -- like `jq`
 ```bash
-balcony aws iam Policy -p "*service-role/*" -p "*prod-*"
-
+balcony aws iam Policy \
+    --jmespath-selector "GetPolicy[*].Policy"
+# or
+balcony aws iam Policy \
+    -js "GetPolicy[*].Policy"
 ```
 
-## Use `--format` option for customized output
+### Use `--format` option for customized output
 
 ```bash
 # create stop-instances script for running instances

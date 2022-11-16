@@ -2,28 +2,15 @@ site_name: balcony
 repo_url: https://github.com/oguzhan-yilmaz/balcony
 repo_name: oguzhan-yilmaz/balcony
 
-markdown_extensions:
-  - admonition
-  - pymdownx.inlinehilite
-  - pymdownx.snippets
-  - pymdownx.superfences
-  - def_list
-  - pymdownx.highlight:
-      anchor_linenums: true
-  - pymdownx.tasklist:
-      custom_checkbox: true
-  - pymdownx.tabbed:
-      alternate_style: true 
 nav:
     - Home: index.md
     - QuickStart: quickstart.md
-    - mdfeat: how-it-works/md-features.md
-    - 'How it Works? ': 
-      - 'About boto3': how-it-works/about-boto3.md
-      - 'Reading Operations': how-it-works/about-balcony.md
     - Cookbook: practical-usage.md
-    - 'App Development':
-      - development/local-env.md
+    - 'How it Works?': 
+      - 'About boto3': how-it-works/about-boto3.md
+      - 'About balcony': how-it-works/about-balcony.md
+    - Development:
+      - development/custom-resource-nodes.md
     - Reference:
       - reference/resource-node.md
       - reference/service-node.md
@@ -71,7 +58,18 @@ extra:
 
       
       
-
+markdown_extensions:
+  - admonition
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - def_list
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tabbed:
+      alternate_style: true 
 
 plugins:
 - search
