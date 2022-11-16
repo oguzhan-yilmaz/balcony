@@ -5,37 +5,108 @@ Balcony helps to lift the undifferentiated heavy lifting that is reading from AW
 
 Balcony fills out the **required parameters** for any operation, automatically. 
 
-# todo: which problem it solves
-# todo: install and basic usage
 
 ## Installation
 
 ```bash
 pip3 install balcony
+
+python3 -m pip install balcony
 ```
+
 
 ## Basic Usage
 
+!!! tip "balcony will stick to your shell for the AWS credentials" 
 
-```bash
-balcony --help
+    ```bash  title="See the active profile with awscli"
+    aws sts get-caller-identity
+    ```
 
-# list all available services
-balcony aws 
+    ```bash  title="Set your AWS profile and region"
+    export AWS_PROFILE=default
+    export AWS_REGION=us-east-1
+    ```
 
-# list resource nodes of a service
+    ```bash  title="Set your AWS credentials"
+    export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+    export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    export AWS_DEFAULT_REGION=us-west-2
+    ```
+
+
+
+```bash title="List all available AWS Services"
+balcony aws
+```
+
+```bash title="List all Resource Nodes of a Service"
 balcony aws iam
 
-# details about the resource node
-balcony aws iam Policy --list 
-balcony aws iam Policy -l
+balcony aws ec2
+```
+!!! info "Remember to get **--help**" 
 
-# read a Resource Node from AWS API
+    ```bash  title=""
+    balcony --help
+    balcony aws --help
+    ```
+
+```bash title="See the documentation of a Resource Node and its Operations"
+balcony aws iam Policy -l
+# or
+balcony aws iam Policy --list
+```
+
+
+```bash title="Read a Resource Node"
 balcony aws iam Policy
 
+balcony aws ec2 Instances
+```
 
-# run with debugging enabled
-balcony aws iam Policy --debug
+
+```bash title="Read a Resource Node with --debug enabled"
+# if you are curious to see what's going on 
+# under the hood, enable the debug messages 
 balcony aws iam Policy -d
+# or
+balcony aws iam Policy --debug
+```
+
+
+```bash title="Read a Resource Nodes specific operation"
+balcony aws iam Policy get
+
+balcony aws iam Policy list
+```
+
+```bash title="Filter generated parameters with UNIX style pattern matching"
+balcony aws iam Policy get  -p "*service-role/*"
+
+# supports multiple patterns 
+balcony aws iam Policy -p "*service-role/*" -p "*prod-*"
+```
+
+
+```bash title="Use jmespath queries for the json data"
+balcony aws iam Policy \
+    --jmespath-selector "GetPolicy[*].Policy"
+# or
+balcony aws iam Policy \
+    -js "GetPolicy[*].Policy"
+```
+
+
+```bash title="Use --format option for customized output"
+# create stop-instances script for running instances
+balcony aws ec2 Instances \
+    -js "DescribeInstances[*].Reservations[*].Instances[?State.Name=='running'][][]" \
+    --format "aws ec2 stop-instances --instance-ids {InstanceId} # {Tags}"
+
+# create delete-policy script
+balcony aws iam Policy \
+    --jmespath-selector "GetPolicy[*].Policy" \
+    --format "aws iam delete-policy --policy-arn {Arn}"
 ```
 
