@@ -66,9 +66,6 @@ class User(ResourceNode, service_name="iam", name="User"):
             return ['UserName']
         return super().get_required_parameter_names_from_operation_name(operation_name)
 
-    # def get_all_required_parameter_names(self)-> List[str]:
-    #     return ['UserName']
-    
     def define_extra_relations(self):
         r= super().define_extra_relations()
         return [{

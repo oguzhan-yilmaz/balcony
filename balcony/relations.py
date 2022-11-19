@@ -91,6 +91,7 @@ class RelationMap:
         service_name = self.service_node.name
         filepath = os.path.join(directory, f"{service_name}.json")
         relations_map = self.get_relations_map()
+        logger.debug(f"Caching relations of [bold green]{service_name}[/] to {filepath}. Use: balcony clear-cache")
         with open(filepath, 'w') as file:
             json.dump(relations_map, file, indent=2, default=str)
 
@@ -102,8 +103,11 @@ class RelationMap:
             return False
         relations_map = None
         try:
+            
             with open(filepath, 'r') as file:
                 relations_map = json.load(file)
+            logger.debug(f"Read cached relations of [bold green]{service_name}[/] from {filepath}. Use: balcony clear-cache")
+
         except:
             pass
         return relations_map

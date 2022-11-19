@@ -16,6 +16,17 @@ LOG_LEVEL = 'INFO'
 _console = Console(color_system="auto", markup=True)
 _balcony_loggers = []
 
+def clear_relations_cache():
+    relation_files = os.listdir(BALCONY_RELATIONS_DIR)
+    deleted_filenames = []
+    for rel_file in relation_files:
+        if rel_file.endswith('.json'):
+            rel_file_abs_path = os.path.join(BALCONY_RELATIONS_DIR, rel_file)
+            if os.path.exists(rel_file_abs_path):
+                os.remove(rel_file_abs_path)
+                deleted_filenames.append(rel_file)
+    return deleted_filenames
+
 def get_rich_console() -> Console:
     """Returns the global defined `rich.console.Console` object for common use. 
 

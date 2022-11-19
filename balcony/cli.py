@@ -1,14 +1,14 @@
 import typer
 try:
     from .utils import *
-    from .config import get_logger, get_rich_console, set_log_level_at_runtime
+    from .config import get_logger, get_rich_console, set_log_level_at_runtime, clear_relations_cache
     from .nodes import ServiceNode, OperationType
     from .reader import ServiceReader
     from .custom_nodes import *
     from .factories import Boto3SessionSingleton, BalconyAWS
 except ImportError:
     from utils import *
-    from config import get_logger, get_rich_console, set_log_level_at_runtime
+    from config import get_logger, get_rich_console, set_log_level_at_runtime, clear_relations_cache
     from nodes import ServiceNode, OperationType
     from reader import ServiceReader
     from custom_nodes import *
@@ -179,7 +179,7 @@ def aa():
     console.print(s_count, total_rn_count, total_o_count)    
     console.print(all_o_count)   
     
-@app.command('aws')
+@app.command('aws', help='List AWS services, Call read-operations, Show documentation')
 def aws_main_command(
         service: Optional[str] = typer.Argument(None, show_default=False,help='Name of the AWS Service', autocompletion=_complete_service_name),
         resource_node: Optional[str] = typer.Argument(None, show_default=False, help='Name of the AWS Resource Node', autocompletion=_complete_resource_node_name),
@@ -248,6 +248,22 @@ def aws_main_command(
         else:    
             console.print_json(data=read_data, default=str)
         return read_data
+    
+@app.command('clear-cache', help='Clear relations json cache' )
+def clear_cache_command(
+        # service: Optional[str] = typer.Argument(None, show_default='all',help='Name of the Service to clear relation caches of', autocompletion=_complete_service_name),
+    ):
+    logger.debug(f"Deleting relations cache for services:")
+    deleted_service_caches = clear_relations_cache()
+    for deleted_service in deleted_service_caches:
+        logger.debug(f"- [green]Deleted[/] {deleted_service}")
+
+# @app.command('version', help='Show version info' )
+# def version_command():
+#     from importlib.metadata import version
+#     console.print(__package__)
+#     version=version(__package__)
+#     console.print(version)
     
 def run_app():
     app(prog_name="balcony")

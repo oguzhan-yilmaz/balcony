@@ -167,26 +167,6 @@ def flatten_shape_to_its_non_collection_shape_and_target_paths(shape: Shape) -> 
     non_collection_shapes_and_target_paths = list(filter(is_shape_non_collection_type, all_flat_members_and_target_paths))
     return non_collection_shapes_and_target_paths
 
-"""
-    root = Tree("🌲 [b green]Rich Tree", highlight=True, hide_root=True)
-    node = root.add(":file_folder: Renderables", guide_style="red")
-    simple_node = node.add(":file_folder: [bold yellow]Atomic", guide_style="uu green")
-    simple_node.add(Group("📄 Syntax", syntax))
-    simple_node.add(Group("📄 Markdown", Panel(markdown, border_style="green")))
-    containers_node = node.add(
-        ":file_folder: [bold magenta]Containers", guide_style="bold magenta"
-    )
-    containers_node.expanded = True
-    panel = Panel.fit("Just a panel", border_style="red")
-    containers_node.add(Group("📄 Panels", panel))
-
-therewillbebeloodthere
-        containers_node.add(Group("📄 [b magenta]Table", table))
-
-    console = Console()
-
-    console.print(root)
-"""
 
 def cleanhtml(raw_html):
   cleantext = re.sub(HTML_CLEANER_REGEX, '', raw_html)

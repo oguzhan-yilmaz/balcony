@@ -92,11 +92,11 @@ class ServiceReader:
         """
         # if it has been read called already, return it if refresh is not set
         operation_markup = f"[bold][green]{self.service_node.name}[/].[blue]{operation_name}[/][/]"
-        logger.debug(f'[reverse]Reading[/] {operation_markup}')
+        logger.debug(f'[bold]Reading[/] {operation_markup}')
         
         resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
         if not resource_node:
-            logger.debug(f"Failed to find the Resource Node while reading the {resource_node_name}.{operation_name}.")
+            logger.debug(f"Failed to find the Resource Node while reading the {operation_markup}.")
             return None
         if refresh == True:
             # remove the operation data from the response data, 
@@ -109,7 +109,7 @@ class ServiceReader:
         
         
         if not resource_node:
-            logger.debug(f"Failed to find the Resource Node while reading the {resource_node_name}.{operation_name}.")
+            logger.debug(f"Failed to find the Resource Node while reading the {operation_markup}.")
             return False
 
         # try to automatically find the relations for this operation
@@ -161,7 +161,7 @@ class ServiceReader:
                     self._call_operation(operation_name, api_parameter)
             # after calling the same operation for the different parameters
             # get all the response data made for this operation_name
-            logger.debug(f'[reverse]Done Reading[/] {operation_markup}')
+            logger.debug(f'[bold]Done Reading[/] {operation_markup}')
             return self.search_operation_data(resource_node_name, operation_name)
 
         ############## OPERATION HAVE RELATIONS
@@ -186,7 +186,7 @@ class ServiceReader:
         if generation_error is not None or generated_api_parameters == []:
             logger.debug(f"Failed to generate api parameters for {operation_markup}: {generation_error}")
         elif isinstance(generated_api_parameters, Iterable):
-            logger.debug(f"Successfuly generated api parameters for [green]{operation_name}[/], count: {len(generated_api_parameters)}")
+            logger.debug(f"Successfuly generated api parameters for [bold blue]{operation_name}[/], count: {len(generated_api_parameters)}")
             # filter generated_api_parameters if a pattern option is provided
             api_parameters_for_operation = generated_api_parameters
             if match_patterns:
@@ -201,7 +201,7 @@ class ServiceReader:
             
         # after calling the same operation for the different parameters
         # get all the response data made for this operation_name
-        logger.debug(f'[reverse]Done Reading[/] {operation_markup}')
+        logger.debug(f'[bold]Done Reading[/] {operation_markup}')
 
         return self.search_operation_data(resource_node_name, operation_name)
 

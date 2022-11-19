@@ -2,7 +2,7 @@ from collections import Counter
 from re import finditer, compile
 from typing import List
 import inflect
-inflect_engine = inflect.engine()  # used for same word comparing
+inflect_engine = inflect.engine()  # used for singular/plural word comparing
 import os
 import boto3
 from functools import lru_cache
