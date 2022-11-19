@@ -1,9 +1,11 @@
+from collections import Counter
 from re import finditer, compile
 from typing import List
 import inflect
 inflect_engine = inflect.engine()  # used for same word comparing
 import os
 import boto3
+from functools import lru_cache
 
 _camel_case_regex_compiled = compile(
     r".+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)")
@@ -18,6 +20,10 @@ def _create_boto_session():
         _kwargs_dict['region_name']=region_name
     session = boto3.session.Session(**_kwargs_dict)
     return session 
+
+def are_two_lists_same(list_one: List, list_two:List) -> bool:
+    return Counter(list_one) == Counter(list_two)
+
 
 def ifind_similar_names_in_list(search_for, search_in_list):
     # TODO: regex support
@@ -79,7 +85,6 @@ def compare_two_camel_case_words(word1, word2):
     token_list_1 = [_.lower() for _ in camel_case_split(word1)]
     token_list_2 = [_.lower() for _ in camel_case_split(word2)]
     return compare_two_token_lists(token_list_1, token_list_2)
-
 
 def icompare_two_camel_case_words(word1, word2):
     token_list_1 = [_.lower() for _ in camel_case_split(word1)]

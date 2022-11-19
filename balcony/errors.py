@@ -51,9 +51,9 @@ class Error(Exception):
         super().__init__(message) # Call the base class constructor
         self.message = message
         self.context = context
-        error_log = self.create_error_log()
-        if error_log:
-            logger.debug(error_log)
+        # error_log = self.create_error_log()
+        # if error_log:
+        #     logger.debug(error_log)
 
     def create_error_log(self):
         error_msg = self.message
@@ -63,6 +63,7 @@ class Error(Exception):
         elif error_msg == "failed to choose the best relation":
             return generate_py_code_for_customization(self, 'get_operations_relations(operation_name)', ' -> Tuple[List[Dict], None]')
         elif error_msg == "missing relations for parameter":
+      
             return generate_py_code_for_customization(self, 'get_operations_relations(operation_name)', ' -> Tuple[List[Dict], None]')
         elif error_msg == "failed to generate api parameters":
             pass

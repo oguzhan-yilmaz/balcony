@@ -11,3 +11,4 @@ from .lambda_functions import *
 from .iam import *
 from .ssm import *
 from .s3 import *
+from .ses import *

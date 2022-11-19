@@ -1,20 +1,18 @@
 import typer
 try:
     from .utils import *
-    from .config import get_logger, get_rich_console, set_log_level_at_runtime, get_installed_apps, add_installed_app_to_config
+    from .config import get_logger, get_rich_console, set_log_level_at_runtime
     from .nodes import ServiceNode, OperationType
     from .reader import ServiceReader
     from .custom_nodes import *
-    from .registries import app_registry
     from .factories import Boto3SessionSingleton, BalconyAWS
 except ImportError:
     from utils import *
-    from config import get_logger, get_rich_console, set_log_level_at_runtime, get_installed_apps, add_installed_app_to_config
+    from config import get_logger, get_rich_console, set_log_level_at_runtime
     from nodes import ServiceNode, OperationType
     from reader import ServiceReader
     from custom_nodes import *
     from factories import Boto3SessionSingleton, BalconyAWS
-    from registries import app_registry
 
 import jmespath
 from typing import Optional
@@ -32,35 +30,7 @@ logger = get_logger(__name__)
 session = Boto3SessionSingleton().get_session()
 balcony_aws = BalconyAWS(session)
 app = typer.Typer(no_args_is_help=True)
-# aws_app = typer.Typer() # no_args_is_help=True
-awsx_app = typer.Typer(no_args_is_help=True) # no_args_is_help=True
-# app.add_typer(aws_app, name="aws")
-app.add_typer(awsx_app, name="apps")
 
-add_app = typer.Typer(no_args_is_help=True) # no_args_is_help=True
-app.add_typer(add_app, name="add")
-
-INSTALLED_BALCONY_APPS = get_installed_apps()
-logger.debug(f"Dynamically importing {INSTALLED_BALCONY_APPS} apps.")
-app_registry.import_balcony_apps(INSTALLED_BALCONY_APPS)
-
-
-app_objects = []
-registered_apps = app_registry.get_registered_apps()
-for author, app_dict_list in registered_apps.items():
-    for app_dict in app_dict_list:
-        app_cls = app_dict.get('cls')
-        app_name = app_dict.get('app_name')
-        app_obj = app_cls()
-        app_objects.append(app_obj)
-
-        try:
-            _typer_app = app_obj.get_cli_app()
-            if _typer_app:
-                awsx_app.add_typer(_typer_app, name=app_name)
-        except NotImplementedError:
-            print(app_name, 'has not implemented get_cli_app()') 
-            
 @app.callback()
 def _main_app_callback(        
         debug: bool = typer.Option(False, "--debug", '-d', help='Enable debug messages.'),
@@ -123,12 +93,6 @@ def _complete_operation_type(ctx: typer.Context):
     operation_types_and_names = resource_node_obj.get_operation_types_and_names()
     return list(operation_types_and_names.keys())
         
-@add_app.command('app')
-def _install_app_command(
-        app_name: str = typer.Argument(None, show_default=False,help='Balcony app name to enable. Must be pip installed beforehand!'),
-    ):
-    logger.debug(f'App Registry: Installing {app_name}')
-    add_installed_app_to_config(app_name)
         
 def _list_service_or_resource(
         service: Optional[str] = typer.Argument(None, show_default=False,help='The AWS service name', autocompletion=_complete_service_name),
@@ -252,10 +216,10 @@ def aws_main_command(
         is_operation_selected = operation is not None
         read_data = None
         if not is_operation_selected:
+            # read all operations in given resource node 
             read_data = service_reader.read_resource_node(resource_node, match_patterns=patterns)
           
         else: # Operation is selected
-            
             resource_node_obj = service_node.get_resource_node_by_name(resource_node)
             types_to_op_names = resource_node_obj.get_operation_types_and_names()
             supported_operation_types = list(types_to_op_names.keys())
@@ -267,10 +231,7 @@ def aws_main_command(
    
         if jmespath_selector:
             
-            
             logger.debug(f"Using jmespath selector: {jmespath_selector} to query the returned data.")
-            
-            
             read_data = jmespath.search(jmespath_selector, read_data)
         
         if formatter:
@@ -279,7 +240,7 @@ def aws_main_command(
                     console.print(formatter.format(**r_data))
                 return read_data
             else:
-                logger.debug(f"[red]No data read.[/] Failed to use format: '{formatter}'")
+                logger.debug(f"[red]No data read.[/] Failed to use --formats: '{formatter}'")
     
         if paginate:
             with console.pager(styles=True):
@@ -290,8 +251,6 @@ def aws_main_command(
     
 def run_app():
     app(prog_name="balcony")
-    
-
     
 if __name__ == "__main__":
     run_app()

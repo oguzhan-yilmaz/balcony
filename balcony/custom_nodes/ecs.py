@@ -31,7 +31,7 @@ class Cluster(ResourceNode, service_name="ecs", name="Clusters"):
     #     }]
         
 
-class Services(ResourceNode, service_name="ecs", name="Tasks"):
+class Tasks(ResourceNode, service_name="ecs", name="Tasks"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -39,20 +39,22 @@ class Services(ResourceNode, service_name="ecs", name="Tasks"):
         r = super().get_required_parameter_names_from_operation_name(operation_name)
         if operation_name == 'DescribeTasks':
             return ['tasks']
+        if operation_name == 'ListTasks':
+            return ['cluster']
         return r
     
-    def define_extra_relations(self):
-        return [
-            {
-                "service_name": "ecs",
-                "resource_node_name": "Tasks",
-                "search_shape_name": "tasks",
-                "target_shape_name": "taskArns",
-                "target_shape_type": "string",
-                "operation_name": "ListTasks",
-                "target_path": "taskArns"
-            }
-        ]
+    # def define_extra_relations(self):
+    #     return [
+    #         {
+    #             "service_name": "ecs",
+    #             "resource_node_name": "Tasks",
+    #             "search_shape_name": "tasks",
+    #             "target_shape_name": "taskArns",
+    #             "target_shape_type": "string",
+    #             "operation_name": "ListTasks",
+    #             "target_path": "taskArns"
+    #         }
+    #     ]
      
 class Services(ResourceNode, service_name="ecs", name="Services"):
     def __init__(self, *args, **kwargs):
@@ -82,7 +84,7 @@ class Services(ResourceNode, service_name="ecs", name="Services"):
                 "target_shape_name": "serviceArns",
                 "target_shape_type": "string",
                 "operation_name": "ListServices",
-                "target_path": "serviceArns"
+                "target_path": "[*].serviceArns"
             },
             {
                 "service_name": "ecs",
@@ -91,7 +93,7 @@ class Services(ResourceNode, service_name="ecs", name="Services"):
                 "target_shape_name": "cluster",
                 "target_shape_type": "string",
                 "operation_name": "ListClusters",
-                "target_path": "clusterArns[]"
+                "target_path": "[*].clusterArns"
             }
         ]
 

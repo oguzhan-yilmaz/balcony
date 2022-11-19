@@ -4,14 +4,12 @@ try:
     from .config import get_logger
     from .factories import Boto3SessionSingleton
     from .utils import get_all_available_services, _create_boto_session
-    from .registries import AppRegistry, app_registry
 except ImportError:
     from custom_nodes import *
     from nodes import *
     from config import get_logger, get_rich_console
     from factories import Boto3SessionSingleton
     from utils import get_all_available_services, _create_boto_session
-    from registries import AppRegistry, app_registry
 
     from custom_nodes import *
 
@@ -21,13 +19,6 @@ import sys
 
 logger = get_logger(__name__)
 console = get_rich_console()
-
-# print(app_registry.app_configs)
-# print(app_registry.app_configs)
-# x = AppConfig.create('balcony_app.myservice')
-# print(x)
-# x
-
 
 
 
@@ -47,7 +38,7 @@ if __name__ == '__main__':
     all_service_names = get_all_available_services(session)
     success_count, failure_count, non_req_count = 0,0, 0
     
-    service_node = ServiceNode('ec2', session)
+    service_node = ServiceNode('iam', session)
     # service_node = ServiceNode('accessanalyzer', session)
     # service_reader = ServiceReader(service_node)
 
@@ -65,26 +56,26 @@ if __name__ == '__main__':
     # for service_name in all_service_names:
         # continue
     # for service_name in []:
-    for service_name in ['s3']:
+    for service_name in ['ecs','ec2']:
         service_node = ServiceNode(service_name, session)
-        service_node
-        
-   
-
         console.print('-'*50)
-        console.print('#'*10, colored(service_name, 'yellow'), '#'*10)
-        # resource_nodes = service_node.get_resource_nodes()
+        console.print('#'*10, service_name, '#'*10)
+        resource_nodes = service_node.get_resource_nodes()
         service_reader = service_node.get_service_reader()
 
-
         read_operation_names = service_node.get_read_operation_names()
-        for r_ops_name in read_operation_names:
-            verb, *resource_name_tokens = camel_case_split(r_ops_name)
-            resource_name = ''.join(resource_name_tokens)
-            a = service_reader.read_operation(resource_name, r_ops_name)
-    # #         # x = relation_map.find_best_relations_for_operations_parameters(r_ops_name)
-            console.print(a)
-            console.print('-'*40)
+        for rnode in resource_nodes:
+            for r_ops_name in rnode.operation_names: 
+                r_params = rnode.get_required_parameter_names_from_operation_name(r_ops_name)
+                if not r_params:
+                    continue
+                # verb, *resource_name_tokens = camel_case_split(r_ops_name)
+                # resource_name = ''.join(resource_name_tokens)
+                a = service_reader.read_operation(rnode.name, r_ops_name)
+        # #         # x = relation_map.find_best_relations_for_operations_parameters(r_ops_name)
+                console.print(a)
+                console.print(rnode.name, r_ops_name, r_params)
+                console.print('-'*40)
     #         if x:
     #             if len(x) == 1:
     #                 non_req_count+= 1

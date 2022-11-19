@@ -1,24 +1,15 @@
 try:
-    from .utils import icompare_two_camel_case_words, str_relations, ifind_similar_names_in_list
-    from .botocore_utils import READ_ONLY_VERBS
-    from .relations import FindRelationResultTypes, SUCCESSFUL_FIND_RELATION_RESULT_TYPES
     from .config import get_logger, get_rich_console
     from .errors import Error
 except ImportError:
-    from utils import icompare_two_camel_case_words, str_relations, ifind_similar_names_in_list
-    from botocore_utils import READ_ONLY_VERBS
-    from relations import FindRelationResultTypes, SUCCESSFUL_FIND_RELATION_RESULT_TYPES
     from config import get_logger, get_rich_console
     from errors import Error
 import fnmatch
 from collections.abc import Iterable
-import jmespath
-from rich.progress import Progress, track, BarColumn, TextColumn, TaskProgressColumn, TimeRemainingColumn
-from rich.table import Column
-logger = get_logger(__name__)
-console = get_rich_console()
 from typing import List, Set, Dict, Tuple, Optional, Union
 
+logger = get_logger(__name__)
+console = get_rich_console()
 
 class ServiceReader:
     """service reader class"""
@@ -32,21 +23,6 @@ class ServiceReader:
         else:
             self.response_data[operation_name].append(response)
             
-
-    def verify_all_required_parameters_in_selected_relations(self, required_parameters, selected_relations):
-        if not selected_relations or type(selected_relations) not in (list,tuple):
-            return False
-        parameter_to_relation_map = {required_parameter_name: None for required_parameter_name in required_parameters}
-        for required_parameter_name in parameter_to_relation_map.keys():
-            is_parameter_in_relation_map = any([
-                icompare_two_camel_case_words(required_parameter_name, relation_dict.get('search_shape_name')) 
-                 for relation_dict in selected_relations
-            ])
-            parameter_to_relation_map[required_parameter_name]=is_parameter_in_relation_map
-        is_all_parameters_found_in_relations = all(parameter_to_relation_map.values())
-        return is_all_parameters_found_in_relations
-    
-    
     def _call_operation(self, operation_name, api_parameters):
         # TODO: follow next tokens
         client = self.service_node.client
@@ -71,21 +47,6 @@ class ServiceReader:
         response['__args__'] = api_parameters
         return response
     
-    
-        # if operation_data:
-        #     new_api_params = jmespath.search(flattened_jmespath_nested_selector, operation_data)
-        # operation_data
-        # for 
-        # # jmespath.search(f"[*].{target_path}[][]", operation_data)
-        
-        # target_paths = target_path.split(',')
-        # all_found = []
-        # for target_path in target_paths:
-        #     # found =  
-        #     jmespath.search(f"{_for_all_the_responses}{target_path}{_flatten_two_times}", response)
-        #     if found:
-        #         all_found.extend(found)
-        # return all_found
 
     def search_operation_data(self, resource_node_name, operation_name):
         resource_node_exists = self.response_data.get(resource_node_name, False) != False
@@ -99,6 +60,10 @@ class ServiceReader:
         resource_node_data = self.response_data.get(resource_node_name, False) 
         return resource_node_data 
    
+    def clear_operations_data(self, resource_node_name, operation_name):
+        resource_node_exists = self.response_data.get(resource_node_name, False) != False
+        if resource_node_exists:
+            self.response_data[resource_node_name][operation_name] = []
     
     def add_to_node_data(self, resource_node_name, operation_name, response):
         resource_node_exists = self.response_data.get(resource_node_name, False) != False
@@ -112,26 +77,47 @@ class ServiceReader:
             self.response_data[resource_node_name][operation_name].append(response)
 
 
-    def read_operation(self, resource_node_name:str, operation_name:str, match_patterns=None, refresh:bool=False) -> Tuple[Union[List, bool], Union[Error, None]]:
-        # if it has been read called already, return it
+    def read_operation(self, resource_node_name:str, operation_name:str, match_patterns:List[str]=None, refresh:bool=False) -> Tuple[Union[List, bool], Union[Error, None]]:
+        """Reads the given operation.
+        If the operation is called with generated parameters, `match_patterns` can be used to filter the generated parameters.
 
+        Args:
+            resource_node_name (str): Name of the Resource Node
+            operation_name (str): Name of the Operation
+            match_patterns (List[str], optional): UNIX style patterns to filter matching generated parameters. Defaults to None.
+            refresh (bool, optional): Get the cached data or refresh the . Defaults to False.
+
+        Returns:
+            Tuple[Union[List, bool], Union[Error, None]]: _description_
+        """
+        # if it has been read called already, return it if refresh is not set
+        operation_markup = f"[bold][green]{self.service_node.name}[/].[blue]{operation_name}[/][/]"
+        logger.debug(f'[reverse]Reading[/] {operation_markup}')
+        
         resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
-
+        if not resource_node:
+            logger.debug(f"Failed to find the Resource Node while reading the {resource_node_name}.{operation_name}.")
+            return None
         if refresh == True:
-            pass # TODO: delete from reader
+            # remove the operation data from the response data, 
+            self.clear_operations_data(resource_node_name, operation_name)
         already_existing_data = self.search_operation_data(resource_node.name, operation_name)
         
-        if already_existing_data!=False and refresh == False:
+        if already_existing_data and refresh == False:
+            logger.debug(f"[green]{resource_node.name}[/].[blue]{operation_name}[/] is already read. Returning already available data.")
             return already_existing_data
         
         
         if not resource_node:
-            logger.debug(f"RESOURCE NODE NOT FOUND. While reading the {resource_node_name}.{operation_name}, Resource Node {resource_node_name} could not be loaded.")
+            logger.debug(f"Failed to find the Resource Node while reading the {resource_node_name}.{operation_name}.")
             return False
 
-        # add service_name and resource_node_name to relation dict
+        # try to automatically find the relations for this operation
         relations_of_operation, relations_error = resource_node.get_operations_relations(operation_name)
         success_finding_relations = relations_error is None
+        required_parameters = resource_node.get_required_parameter_names_from_operation_name(operation_name)
+        req_param_markup = f"[bold magenta]{', '.join(required_parameters)}[/]"
+        
         
         
         def api_parameters_match_pattern(api_parameters, patterns):
@@ -151,31 +137,45 @@ class ServiceReader:
         
             
         if not success_finding_relations:
-            logger.debug(f"FAILED FINDING RELATIONS for OPERATION: [bold]{resource_node_name}.{operation_name}[/]. Failed to find relations: {relations_error}")
+            logger.debug(f"[red]Error: {relations_error}: {operation_markup}")
+            logger.debug(f"Failed to find the Relations for operation, required parameters: {req_param_markup}")
             return False, relations_error
-        
-        if relations_of_operation == True:
-            # no required parameters
+                
+        if relations_of_operation == True: # True means no required parameters, so no relations
+            # no relations means there are no related operations
             generated_api_parameters, generation_error = resource_node.generate_api_parameters_from_operation_data(operation_name, [], {})
             
             if generation_error is not None:
+                logger.debug(f"Failed to generate api parameters for {operation_markup}. Error: {generation_error}")
                 return False, generation_error
             if isinstance(generated_api_parameters, Iterable):
-                # TODO: filter generated_api_parameters if a pattern is given.
-                
-                pattern_matched_api_parameters = api_parameters_match_pattern(generated_api_parameters, match_patterns)
-                for api_parameters in pattern_matched_api_parameters:
-                    self._call_operation(operation_name, api_parameters)
+                logger.debug(f"Successfuly generated api parameters for {operation_markup}, count: {len(generated_api_parameters)}")
+                # filter generated_api_parameters if a pattern option is provided
+                api_parameters_for_operation = generated_api_parameters
+                if match_patterns:
+                    pattern_matched_api_parameters = api_parameters_match_pattern(generated_api_parameters, match_patterns)
+                    logger.debug(f"Matching patterns: {match_patterns}. Filtered the generated api parameters [{len(pattern_matched_api_parameters)}/{len(generated_api_parameters)}]")
+                    api_parameters_for_operation = pattern_matched_api_parameters
+                for api_parameter in api_parameters_for_operation:
+                    # for each parameter generated, call the actual operation
+                    self._call_operation(operation_name, api_parameter)
+            # after calling the same operation for the different parameters
+            # get all the response data made for this operation_name
+            logger.debug(f'[reverse]Done Reading[/] {operation_markup}')
             return self.search_operation_data(resource_node_name, operation_name)
 
+        ############## OPERATION HAVE RELATIONS
+        
         all_related_operations_data = {}
+        
+        # for each relation, fetch the related resource's data.
         for rel in relations_of_operation:
             rel_operation_data = self.read_operation(rel.get('resource_node_name'), rel.get('operation_name'), refresh=refresh)
             if not rel_operation_data:
-                logger.debug(f"[red]FAILED TO FIND RELATED RESOURCES[/] from [bold]{resource_node_name}[/], while reading:  [bold]{rel.get('service_name')}.{rel.get('resource_node_name')}.{rel.get('operation_name')}[/] operation.")
+                logger.debug(f"[red]Failed to read related operation[/]: {rel.get('resource_node_name')}.{rel.get('operation_name')}")
                 return False
           
-            # gather all their related data, put it under a dict 
+            # gather all their related operations data, put it under a dict 
             all_related_operations_data.update({
                 rel.get('operation_name'): rel_operation_data
             })
@@ -183,44 +183,47 @@ class ServiceReader:
         # send the operations_data to resource_node to create valid_api_parameters
         generated_api_parameters, generation_error = resource_node.generate_api_parameters_from_operation_data(operation_name, relations_of_operation, all_related_operations_data)
 
-        if generated_api_parameters == []:
-            logger.debug(f"FAILED TO AUTO-GENERATE API PARAMETERS. Related Resources couldn't found.")
+        if generation_error is not None or generated_api_parameters == []:
+            logger.debug(f"Failed to generate api parameters for {operation_markup}: {generation_error}")
         elif isinstance(generated_api_parameters, Iterable):
-            # FIXME # for api_parameters in track(generated_api_parameters, description=f"Calling [green]{operation_name}[/] for [bold]{len(generated_api_parameters)}[/] resources...",transient=True, console=console):
-
-
-            # TODO: filter generated_api_parameters if a pattern is given.
-            pattern_matched_api_parameters = api_parameters_match_pattern(generated_api_parameters, match_patterns)
-            for api_parameters in pattern_matched_api_parameters:
-                self._call_operation(operation_name, api_parameters)
+            logger.debug(f"Successfuly generated api parameters for [green]{operation_name}[/], count: {len(generated_api_parameters)}")
+            # filter generated_api_parameters if a pattern option is provided
+            api_parameters_for_operation = generated_api_parameters
+            if match_patterns:
+                pattern_matched_api_parameters = api_parameters_match_pattern(generated_api_parameters, match_patterns)
+                logger.debug(f"Matching given patterns: {match_patterns}. Filtered the generated api parameters [{len(pattern_matched_api_parameters)}/{len(generated_api_parameters)}]")
+                api_parameters_for_operation = pattern_matched_api_parameters
+            for api_parameter in api_parameters_for_operation:
+                # for each parameter generated, call the actual operation
+                self._call_operation(operation_name, api_parameter)
         else:
-            logger.debug(f"COULDN'T GENERATE API PARAMETERS. {resource_node_name}.{operation_name}. Generated Parameters: {generated_api_parameters}. Data: {all_related_operations_data}")
+            logger.debug(f"Failed to generate api parameters for {operation_markup}")
             
+        # after calling the same operation for the different parameters
+        # get all the response data made for this operation_name
+        logger.debug(f'[reverse]Done Reading[/] {operation_markup}')
+
         return self.search_operation_data(resource_node_name, operation_name)
 
 
             
-    def read_resource_node(self, resource_node_name, match_patterns=None):
+    def read_resource_node(self, resource_node_name:str, match_patterns:List[str]=None)->Union[Dict, bool]:
+        """Reads available operations in the given a resource node
+
+        Args:
+            resource_node_name (str): Resource Node name
+            match_patterns (List[str], optional): UNIX style patterns to filter the generated parameters. Defaults to None.
+
+        Returns:
+            Union[Dict, bool]: Read data or False
+        """
         resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
         if not resource_node:
             return False
-        # print('\t', colored(resource_node_name,'yellow'))
-        # read all operations
-        
+
         for operation_name in resource_node.operation_names:
-            # if operation_name != 'GetPasswordData':
-            #     continue
-            req_params = resource_node.get_required_parameter_names_from_operation_name(operation_name)
-            # if req_params:
-            req_params
             self.read_operation(resource_node_name, operation_name, match_patterns)
-            # print('--------------------------------')
-            # print()
-          
-        # return self.response_data.get(resource_node.name)
         return self.search_resource_node_data(resource_node.name)
-            # if output == True:
-            #     print(' >>>>>>>>>>>>>>>> NO PARAMETERS <<<<<<<<<<<<<<<<<<<<<<')
 
 
  

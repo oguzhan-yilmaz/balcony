@@ -12,21 +12,7 @@ import os
 from enum import Enum
 logger = get_logger(__name__)
 
-class FindRelationResultTypes(Enum):
-    Success = 'Success'
-    NoRequiredParameters = 'No required parameters'
-    NoGeneratedParameters = 'NoParametersGenerated'
-    CantDecideBetweenGeneratedParameters = 'CantDecideBetweenGeneratedParameters'
-    SomeRelationsFoundButNotAll = 'SomeRelationsFoundButNotAll'
-    NoRelations = 'NoRelations'
-    RelationsFound = 'RelationsFound'
-    InternalError = 'InternelError'
 
-SUCCESSFUL_FIND_RELATION_RESULT_TYPES = (
-    FindRelationResultTypes.Success,
-    FindRelationResultTypes.NoRequiredParameters,
-    FindRelationResultTypes.RelationsFound,
-)
 class RelationMap:
     def __init__(self, service_node):
         self.service_node = service_node
@@ -135,6 +121,7 @@ class RelationMap:
         return _list
 
 
+
     def _generate_relation_map(self, **kwargs):
         resource_nodes = self.service_node.get_resource_nodes()
         # Create a list of dicts for each resource_node, operation_name and required_parameter_names
@@ -152,14 +139,16 @@ class RelationMap:
             # unpack the dict
             resource_node=__dict.get('resource_node')
             operation_name =__dict.get('operation_name')
-            required_parameter_names=__dict.get('required_parameter_names')
+            # required_parameter_names=__dict.get('required_parameter_names')
             
             operation_model = resource_node.get_operation_model(operation_name)
             output_shape = operation_model.output_shape
-            
+        
             resource_nodes_extra_relations = resource_node.define_extra_relations()
             if resource_nodes_extra_relations:
-                all_found_relations.extend(resource_nodes_extra_relations)
+                for extra_relation in resource_nodes_extra_relations:
+                    if extra_relation not in all_found_relations:
+                        all_found_relations.append(extra_relation)
             # for each member shape (attr.) of this operation 
             output_shape_and_target_paths = flatten_shape_to_its_non_collection_shape_and_target_paths(output_shape)
             # try to find it in the unique required parameter list
@@ -167,23 +156,9 @@ class RelationMap:
                 shape = output_shape_and_target_path.shape
                 target_path = output_shape_and_target_path.target_path
                 shape_name = get_shape_name(shape)
-                prefixed_naked_shape_name = None
-                # if it's named only 'id', 'arn'... we append nodename in front of it and add it as an alias.
-                if shape_name.lower() in IDENTIFIER_NAMES:
-                    prefixed_naked_shape_name = f"{resource_node.name}{shape_name.capitalize()}"
-                    all_found_relations.append({
-                        'service_name':self.service_node.name,
-                        'resource_node_name': resource_node.name,
-                        'operation_name': operation_name,
-                        'search_shape_name': prefixed_naked_shape_name,
-                        'target_shape_name': shape_name,
-                        'target_shape_type': shape.type_name,
-                        'target_path': target_path,
-                        'alias': True
-                    })
                 for required_shape_name in unique_required_shape_names_list:
-                    # TODO: compare lower names
                     _match = icompare_two_camel_case_words(shape_name, required_shape_name)
+
                     if _match:
                         all_found_relations.append({
                             'service_name':self.service_node.name,
@@ -194,6 +169,8 @@ class RelationMap:
                             'target_shape_type': shape.type_name,
                             'target_path': target_path
                         })
+        
+        # normalize found relations
         relations_map = {
             required_shape_name:[]
             for required_shape_name in unique_required_shape_names_list
@@ -215,7 +192,9 @@ class RelationMap:
             is_parameter_in_relation_map = is_key_in_relations_map(parameter_name)
             if is_parameter_in_relation_map:
                 selected_parameter_name_key_in_the_map = is_parameter_in_relation_map
-                relations_map[selected_parameter_name_key_in_the_map].append(relation)
+                if relation not in relations_map[selected_parameter_name_key_in_the_map]:
+                    relations_map[selected_parameter_name_key_in_the_map].append(relation)
+       
             else:
                 relations_map[parameter_name] = [relation]
         

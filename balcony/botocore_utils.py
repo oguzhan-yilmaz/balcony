@@ -242,6 +242,8 @@ def get_shape_name(shape: Shape) -> str:
         elif shape.serialization and shape.serialization.get('name', False):
             given_serialization_name = shape.serialization.get('name')
             return given_serialization_name
+    if shape_key_name:
+        return shape_key_name
     return shape_name
    
 def get_required_parameter_shapes_from_operation_model(operation_model: OperationModel) -> List[Shape]:
