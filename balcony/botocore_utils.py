@@ -9,7 +9,7 @@ except ImportError:
     from utils import icompare_two_camel_case_words
     from config import get_rich_console
 
-
+from rich.markup import escape
 import re
 from collections import namedtuple
 from rich.text import Text
@@ -202,13 +202,20 @@ def rich_str_shape(shape: Shape) -> str:
     Returns:
         str: Rich string for shape.
     """
-    key_name = getattr(shape, 'key_name', '{')
+    key_name = getattr(shape, 'key_name', '')
     type_name = str(shape.type_name)
-    if key_name == '{' and type_name == 'structure':
-        type_name = ''
-    if type_name:
-        type_name = f"({type_name})"
-    shape_str = f"[blue bold]{key_name}[/] [white]{type_name}[/]: {cleanhtml(shape.documentation)}"
+    shape_documentation = cleanhtml(shape.documentation)
+    
+    
+    shape_str = f"[blue bold]{key_name}[/] [white]({type_name})[/]: {shape_documentation}"
+    if key_name == '':
+        lead = ''
+        if type_name == 'list':
+            lead = '['
+        elif type_name == 'structure':
+            lead = '{'
+        shape_str = f"[red]{escape(lead)}[/] — [white](({type_name}))[/]: [gray]{shape_documentation}[/]"
+
     return shape_str
 
 
