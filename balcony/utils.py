@@ -1,6 +1,6 @@
 from collections import Counter
 from re import finditer, compile
-from typing import List
+from typing import List, Optional
 import inflect
 inflect_engine = inflect.engine()  # used for singular/plural word comparing
 import os
@@ -22,11 +22,12 @@ def _create_boto_session():
     return session 
 
 def are_two_lists_same(list_one: List, list_two:List) -> bool:
+    """Compares the contents of two lists"""
     return Counter(list_one) == Counter(list_two)
 
 
-def ifind_similar_names_in_list(search_for, search_in_list):
-    # TODO: regex support
+def ifind_similar_names_in_list(search_for: str, search_in_list: List[str]) -> List[str]:
+    """Case insensitive find in list"""
     result = [] 
     if not search_for:
         return result
@@ -36,25 +37,24 @@ def ifind_similar_names_in_list(search_for, search_in_list):
         if l_name.lower().startswith(lower_search_for):
             result.append(l_name)
     return result
-# >>> items = set([-1, 0, 1, 2])
-# >>> set([1, 2]).issubset(items)
-# True
-# >>> set([1, 3]).issubset(items)
-# False
 
-def str_relations(relations):
+
+def str_relations(relations: List[dict])->str:
+    """Stringify list of relations"""
     return ", ".join([
         f"[{r.get('service_name')}.{r.get('operation_name')} > {r.get('target_path')}]"
         for r in relations
     ])
 
 def get_all_available_services(session) -> List[str]:
+    """Gets available services from boto3 session"""
     return session.get_available_services()
 
-def compare_nouns(word1: str, word2: str):
+def compare_nouns(word1: str, word2: str) -> bool:
+    """Singular/plural insensitive word comparison"""
     return inflect_engine.compare_nouns(word1, word2)
 
-def compare_two_token_lists(token_list_one, token_list_two):
+def compare_two_token_lists(token_list_one: List[str], token_list_two: List[str]) -> bool:
     if len(token_list_one) != len(token_list_two):
         return False
     token_by_token_match = [
@@ -64,7 +64,8 @@ def compare_two_token_lists(token_list_one, token_list_two):
     has_token_by_token_match = all(token_by_token_match)
     return has_token_by_token_match
 
-def icompare_two_token_lists(token_list_one, token_list_two):
+def icompare_two_token_lists(token_list_one:List[str], token_list_two:List[str])->bool:
+    """Singular/plural insensitive token list comparison"""
     if len(token_list_one) != len(token_list_two):
         return False
     token_by_token_match = [
@@ -75,27 +76,19 @@ def icompare_two_token_lists(token_list_one, token_list_two):
     return has_token_by_token_match
 
 def camel_case_split(identifier: str) -> List[str]:
-    """Splits camel case string to it's tokens"""
+    """Splits CamelCase string to it's tokens"""
     matches = finditer(
         _camel_case_regex_compiled, identifier
     )
     return [m.group(0) for m in matches]
 
-def compare_two_camel_case_words(word1, word2):
+def compare_two_camel_case_words(word1:str, word2:str)-> bool:
     token_list_1 = [_.lower() for _ in camel_case_split(word1)]
     token_list_2 = [_.lower() for _ in camel_case_split(word2)]
     return compare_two_token_lists(token_list_1, token_list_2)
 
-def icompare_two_camel_case_words(word1, word2):
+def icompare_two_camel_case_words(word1:str, word2:str) -> bool:
     token_list_1 = [_.lower() for _ in camel_case_split(word1)]
     token_list_2 = [_.lower() for _ in camel_case_split(word2)]
     return icompare_two_token_lists(token_list_1, token_list_2)
 
-def compare_two_tokens(token_one, token_two):
-    return bool(inflect_engine.compare_nouns(token_one, token_two))
-
-
-def get_last_token_of_target_path(target_path, delimiter='.'):
-    split_return_key = target_path.split(delimiter)
-    *prev_return_keys, last_return_key_name = split_return_key
-    return last_return_key_name

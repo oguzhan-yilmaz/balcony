@@ -7,65 +7,71 @@ except ImportError:
 import fnmatch
 from collections.abc import Iterable
 from typing import List, Set, Dict, Tuple, Optional, Union
+from botocore.exceptions import ClientError
 
 logger = get_logger(__name__)
 console = get_rich_console()
 
 class ServiceReader:
-    """service reader class"""
-    def __init__(self, service_node):
+    def __init__(self, service_node: 'ServiceNode') -> None:
+        """
+        Upon initialization ServiceReaders defines a dictionary called `response_data`.
+        Caled operations are stored in this dictionary.
+        ```json title="self.response_data data hierarchy"
+        {
+            "ResourceNodeName": {
+                "OperationName1": [{response1 dict}, {response2 dict}, ...],
+                "OperationName2": [{response1 dict},...],
+            }
+        }
+        ```
+
+        Args:
+            service_node (ServiceNode): Associated ServiceNode. 
+        """
         self.service_node = service_node
         self.response_data = {}
 
-    def add_response_data(self, operation_name, response):
-        if operation_name not in self.response_data:
-            self.response_data[operation_name] = [response]
-        else:
-            self.response_data[operation_name].append(response)
-            
-    def _call_operation(self, operation_name, api_parameters):
+    def _call_operation(self, operation_name:str, api_parameter: dict) -> Union[dict, bool]:
         # TODO: follow next tokens
         client = self.service_node.client
-        from botocore.exceptions import ClientError
         try:
             # print(colored(f"{operation_name=} {api_parameters=}",'green'))
-            logger.debug(f"Calling operation: [bold blue]{operation_name}[/] with api parameters: {api_parameters}")
-            response = client._make_api_call(operation_name, api_parameters)
-            # response = None
-            response
+            logger.debug(f"Calling operation: [bold blue]{operation_name}[/] with api parameters: {api_parameter}")
+            response = client._make_api_call(operation_name, api_parameter)
         except ClientError as e:
             # print(colored(str(e),'red'))
-            logger.debug(f"FAILED: CALLING OPERATION. {operation_name} with api parameters: {api_parameters}. Exception: {str(e)} ")
+            logger.debug(f"[red bold]FAILED: Calling Operation[/]. {operation_name} with api parameters: {api_parameter}. Exception: {str(e)} ")
             return False
         
         resource_node = self.service_node.find_resource_node_by_operation_name(operation_name)
         if not resource_node:
             return False
-        resource_node_name = resource_node.name
-        self.add_to_node_data(resource_node_name, operation_name, response)
-        response.pop('ResponseMetadata') # FIXME: add back
-        response['__args__'] = api_parameters
+        
+        response.pop('ResponseMetadata') 
+        response['__args__'] = api_parameter
+        self.add_to_node_data(resource_node.name, operation_name, response)
         return response
     
 
-    def search_operation_data(self, resource_node_name, operation_name):
+    def search_operation_data(self, resource_node_name:str, operation_name:str) -> Union[List[dict], bool]:
         resource_node_exists = self.response_data.get(resource_node_name, False) != False
         if not resource_node_exists:
             return False
-        resource_data = self.search_resource_node_data(resource_node_name)
+        resource_data: Dict = self.search_resource_node_data(resource_node_name)  # type: ignore
         result = resource_data.get(operation_name, False)
         return result
     
-    def search_resource_node_data(self, resource_node_name):
+    def search_resource_node_data(self, resource_node_name:str) -> Union[dict, bool]:
         resource_node_data = self.response_data.get(resource_node_name, False) 
         return resource_node_data 
    
-    def clear_operations_data(self, resource_node_name, operation_name):
+    def clear_operations_data(self, resource_node_name:str, operation_name:str) -> None:
         resource_node_exists = self.response_data.get(resource_node_name, False) != False
         if resource_node_exists:
             self.response_data[resource_node_name][operation_name] = []
     
-    def add_to_node_data(self, resource_node_name, operation_name, response):
+    def add_to_node_data(self, resource_node_name:str, operation_name:str, response: dict)->None:
         resource_node_exists = self.response_data.get(resource_node_name, False) != False
         
         if not resource_node_exists:
@@ -77,7 +83,7 @@ class ServiceReader:
             self.response_data[resource_node_name][operation_name].append(response)
 
 
-    def read_operation(self, resource_node_name:str, operation_name:str, match_patterns:List[str]=None, refresh:bool=False) -> Tuple[Union[List, bool], Union[Error, None]]:
+    def read_operation(self, resource_node_name:str, operation_name:str, match_patterns:Optional[List[str]]=None, refresh:Optional[bool]=False) -> Tuple[Union[List, bool], Union[Error, None]]:
         """Reads the given operation.
         If the operation is called with generated parameters, `match_patterns` can be used to filter the generated parameters.
 
@@ -85,7 +91,7 @@ class ServiceReader:
             resource_node_name (str): Name of the Resource Node
             operation_name (str): Name of the Operation
             match_patterns (List[str], optional): UNIX style patterns to filter matching generated parameters. Defaults to None.
-            refresh (bool, optional): Get the cached data or refresh the . Defaults to False.
+            refresh (bool, optional): Get the cached data or force re-reading the operation. Defaults to False.
 
         Returns:
             Tuple[Union[List, bool], Union[Error, None]]: _description_
@@ -120,7 +126,7 @@ class ServiceReader:
         
         
         
-        def api_parameters_match_pattern(api_parameters, patterns):
+        def api_parameters_match_pattern(api_parameters: List[dict], patterns:List[str]) -> List[dict]:
             if not patterns:
                 return api_parameters
             matched_parameters = []
@@ -207,7 +213,7 @@ class ServiceReader:
 
 
             
-    def read_resource_node(self, resource_node_name:str, match_patterns:List[str]=None)->Union[Dict, bool]:
+    def read_resource_node(self, resource_node_name:str, match_patterns:Optional[List[str]]=None)->Union[Dict, bool]:
         """Reads available operations in the given a resource node
 
         Args:

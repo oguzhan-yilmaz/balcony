@@ -2,17 +2,17 @@ import typer
 try:
     from .utils import *
     from .config import get_logger, get_rich_console, set_log_level_at_runtime, clear_relations_cache
-    from .nodes import ServiceNode, OperationType
+    from .nodes import ServiceNode
     from .reader import ServiceReader
     from .custom_nodes import *
-    from .factories import Boto3SessionSingleton, BalconyAWS
+    from .factories import Boto3SessionSingleton, ServiceNodeFactory
 except ImportError:
     from utils import *
     from config import get_logger, get_rich_console, set_log_level_at_runtime, clear_relations_cache
-    from nodes import ServiceNode, OperationType
+    from nodes import ServiceNode
     from reader import ServiceReader
     from custom_nodes import *
-    from factories import Boto3SessionSingleton, BalconyAWS
+    from factories import Boto3SessionSingleton, ServiceNodeFactory
 
 import jmespath
 from typing import Optional
@@ -20,15 +20,13 @@ import boto3
 from rich.columns import Columns
 from rich.panel import Panel
 from rich.console import Console
-from rich.layout import Layout
-from rich.pretty import Pretty
 import logging
 
 console = get_rich_console()
 err_console = Console(stderr=True)
 logger = get_logger(__name__)
 session = Boto3SessionSingleton().get_session()
-balcony_aws = BalconyAWS(session)
+service_factory = ServiceNodeFactory(session)
 app = typer.Typer(no_args_is_help=True)
 
 @app.callback()
@@ -56,11 +54,11 @@ def _complete_service_name(incomplete: str):
                 yield name
                 
                 
-def _complete_resource_node_name(ctx: typer.Context, incomplete: str):
+def _complete_resource_node_name(ctx: typer.Context, incomplete: str) -> List[str]:
     service = ctx.params.get("service", False)
     if not service:
         return []
-    service_node = balcony_aws.get_service(service)
+    service_node = service_factory.get_service_node(service)
     if not service_node:
         return []
     resource_nodes = service_node.get_resource_nodes()
@@ -78,13 +76,13 @@ def _complete_resource_node_name(ctx: typer.Context, incomplete: str):
             resource_node_names.append(_rn_name)
     return resource_node_names
 
-def _complete_operation_type(ctx: typer.Context):
+def _complete_operation_type(ctx: typer.Context) -> List[str]:
     # service, resource_node = 'ec2', 'BundleTasks'
     service = ctx.params.get("service", False)
     resource_node = ctx.params.get("resource_node", False)
     if not service or not resource_node:
         return []
-    service_node = balcony_aws.get_service(service)
+    service_node = service_factory.get_service_node(service)
     if not service_node:
         return []
     resource_node_obj = service_node.get_resource_node_by_name(resource_node)
@@ -97,7 +95,7 @@ def _complete_operation_type(ctx: typer.Context):
 def _list_service_or_resource(
         service: Optional[str] = typer.Argument(None, show_default=False,help='The AWS service name', autocompletion=_complete_service_name),
         resource_node: Optional[str] = typer.Argument(None, show_default=False, help='The AWS Resource Node', autocompletion=_complete_resource_node_name),
-    ):
+    ) -> None:
 
     available_service_names = _get_available_service_node_names()
     if not service and not resource_node:
@@ -117,13 +115,13 @@ def _list_service_or_resource(
             else:
                 raise typer.Exit(f"Invalid service name: {service}. Please pick a proper one.")
             
-        service_node = balcony_aws.get_service(service)
+        service_node = service_factory.get_service_node(service)
         resource_nodes = service_node.get_resource_nodes()
         
         resource_node_names = []
         for _rn in resource_nodes:
             _rn_name = _rn.name
-            if _rn.get_all_required_parameter_names():
+            if len(_rn.get_all_required_parameter_names()) >= 2:
                 _rn_name = f"[bold]{_rn_name}[/]"
             resource_node_names.append(_rn_name)
         
@@ -133,7 +131,7 @@ def _list_service_or_resource(
         
     elif service and resource_node:
         # we got both options filled
-        service_node = balcony_aws.get_service(service) 
+        service_node = service_factory.get_service_node(service) 
         resource_nodes = service_node.get_resource_nodes()
         resource_node_names = [ _rn.name for _rn in resource_nodes]
         resource_node_obj = service_node.get_resource_node_by_name(resource_node)
@@ -151,7 +149,7 @@ def _list_service_or_resource(
         return    
 
 def vvv():
-    service_node = balcony_aws.get_service('iam')
+    service_node = service_factory.get_service_node('iam')
     rns = service_node.get_resource_nodes()
     
     a = []
@@ -163,8 +161,8 @@ def aa():
     total_rn_count = 0
     total_o_count = 0
     all_o_count = 0 
-    for sname in balcony_aws.get_available_service_node_names():
-        service_node = balcony_aws.get_service(sname)
+    for sname in service_factory.get_available_service_node_names():
+        service_node = service_factory.get_service_node(sname)
         s_count += 1
         all_o_count += len(service_node.client._PY_TO_OP_NAME)
         rns = service_node.get_resource_nodes()
@@ -210,7 +208,7 @@ def aws_main_command(
         console.print(Panel(f"[bold]Please pick one of the Resource Nodes from [green]{service}[/] Service", title="[red][bold]ERROR"))
         return {'service':service, 'resources': available_resources}
     elif service and resource_node:
-        service_node = balcony_aws.get_service(service)
+        service_node = service_factory.get_service_node(service)
         service_reader = service_node.get_service_reader()
         
         is_operation_selected = operation is not None

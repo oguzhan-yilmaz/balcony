@@ -4,8 +4,12 @@ Otherwise different import statements would create new global static objects
 for AppRegistry etc.
 """
 try:
-    from .factories import BalconyAWS
+    from .factories import ServiceNodeFactory
     from .config import get_rich_console, get_logger
+    from .nodes import ServiceNode, ResourceNode
+    from .reader import ServiceReader
 except ImportError:
-    from factories import BalconyAWS
+    from factories import ServiceNodeFactory
     from config import get_rich_console, get_logger
+    from nodes import ServiceNode, ResourceNode
+    from reader import ServiceReader

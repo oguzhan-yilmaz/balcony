@@ -716,6 +716,12 @@ class ServiceNode:
         return op_name_to_tokens
 
     def get_read_operation_names(self) -> List[str]:
+        """Gets the operation names from the boto3 client and 
+        filters the operation names starting with `List`,`Get` or `Describe`.
+
+        Returns:
+            List[str]: Read Only operation names
+        """
         operation_names = self.get_operation_names()
         read_only_operation_names = [
             op_name
@@ -725,10 +731,12 @@ class ServiceNode:
         return read_only_operation_names
 
     def get_service_model(self) -> ServiceModel:
+        """Returns the ServiceModel obj from boto3 client"""
         service_model = self.client._service_model
         return service_model
 
     def get_event_system(self) -> EventAliaser:
+        """Returns the boto3 clients event system"""
         event_system = self.client.meta.events
         return event_system
 

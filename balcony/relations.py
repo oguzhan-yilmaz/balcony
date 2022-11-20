@@ -31,14 +31,14 @@ class RelationMap:
         if self._relations_map is not None and not refresh:
             return self._relations_map
 
-        loaded_relations_map = self._load_relations_from_file()
+        loaded_relations_map = self.load_relations_from_file()
         if loaded_relations_map and not refresh:
             self._relations_map = loaded_relations_map
             return self._relations_map
 
-        generated_relations = self._generate_relation_map()
+        generated_relations = self.generate_relation_map()
         self._relations_map = generated_relations
-        self._save_relations_map_to_file()
+        self.save_relations_map_to_file()
         return self._relations_map
 
     # def check_parameter_name_inside_map(self, )
@@ -80,9 +80,9 @@ class RelationMap:
         result = resource_node.find_best_relations_for_operation(operation_name, relation_map)
         return result
             
-    def _save_relations_map_to_file(self, relations_map:List[Dict]=None) -> None:
+    def save_relations_map_to_file(self, relations_map:List[Dict]=None) -> None:
         """Saves the generated relations map to `{BALCONY_RELATIONS_DIR}/{service_name}.json`
-        # TODO: remove the parameter as it's not needed
+
         Args:
             relations_map (List[Dict], optional): _description_. Defaults to None.
         """
@@ -95,7 +95,7 @@ class RelationMap:
         with open(filepath, 'w') as file:
             json.dump(relations_map, file, indent=2, default=str)
 
-    def _load_relations_from_file(self):
+    def load_relations_from_file(self) -> Union[dict, bool]:
         directory = BALCONY_RELATIONS_DIR
         service_name = self.service_node.name
         filepath = os.path.join(directory, f"{service_name}.json")
@@ -103,13 +103,11 @@ class RelationMap:
             return False
         relations_map = None
         try:
-            
             with open(filepath, 'r') as file:
                 relations_map = json.load(file)
             logger.debug(f"Read cached relations of [bold green]{service_name}[/] from {filepath}. Use: balcony clear-cache")
-
         except:
-            pass
+            return False
         return relations_map
 
     def _generate_resource_node_parameters_list(self, resource_nodes):
@@ -126,7 +124,18 @@ class RelationMap:
 
 
 
-    def _generate_relation_map(self, **kwargs):
+    def generate_relation_map(self, **kwargs) -> Dict[str, list]:
+        """Generates the required parameter name to its relations mapping.
+        ```json title="RelationMap structure"
+        {
+            "ParameterName1": [{}, {} ],
+            "ParameterName2": [{}, ] 
+        }
+        ```
+        
+        Returns:
+            Dict[str, list]: Generated parameter names to Relations list
+        """
         resource_nodes = self.service_node.get_resource_nodes()
         # Create a list of dicts for each resource_node, operation_name and required_parameter_names
         operations_to_required_parameter_list = self._generate_resource_node_parameters_list(resource_nodes)
