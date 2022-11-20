@@ -24,13 +24,17 @@ SHAPE_COLLECTION_TYPES = ('structure', 'list','map')
 READ_ONLY_VERBS = ('Describe', 'List', 'Get')
 IDENTIFIER_NAMES = ('arn', 'id', 'name', 'arns', 'ids',
                     'names', 'identifier', 'identifiers', 'number', 'url')
+
+# shape_resolver can't find the reference of BLACKLISTED_SHAPE_NAMES, so they're ignored
 BLACKLISTED_SHAPE_NAMES = ('ComponentChildList','FirewallManagerRuleGroups', 'Rules','HeaderNames', 'ExcludedRules', 'CountryCodes', 'CookieNames', 'TextTransformations', 'ComponentSummaryList','AnomalyMonitors','ConfigurationList','HandshakeResources','JsonPointerPaths','AdministrativeActions','DataValueList','ThemeValuesList','Expressions','CostCategoryRulesList')
+# regex expr for removing html caret tags
 HTML_CLEANER_REGEX = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 
 console = get_rich_console()
 
 def find_key_in_dict_keys(key:str, dict_keys: Union[list, dict]) -> str:
-    """Case insensitive search for a `key` in a `list` or `dict.keys()`. 
+    """Case insensitive search for a `key` in a `list` or `dict.keys()`.
+    Returns the existing key.
 
     Args:
         key (str): Search case insensively for
@@ -145,6 +149,9 @@ def is_shape_non_collection_type(shape_and_target_path: ShapeAndTargetPath) -> b
 
 
 def _flatten_shape_to_its_members_and_target_paths(shape: Shape, target_str:str='') -> List[ShapeAndTargetPath]:
+    """Recursive function to get each member shape.
+    Generates target_str JMESPath selector for each member.
+    Returns a flattened list of (shape, target_path) namedtuples."""
     result = []
     members = get_members_shapes(shape)
     for member in members:
@@ -163,14 +170,30 @@ def _flatten_shape_to_its_members_and_target_paths(shape: Shape, target_str:str=
     return result
 
 def flatten_shape_to_its_non_collection_shape_and_target_paths(shape: Shape) -> List[ShapeAndTargetPath]:
+    """Return a flat list of shapes all member shapes w/ their JMESPath selector `target_path`
+
+    Args:
+        shape (Shape): shape to list its members
+
+    Returns:
+        List[ShapeAndTargetPath]: (shape, target_path) custom namedtuple. 
+    """
     all_flat_members_and_target_paths = _flatten_shape_to_its_members_and_target_paths(shape)
     non_collection_shapes_and_target_paths = list(filter(is_shape_non_collection_type, all_flat_members_and_target_paths))
     return non_collection_shapes_and_target_paths
 
 
-def cleanhtml(raw_html):
-  cleantext = re.sub(HTML_CLEANER_REGEX, '', raw_html)
-  return cleantext
+def cleanhtml(raw_html:str) -> str:
+    """Removes the HTML tags from given raw_html
+
+    Args:
+        raw_html (str): HTML string to clean the tags off of
+
+    Returns:
+        str: HTML with tags removed
+    """
+    cleantext = re.sub(HTML_CLEANER_REGEX, '', raw_html)
+    return cleantext
 
 
 def rich_str_shape(shape: Shape) -> str:
@@ -219,7 +242,14 @@ def generate_rich_tree_from_shape(shape: Shape) -> Tree:
     
 # @lru_cache(maxsize=500) # print(get_shape_name.cache_info())
 def get_shape_name(shape: Shape) -> str:
-    """Returns the shapes name, using custom set object values"""
+    """Returns the shapes name, using custom set 'key_name' attr
+
+    Args:
+        shape (Shape): botocore Shape obj
+
+    Returns:
+        str: Name of the shape.
+    """
     shape_name = shape.name
     shape_key_name = getattr(shape, 'key_name', False)
     if shape_name.lower() in UNWANTED_SHAPE_NAMES_LOWERED:
@@ -234,6 +264,14 @@ def get_shape_name(shape: Shape) -> str:
     return shape_name
    
 def get_required_parameter_shapes_from_operation_model(operation_model: OperationModel) -> List[Shape]:
+    """Finds required parameter shapes of the operation models input_shape.
+
+    Args:
+        operation_model (OperationModel): botocore OperationModel obj of the Operation
+
+    Returns:
+        List[Shape]: Required parameter shapes.
+    """
     input_shape = get_input_shape(operation_model)
     if not input_shape:
         return [] # there's no input shape
@@ -250,16 +288,3 @@ def get_required_parameter_shapes_from_operation_model(operation_model: Operatio
                 required_member_shapes.append(input_member)
             
     return required_member_shapes
-
-# def get_required_parameters_for_operation(operation_model):
-#     required_parameter_shapes = get_required_parameters_for_operation(operation_model)
-#     required_parameter_names = [
-#         get_shape_name(r_param_shape)
-#         for r_param_shape in required_parameter_shapes
-#     ]
-#     return required_parameter_names
-
-def compare_shape_names(member, search_shape):
-    return get_shape_name(member) == get_shape_name(search_shape)
-
-

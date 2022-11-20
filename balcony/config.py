@@ -16,7 +16,12 @@ LOG_LEVEL = 'INFO'
 _console = Console(color_system="auto", markup=True)
 _balcony_loggers = []
 
-def clear_relations_cache():
+def clear_relations_cache() -> None:
+    """Removes the `<service>.json` files.
+
+    Returns:
+        None 
+    """
     relation_files = os.listdir(BALCONY_RELATIONS_DIR)
     deleted_filenames = []
     for rel_file in relation_files:
@@ -67,7 +72,6 @@ def get_logger(name: str) -> logging.Logger:
         datefmt="[%X]",
         handlers=[RichHandler(rich_tracebacks=True, markup=True, console=_console)]
     )
-    # logging.FileHandler("debug.log", mode='w')
     
     _logger = logging.getLogger(name)
     _balcony_loggers.append(_logger)

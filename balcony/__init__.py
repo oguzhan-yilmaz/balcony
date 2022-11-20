@@ -8,8 +8,13 @@ try:
     from .config import get_rich_console, get_logger
     from .nodes import ServiceNode, ResourceNode
     from .reader import ServiceReader
+    from .relations import RelationMap
+    from .errors import Error
+    
 except ImportError:
     from factories import ServiceNodeFactory
     from config import get_rich_console, get_logger
     from nodes import ServiceNode, ResourceNode
     from reader import ServiceReader
+    from relations import RelationMap
+    from errors import Error

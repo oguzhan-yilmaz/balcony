@@ -213,7 +213,7 @@ class ServiceReader:
 
 
             
-    def read_resource_node(self, resource_node_name:str, match_patterns:Optional[List[str]]=None)->Union[Dict, bool]:
+    def read_resource_node(self, resource_node_name:str, match_patterns:Optional[List[str]]=None, refresh:Optional[bool]=False)->Union[Dict, bool]:
         """Reads available operations in the given a resource node
 
         Args:
@@ -228,7 +228,7 @@ class ServiceReader:
             return False
 
         for operation_name in resource_node.operation_names:
-            self.read_operation(resource_node_name, operation_name, match_patterns)
+            self.read_operation(resource_node_name, operation_name, match_patterns, refresh)
         return self.search_resource_node_data(resource_node.name)
 
 

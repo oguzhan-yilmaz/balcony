@@ -238,7 +238,7 @@ def aws_main_command(
                     console.print(formatter.format(**r_data))
                 return read_data
             else:
-                logger.debug(f"[red]No data read.[/] Failed to use --formats: '{formatter}'")
+                logger.debug(f"[red]No data read.[/] Failed to use --format: '{formatter}'")
     
         if paginate:
             with console.pager(styles=True):
