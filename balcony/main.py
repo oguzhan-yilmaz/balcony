@@ -72,7 +72,6 @@ if __name__ == '__main__':
                 # verb, *resource_name_tokens = camel_case_split(r_ops_name)
                 # resource_name = ''.join(resource_name_tokens)
                 a = service_reader.read_operation(rnode.name, r_ops_name)
-        # #         # x = relation_map.find_best_relations_for_operations_parameters(r_ops_name)
                 console.print(a)
                 console.print(rnode.name, r_ops_name, r_params)
                 console.print('-'*40)

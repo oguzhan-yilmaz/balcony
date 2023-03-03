@@ -17,11 +17,7 @@ _console = Console(color_system="auto", markup=True)
 _balcony_loggers = []
 
 def clear_relations_cache() -> None:
-    """Removes the `<service>.json` files.
-
-    Returns:
-        None 
-    """
+    """Removes the `<service>.json` files."""
     relation_files = os.listdir(BALCONY_RELATIONS_DIR)
     deleted_filenames = []
     for rel_file in relation_files:

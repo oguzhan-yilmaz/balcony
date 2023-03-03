@@ -12,8 +12,30 @@ import os
 from enum import Enum
 logger = get_logger(__name__)
 
-
 class RelationMap:
+    """
+    RelationMap represents a mapping `ParameterName` to `Relations List`.
+    `generate_relation_map()` function generates the RelationMap dictionary for given ServiceNode.
+    
+    ServiceNode caches the RelationMap dictionary to a file, because calculating it
+    requires a lot of loops. 
+    
+    ```json title="Example RelationMap dictionary"
+     {
+        "PolicyArn": [
+            {
+                "service_name": "iam",
+                "resource_node_name": "Policy",
+                "search_shape_name": "PolicyArn",
+                "target_shape_name": "Arn",
+                "target_shape_type": "string",
+                "operation_name": "ListPolicies",
+                "target_path": "Policies[*].Arn"
+            }
+        ],
+    }
+    ```
+    """
     def __init__(self, service_node):
         self.service_node = service_node
         self._relations_map: Dict = None
@@ -26,7 +48,7 @@ class RelationMap:
             refresh (bool, optional): Disables cache. Defaults to False.
 
         Returns:
-            Dict: _description_
+            Dict: `RelationMap` dictionary. parameter_name->[relations,] mapping.
         """
         if self._relations_map is not None and not refresh:
             return self._relations_map
@@ -43,7 +65,8 @@ class RelationMap:
 
     # def check_parameter_name_inside_map(self, )
     def get_parameters_generated_relations(self, parameter_name:str, exclude_operation_name:str) -> List[Dict]:
-        """_summary_
+        """Checks the `RelationMap` dictionary for the key: `parameter_name` 
+        to get the generated relations for the given parameter name.
 
         Args:
             parameter_name (str): Parameter name to search for its relations
@@ -72,14 +95,6 @@ class RelationMap:
 
 
 
-    def find_best_relations_for_operations_parameters(self, operation_name:str) -> List[Dict]:
-        resource_node = self.service_node.find_resource_node_by_operation_name(operation_name)
-        if not resource_node:
-            return False
-        relation_map = self
-        result = resource_node.find_best_relations_for_operation(operation_name, relation_map)
-        return result
-            
     def save_relations_map_to_file(self, relations_map:List[Dict]=None) -> None:
         """Saves the generated relations map to `{BALCONY_RELATIONS_DIR}/{service_name}.json`
 

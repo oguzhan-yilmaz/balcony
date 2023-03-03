@@ -1,30 +1,36 @@
 try:
     from .config import get_logger, get_rich_console
     from .errors import Error
+    from .botocore_utils import ifind_key_in_dict_keys
 except ImportError:
     from config import get_logger, get_rich_console
     from errors import Error
+    from botocore_utils import ifind_key_in_dict_keys
+    
 import fnmatch
 from collections.abc import Iterable
 from typing import List, Set, Dict, Tuple, Optional, Union
 from botocore.exceptions import ClientError
 
+
 logger = get_logger(__name__)
 console = get_rich_console()
 
 class ServiceReader:
-    def __init__(self, service_node: 'ServiceNode') -> None:
-        """
-        Upon initialization ServiceReaders defines a dictionary called `response_data`.
-        Caled operations are stored in this dictionary.
-        ```json title="self.response_data data hierarchy"
-        {
-            "ResourceNodeName": {
-                "OperationName1": [{response1 dict}, {response2 dict}, ...],
-                "OperationName2": [{response1 dict},...],
-            }
+    """
+    Upon initialization ServiceReaders defines a dictionary called `response_data`.
+    Caled operations are stored in this dictionary.
+    ```json title="self.response_data data hierarchy"
+    {
+        "ResourceNodeName": {
+            "OperationName1": [{response1 dict}, {response2 dict}, ...],
+            "OperationName2": [{response1 dict},...],
         }
-        ```
+    }
+    ```
+    """
+    def __init__(self, service_node: 'ServiceNode') -> None:
+        """Initializes the reader with the `service_node`.
 
         Args:
             service_node (ServiceNode): Associated ServiceNode. 
@@ -32,13 +38,29 @@ class ServiceReader:
         self.service_node = service_node
         self.response_data = {}
 
-    def _call_operation(self, operation_name:str, api_parameter: dict) -> Union[dict, bool]:
+    def call_operation(self, operation_name:str, api_parameter: dict) -> Union[dict, bool]:
+        """Calls the given AWS operation with `api_parameter` dict.
+        Saves the response data on `self.response_data` and returns it.
+
+        Args:
+            operation_name (str): Name of the operation
+            api_parameter (dict): dictionary to call the operation with
+
+        Returns:
+            Union[dict, bool]: `False` or response got from AWS API
+        """
         # TODO: follow next tokens
         client = self.service_node.client
         try:
             # print(colored(f"{operation_name=} {api_parameters=}",'green'))
             logger.debug(f"Calling operation: [bold blue]{operation_name}[/] with api parameters: {api_parameter}")
-            response = client._make_api_call(operation_name, api_parameter)
+            response: dict = client._make_api_call(operation_name, api_parameter)
+            PAGINATOR_KEYS = ["NextToken"]
+            for paginator_key in PAGINATOR_KEYS:
+                # NextToken pagination key can be named differently like 'nextToken' 
+                found_paginator_key = ifind_key_in_dict_keys(paginator_key, response.keys())
+                if found_paginator_key:
+                    pass
         except ClientError as e:
             # print(colored(str(e),'red'))
             logger.debug(f"[red bold]FAILED: Calling Operation[/]. {operation_name} with api parameters: {api_parameter}. Exception: {str(e)} ")
@@ -55,6 +77,15 @@ class ServiceReader:
     
 
     def search_operation_data(self, resource_node_name:str, operation_name:str) -> Union[List[dict], bool]:
+        """Get the currently read and available operation data.
+
+        Args:
+            resource_node_name (str): Name of the ResourceNode
+            operation_name (str): Name of the Operation
+
+        Returns:
+            Union[List[dict], bool]: `False` or Operations data
+        """
         resource_node_exists = self.response_data.get(resource_node_name, False) != False
         if not resource_node_exists:
             return False
@@ -63,15 +94,36 @@ class ServiceReader:
         return result
     
     def search_resource_node_data(self, resource_node_name:str) -> Union[dict, bool]:
+        """Gets all data available for the ResourceNode, including all of its operations.
+
+        Args:
+            resource_node_name (str): Name of the ResourceNode
+
+        Returns:
+            Union[dict, bool]: `False` or all operations data of the given ResourceNode
+        """
         resource_node_data = self.response_data.get(resource_node_name, False) 
         return resource_node_data 
    
     def clear_operations_data(self, resource_node_name:str, operation_name:str) -> None:
+        """Refreshes the operations data to empty list. 
+
+        Args:
+            resource_node_name (str): Name of the ResourceNode
+            operation_name (str): Name of the Operation
+        """
         resource_node_exists = self.response_data.get(resource_node_name, False) != False
         if resource_node_exists:
             self.response_data[resource_node_name][operation_name] = []
     
     def add_to_node_data(self, resource_node_name:str, operation_name:str, response: dict)->None:
+        """Adds boto3 api response to operations existing data.
+
+        Args:
+            resource_node_name (str): Name of the ResourceNode
+            operation_name (str): Name of the Operation
+            response (dict): boto API response dict
+        """
         resource_node_exists = self.response_data.get(resource_node_name, False) != False
         
         if not resource_node_exists:
@@ -164,7 +216,7 @@ class ServiceReader:
                     api_parameters_for_operation = pattern_matched_api_parameters
                 for api_parameter in api_parameters_for_operation:
                     # for each parameter generated, call the actual operation
-                    self._call_operation(operation_name, api_parameter)
+                    self.call_operation(operation_name, api_parameter)
             # after calling the same operation for the different parameters
             # get all the response data made for this operation_name
             logger.debug(f'[bold]Done Reading[/] {operation_markup}')
@@ -201,7 +253,7 @@ class ServiceReader:
                 api_parameters_for_operation = pattern_matched_api_parameters
             for api_parameter in api_parameters_for_operation:
                 # for each parameter generated, call the actual operation
-                self._call_operation(operation_name, api_parameter)
+                self.call_operation(operation_name, api_parameter)
         else:
             logger.debug(f"Failed to generate api parameters for {operation_markup}")
             

@@ -235,10 +235,13 @@ def aws_main_command(
         if formatter:
             if read_data:
                 for r_data in read_data:
-                    console.print(formatter.format(**r_data))
+                    try:
+                        console.print(formatter.format(**r_data))
+                    except AttributeError as e:
+                        logger.debug(f"Failed to format  [red]{str(e)}[/] with data: {r_data}")
                 return read_data
             else:
-                logger.debug(f"[red]No data read.[/] Failed to use --format: '{formatter}'")
+                logger.debug(f"[red]No data found.[/] Failed to use --format: '{formatter}'")
     
         if paginate:
             with console.pager(styles=True):

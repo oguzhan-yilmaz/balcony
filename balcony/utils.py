@@ -55,6 +55,7 @@ def compare_nouns(word1: str, word2: str) -> bool:
     return inflect_engine.compare_nouns(word1, word2)
 
 def compare_two_token_lists(token_list_one: List[str], token_list_two: List[str]) -> bool:
+    """Compares to word lists one by one in lowercase"""
     if len(token_list_one) != len(token_list_two):
         return False
     token_by_token_match = [

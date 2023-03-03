@@ -32,11 +32,7 @@ logger = get_logger(__name__)
 _resource_node_registry = ResourceNodeRegistry()
 argument_generator = ArgumentGenerator()
 console = get_rich_console()
-class OperationType(str, Enum):
-    GET = "get"
-    GETS = "gets"
-    LIST = "list"
-    DESC = "desc"
+
     
 
 class ResourceNode:
@@ -49,12 +45,10 @@ class ResourceNode:
 
     def __init_subclass__(cls, service_name=None, name=None, **kwargs):
         super().__init_subclass__(**kwargs)
-        _resource_node_registry.register_class(cls, service_name, name)
+        if service_name and name:
+            _resource_node_registry.register_class(cls, service_name, name)
 
-    def filter_result_with_jmespath(self, data, jmespath_selector: str):
-        return jmespath.search(jmespath_selector, data)
-
-    def get_operation_types_and_names(self) -> Dict[OperationType, str]:
+    def get_operation_types_and_names(self) -> Dict[str, str]:
         operation_names = self.get_operation_names()
         types_to_operation_names = {}
         for op_name in operation_names:
