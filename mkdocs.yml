@@ -9,19 +9,22 @@ nav:
     - 'How it Works?': 
       - 'About boto3': how-it-works/about-boto3.md
       - 'About balcony': how-it-works/about-balcony.md
+    - 'Environment Variables': environment-variables.md
     - Development:
       - development/custom-resource-nodes.md
     - Reference:
       - reference/resource-node.md
-      - reference/service-node.md
-      - reference/service-reader.md
+      - 'ServiceNode': reference/service-node.md
+      - 'ServiceReader': reference/service-reader.md
       - reference/relations.md
       - reference/registries.md
+      - reference/factories.md
       - 'Utilities': 
         - reference/utils.md
         - reference/botocore_utils.md
 theme:
   name: material
+  language: en
   font:
     text: Roboto
   features:
@@ -35,6 +38,7 @@ theme:
     - scheme: default
       media: "(prefers-color-scheme: light)"
       primary: deep orange
+      accent: green
       toggle:
         icon: material/weather-sunny
         name: Switch to dark mode
@@ -43,6 +47,7 @@ theme:
     - scheme: slate
       media: "(prefers-color-scheme: dark)"
       primary: deep orange
+      accent: green
       toggle:
         icon: material/weather-night
         name: Switch to light mode
@@ -70,6 +75,8 @@ markdown_extensions:
       custom_checkbox: true
   - pymdownx.tabbed:
       alternate_style: true 
+  - attr_list
+  - md_in_html
 
 plugins:
 - search
