@@ -1,4 +1,4 @@
-# botocore_utils
+# botocore_utils.py
 
 ::: balcony.botocore_utils
     handler: python

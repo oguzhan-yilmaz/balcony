@@ -1,4 +1,4 @@
-# Service Reader
+# class ServiceReader:
 
 ::: balcony.reader
     handler: python

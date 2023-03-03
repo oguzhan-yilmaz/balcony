@@ -27,6 +27,7 @@ AWS SDK exposes the AWS API on service basis, accessible through service `client
 iam_client = boto3.client('iam')
 ```
 
+
 ## balcony parses boto3 clients
 
 For each available service name, its `client` is created.
@@ -55,13 +56,11 @@ Every `client` has a `_PY_TO_OP_NAME` mapping that looks like this:
 
 ### balcony only uses the **read-only** operations 
 
-```
-ServiceNode:
-    ResourceNode:
-        Operations: [list, get, ..]
-```
+Balcony only uses the Operation names starting with `Get`, `List`, `Describe` verbs.
 
-**Quick look at the IAM operations**
+Let's take the a look at `IAM` client.
+
+**1. Quick look at some of the IAM operations**
 
 | get operations | list operations |
 |-- |--|
@@ -72,7 +71,12 @@ ServiceNode:
 | **Get**RolePolicy | **List**RolePolicies |
 | **Get**User | **List**Users |
 
-**Operations can be grouped under their resource names**
+
+**2. Operations can be grouped under their resource names**
+
+Naming convention allows parsing CamelCase operation names to `Verb`+`ResourceNodeName`.
+
+Some operations have the same `ResourceNodeName` but a different `Verb`. These operations are grouped under `ResourceNode`. 
 
 | Resource Node | Operations |
 |-- |--|
@@ -84,3 +88,17 @@ ServiceNode:
 | User | **Get**User, **List**Users |
 
 
+
+```txt title="Composition of ServiceNode, ResourceNode and Operations"
+ServiceNode: (iam)
+│
+├── ResourceNode: (Role)
+│   └── Operations
+│       ├── GetRole
+│       └── ListRoles
+│
+└── ResourceNode: (Policy)
+    └── Operations
+        ├── GetPolicy
+        └── ListPolicies
+```

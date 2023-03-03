@@ -1,4 +1,4 @@
-# Resource Node
+# ResourceNode
 
 ::: balcony.nodes.ResourceNode
     handler: python

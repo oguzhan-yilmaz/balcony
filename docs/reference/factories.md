@@ -1,6 +1,6 @@
-# class ServiceNode:
+# Factories
 
-::: balcony.nodes.ServiceNode
+::: balcony.factories
     handler: python
     options:
           show_source: false

@@ -1,7 +1,9 @@
 # balcony
+
 AWS API for us humans.
 
 Balcony helps to lift the undifferentiated heavy lifting that is reading from AWS SDK & API.
+
 
 Balcony fills out the **required parameters** for any operation, automatically. 
 
@@ -17,7 +19,7 @@ python3 -m pip install balcony
 
 ## Basic Usage
 
-!!! tip "balcony will stick to your shell for the AWS credentials" 
+!!! tip "balcony sticks to your shell environment for the AWS credentials" 
 
     ```bash  title="See the active profile with awscli"
     aws sts get-caller-identity
@@ -110,3 +112,6 @@ balcony aws iam Policy \
     --format "aws iam delete-policy --policy-arn {Arn}"
 ```
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=oguzhan-yilmaz/balcony&type=Date)](https://star-history.com/#oguzhan-yilmaz/balcony&Date)
