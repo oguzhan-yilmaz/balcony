@@ -1,3 +1,0 @@
-# Filling out parameters
-
-- 

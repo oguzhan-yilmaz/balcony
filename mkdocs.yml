@@ -9,6 +9,7 @@ nav:
     - 'How it Works?': 
       - 'About boto3': how-it-works/about-boto3.md
       - 'About balcony': how-it-works/about-balcony.md
+      - 'Reading Operations': how-it-works/reading-operations.md
     - 'Environment Variables': environment-variables.md
     - Development:
       - development/custom-resource-nodes.md

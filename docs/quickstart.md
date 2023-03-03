@@ -1,5 +1,9 @@
 # Quick Start
+### Installation
 
+```bash
+pip3 install balcony
+```
 ### Shell Autocompletion
 
 
@@ -11,7 +15,7 @@
     # give your shell as an argument
     balcony --show-completion <your-shell>
 
-    # run the output on your shell
+    # run the output on your shell to activate the autocompletion
     ```
 
 === "Setup for your user"
@@ -73,16 +77,24 @@ balcony aws iam Policy get
 balcony aws iam Policy list
 ```
 
-### Filter generated parameters with UNIX style pattern matching
+### Filter generated parameters with UNIX style `--pattern` matching
+!!! note "Important note on **--pattern** option" 
+    This option only filters the generated api parameters for the given operation.
+
+    Because of this `--pattern` matching is only applied to operations with requried parameters.
+    
+
 ```bash
 balcony aws iam Policy get  -p "*service-role/*"
 
 # supports multiple patterns 
 balcony aws iam Policy -p "*service-role/*" -p "*prod-*"
-
 ```
 
-### Use queries for the json data -- like `jq`
+### Use JMESPath queries for the json data
+
+You can use [JMESPath](https://jmespath.org/) (like `jq`) to query the output data.
+
 ```bash
 balcony aws iam Policy \
     --jmespath-selector "GetPolicy[*].Policy"
@@ -92,6 +104,12 @@ balcony aws iam Policy \
 ```
 
 ### Use `--format` option for customized output
+
+Using the `--format` option allows you to string format the output json data.
+
+Must be used with `-js | --jmespath-selector` option because `--format` option only works with a list of dictionaries.
+
+Given format string will be applied to each `dict` in the list, allowing you to use [f-strings](https://peps.python.org/pep-0498/) notation. 
 
 ```bash
 # create stop-instances script for running instances

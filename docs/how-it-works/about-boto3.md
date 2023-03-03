@@ -1,6 +1,5 @@
 # About **boto3** and AWS SDK & API
 
-
 **Size of AWS SDK & API**
 
 | Type | Count | 
@@ -9,7 +8,7 @@
 | ReadOnly Operations | 4577+ | 
 | All Operations | 12129+ | 
 
-`boto3` is only a wrapper for the existing AWS HTTP API.
+`boto3` is only a wrapper for the existing AWS HTTP API written in Python.
 
 AWS team didn't code each operation of `boto3` individually for Python, that'd be not productive.
 

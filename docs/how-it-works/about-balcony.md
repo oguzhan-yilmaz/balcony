@@ -1,8 +1,8 @@
 # balcony and boto3
 
-**Available AWS Services**
+**Listing AWS Services**
 
-AWS Services for the current region can be queried using boto3.
+All available AWS Services for the current region can be queried using boto3.
 
 ```python title="Listing available service names"
 session = boto3.session.Session()
@@ -14,7 +14,7 @@ session.get_available_services()
 
 In Python, everything is an object. Even the `modules` are objects.
 
-When a module is imported, it can be queried for its composite objects on runtime. 
+When a module is `import`ed, it can be queried for its composite objects on runtime. 
 
 ```python title="Listing boto3 scope"
 print(dir(boto3))
@@ -58,9 +58,9 @@ Every `client` has a `_PY_TO_OP_NAME` mapping that looks like this:
 
 Balcony only uses the Operation names starting with `Get`, `List`, `Describe` verbs.
 
-Let's take the a look at `IAM` client.
+Let's take the a look at `IAM` client, and how `balcony` groups them together.
 
-**1. Quick look at some of the IAM operations**
+**Quick look at some of the IAM operations**
 
 | get operations | list operations |
 |-- |--|
@@ -72,11 +72,9 @@ Let's take the a look at `IAM` client.
 | **Get**User | **List**Users |
 
 
-**2. Operations can be grouped under their resource names**
+**Operations can be grouped under their resource names**
 
 Naming convention allows parsing CamelCase operation names to `Verb`+`ResourceNodeName`.
-
-Some operations have the same `ResourceNodeName` but a different `Verb`. These operations are grouped under `ResourceNode`. 
 
 | Resource Node | Operations |
 |-- |--|
@@ -87,6 +85,8 @@ Some operations have the same `ResourceNodeName` but a different `Verb`. These o
 | RolePolicy | **Get**RolePolicy, **List**RolePolicies |
 | User | **Get**User, **List**Users |
 
+
+Some operations have the same `ResourceNodeName` but a different `Verb`. These operations are grouped under their respective `ResourceNode`. 
 
 
 ```txt title="Composition of ServiceNode, ResourceNode and Operations"
