@@ -1,4 +1,4 @@
-# Practical Usage
+# Cookbook
 
 ### Generate delete-policy command for `dev-` service-roles
 ```bash

@@ -30,7 +30,7 @@ iam_client = boto3.client('iam')
 
 ## balcony parses boto3 clients
 
-For each available service name, its `client` is created.
+For each available service name, its `client` is created and parsed for it's functions.
 
 
 Every `client` has a `_PY_TO_OP_NAME` mapping that looks like this:
@@ -54,13 +54,13 @@ Every `client` has a `_PY_TO_OP_NAME` mapping that looks like this:
 
 
 
-### balcony only uses the **read-only** operations 
+## balcony only uses the **read-only** operations 
 
 Balcony only uses the Operation names starting with `Get`, `List`, `Describe` verbs.
 
 Let's take the a look at `IAM` client, and how `balcony` groups them together.
 
-**Quick look at some of the IAM operations**
+### Quick look at some of the IAM operations
 
 | get operations | list operations |
 |-- |--|
@@ -72,7 +72,7 @@ Let's take the a look at `IAM` client, and how `balcony` groups them together.
 | **Get**User | **List**Users |
 
 
-**Operations can be grouped under their resource names**
+### Operations can be grouped under their resource names
 
 Naming convention allows parsing CamelCase operation names to `Verb`+`ResourceNodeName`.
 

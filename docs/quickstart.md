@@ -4,6 +4,9 @@
 ```bash
 pip3 install balcony
 ```
+
+
+
 ### Shell Autocompletion
 
 
@@ -31,11 +34,24 @@ pip3 install balcony
 
 
 
-!!! note "Remember to get **--help**" 
+### About AWS credentials
 
-    ```bash  title=""
-    balcony --help
-    balcony aws --help
+
+!!! tip "balcony uses your shell environment for the AWS credentials" 
+
+    ```bash  title="See the active profile with awscli"
+    aws sts get-caller-identity
+    ```
+
+    ```bash  title="Set your AWS profile and region"
+    export AWS_PROFILE=default
+    export AWS_REGION=us-east-1
+    ```
+
+    ```bash  title="Set your AWS credentials"
+    export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+    export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    export AWS_DEFAULT_REGION=us-west-2
     ```
 
 ### List all available AWS Services
@@ -43,6 +59,13 @@ pip3 install balcony
 ```bash
 balcony aws
 ```
+
+!!! note "Remember to get **--help**" 
+
+    ```bash  title=""
+    balcony --help
+    balcony aws --help
+    ```
 ### List all Resource Nodes of a Service
 ```bash
 balcony aws iam
@@ -107,7 +130,7 @@ balcony aws iam Policy \
 
 Using the `--format` option allows you to string format the output json data.
 
-Must be used with `-js | --jmespath-selector` option because `--format` option only works with a list of dictionaries.
+Must be used with `-js | --jmespath-selector` option because `--format` option only works with a list of dictionaries of same structure.
 
 Given format string will be applied to each `dict` in the list, allowing you to use [f-strings](https://peps.python.org/pep-0498/) notation. 
 

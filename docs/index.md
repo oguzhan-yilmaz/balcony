@@ -1,117 +1,19 @@
 # balcony
 
-AWS API for us humans.
-
-Balcony helps to lift the undifferentiated heavy lifting that is reading from AWS SDK & API.
-
-
-Balcony fills out the **required parameters** for any operation, automatically. 
-
-
-## Installation
-
-```bash
-pip3 install balcony
-
-python3 -m pip install balcony
-```
-
-
-## Basic Usage
-
-!!! tip "balcony sticks to your shell environment for the AWS credentials" 
-
-    ```bash  title="See the active profile with awscli"
-    aws sts get-caller-identity
-    ```
-
-    ```bash  title="Set your AWS profile and region"
-    export AWS_PROFILE=default
-    export AWS_REGION=us-east-1
-    ```
-
-    ```bash  title="Set your AWS credentials"
-    export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-    export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-    export AWS_DEFAULT_REGION=us-west-2
-    ```
+[Documentation](https://oguzhan-yilmaz.github.io/balcony/)
 
 
 
-```bash title="List all available AWS Services"
-balcony aws
-```
-
-```bash title="List all Resource Nodes of a Service"
-balcony aws iam
-
-balcony aws ec2
-```
-!!! info "Remember to get **--help**" 
-
-    ```bash  title=""
-    balcony --help
-    balcony aws --help
-    ```
-
-```bash title="See the documentation of a Resource Node and its Operations"
-balcony aws iam Policy -l
-# or
-balcony aws iam Policy --list
-```
+[See QuickStart Page to get started.](quickstart.md)
 
 
-```bash title="Read a Resource Node"
-balcony aws iam Policy
+Balcony is a CLI tool that simplifies the process of querying AWS resources for developers who use AWS. 
 
-balcony aws ec2 Instances
-```
+By dynamically parsing `boto3` library and automatically filling in required parameters, Balcony allows developers to quickly and easily list all of their AWS resources. 
 
 
-```bash title="Read a Resource Node with --debug enabled"
-# if you are curious to see what's going on 
-# under the hood, enable the debug messages 
-balcony aws iam Policy -d
-# or
-balcony aws iam Policy --debug
-```
+Balcony is particularly useful for reading AWS resources, as it saves developers time and effort by automatically finding and filling in those parameters. 
 
+Balcony only reads data, so it does not take any action on the provided AWS account. 
 
-```bash title="Read a Resource Nodes specific operation"
-balcony aws iam Policy get
-
-balcony aws iam Policy list
-```
-
-```bash title="Filter generated parameters with UNIX style pattern matching"
-balcony aws iam Policy get  -p "*service-role/*"
-
-# supports multiple patterns 
-balcony aws iam Policy -p "*service-role/*" -p "*prod-*"
-```
-
-
-```bash title="Use jmespath queries for the json data"
-balcony aws iam Policy \
-    --jmespath-selector "GetPolicy[*].Policy"
-# or
-balcony aws iam Policy \
-    -js "GetPolicy[*].Policy"
-```
-
-
-```bash title="Use --format option for customized output"
-# create stop-instances script for running instances
-balcony aws ec2 Instances \
-    -js "DescribeInstances[*].Reservations[*].Instances[?State.Name=='running'][][]" \
-    --format "aws ec2 stop-instances --instance-ids {InstanceId} # {Tags}"
-
-# create delete-policy script
-balcony aws iam Policy \
-    --jmespath-selector "GetPolicy[*].Policy" \
-    --format "aws iam delete-policy --policy-arn {Arn}"
-```
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=oguzhan-yilmaz/balcony&type=Date)](https://star-history.com/#oguzhan-yilmaz/balcony&Date)
+![Alt Text](visuals/help.gif)

@@ -31,12 +31,12 @@ sequenceDiagram
 
   loop Calling the original Operation with it's generated params
     SR->>SR: call_operation(api_param)
-    Note over SR,RN: Calls the original operation with generated api parameters <br/>  
+    Note over SR,RN: Calls the original operation with generated api parameters <br/> and saves each response
   end
   
 
   SR->>SR: search_operation_data(operation)
-  Note over User,SR: Gets the saved responses for the operation
+  Note over User,SR: List of all the saved responses for the operation
 
   SR-->>User: ((All responses for the operation))
 

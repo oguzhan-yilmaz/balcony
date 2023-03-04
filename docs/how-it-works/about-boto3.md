@@ -1,4 +1,4 @@
-# About **boto3** and AWS SDK & API
+## About **boto3** and AWS SDK & API
 
 **Size of AWS SDK & API**
 
@@ -8,29 +8,36 @@
 | ReadOnly Operations | 4577+ | 
 | All Operations | 12129+ | 
 
-`boto3` is only a wrapper for the existing AWS HTTP API written in Python.
+`boto3` is simply a Python wrapper for the existing AWS HTTP API. 
 
-AWS team didn't code each operation of `boto3` individually for Python, that'd be not productive.
+It's important to keep in mind that AWS API is versioned and always keeps updated.
 
-Instead, they used [underlying service definition json files](https://github.com/boto/botocore/blob/develop/botocore/data/iam/2010-05-08/service-2.json) which is used to generate all of AWS Services. 
+Botocore team abstracted the whole API to underlying service definition `.json` files.
 
 ```python 
 import boto3
 iam_client = boto3.client('iam')
 ```
+When you create a `boto3.client` like this, 
+the underlying .json files are used to create clients in runtime. And files are versioned to match the API.
 
-You can see that we refer to services by variable name, instead of accessing as a composite object, like `boto3.iam()` — _hinting at its generated nature_.
+
+You also can see that we get clients by providing their string names, instead of accessing them as composite objects, like `boto3.iam` — _hinting at its generated nature_.
 
 
 
-**Service definition json files**
+#### Service definition json files
 
-Encapsulates everything needed for making every API request exist in a service:
+[Example botocore service definition json](https://github.com/boto/botocore/blob/develop/botocore/data/iam/2010-05-08/service-2.json)
+
+These files encapsulate everything needed for making every API request exist in a service:
 
 - endpoint — URI
 - input format — Parameters
 - output format — Response
 - possible errors — Exceptions
+
+
 
 ### Outline of boto service definitions 
  _botocore/botocore/data/**iam**/2010-05-08/service-2.json_
@@ -122,7 +129,7 @@ Operations define `input_shape` and `output_shape` for its input and output data
 
 
 
-#### boto3 service clients & their operations
+### boto3 service clients & their operations
 
 
 Every boto3 client has a `_PY_TO_OP_NAME` mapping that looks like this:
