@@ -19,7 +19,6 @@ inflect = "^6.0.0"
 mkdocstrings = {version = "^0.19.0", extras = ["python"]}
 mkdocs-material = "^8.5.7"
 mkdocs-autorefs = "^0.4.1"
-PyYAML = "^6.0"
 
 
 [tool.poetry.group.dev.dependencies]
