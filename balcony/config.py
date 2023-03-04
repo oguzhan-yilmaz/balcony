@@ -5,7 +5,11 @@ import os
 from pathlib import Path
 
 HOME_DIR = os.path.expanduser('~')
+
+# Defaults to ~/.balcony/
 BALCONY_CONFIG_DIR = os.getenv('BALCONY_CONFIG_DIR', os.path.join(HOME_DIR, '.balcony'))
+
+# Defaults to ~/.balcony/relations/
 BALCONY_RELATIONS_DIR = os.getenv('BALCONY_RELATIONS_DIR', os.path.join(BALCONY_CONFIG_DIR, 'relations'))
 
 # create the relations directory if not exists
@@ -15,6 +19,7 @@ LOG_LEVEL = 'INFO'
 
 _console = Console(color_system="auto", markup=True)
 _balcony_loggers = []
+
 
 def clear_relations_cache() -> None:
     """Removes the `<service>.json` files."""
@@ -28,13 +33,15 @@ def clear_relations_cache() -> None:
                 deleted_filenames.append(rel_file)
     return deleted_filenames
 
+
 def get_rich_console() -> Console:
-    """Returns the global defined `rich.console.Console` object for common use. 
+    """Returns the global defined `rich.console.Console` object for common use.
 
     Returns:
         rich.console.Console: rich console object
     """
     return _console
+
 
 def supress_other_module_logs() -> None:
     """Sets Python modules log levels to `logging.CRITICAL` to supress them."""
@@ -42,7 +49,7 @@ def supress_other_module_logs() -> None:
     for _logger_name in logging.Logger.manager.loggerDict.keys():
         if _logger_name in _supress_module_names:
             logging.getLogger(_logger_name).setLevel(logging.CRITICAL)
-            
+
 
 def set_log_level_at_runtime(log_level):
     for _logger in _balcony_loggers:
@@ -52,8 +59,9 @@ def set_log_level_at_runtime(log_level):
         #         handler.setLevel(log_level)
         #         _logger.debug('Debug logging enabled')
 
+
 def get_logger(name: str) -> logging.Logger:
-    """Logger creation with RichHandler. 
+    """Logger creation with RichHandler.
 
     Args:
         name (str): Logger name. Usually given `__name__`.
@@ -68,7 +76,7 @@ def get_logger(name: str) -> logging.Logger:
         datefmt="[%X]",
         handlers=[RichHandler(rich_tracebacks=True, markup=True, console=_console)]
     )
-    
+
     _logger = logging.getLogger(name)
     _balcony_loggers.append(_logger)
     return _logger

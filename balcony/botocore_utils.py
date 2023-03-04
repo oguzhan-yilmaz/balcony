@@ -1,7 +1,3 @@
-from functools import lru_cache
-from typing import List, Union
-from botocore.model import Shape, DenormalizedStructureBuilder, OperationModel
-
 try:
     from .utils import icompare_two_camel_case_words
     from .config import get_rich_console
@@ -9,30 +5,34 @@ except ImportError:
     from utils import icompare_two_camel_case_words
     from config import get_rich_console
 
+from typing import List, Union
+from botocore.model import Shape, DenormalizedStructureBuilder, OperationModel
 from rich.markup import escape
 import re
 from collections import namedtuple
-from rich.text import Text
 from rich.tree import Tree
-from rich.layout import Layout
 ShapeAndTargetPath = namedtuple('ShapeAndTargetPath', ['shape', 'target_path'])
 
 UNWANTED_SHAPE_NAMES = ('String', 'DateTime', 'Name', 'Id', 'Arn', '__string')
 UNWANTED_SHAPE_NAMES_LOWERED = [_.lower() for _ in UNWANTED_SHAPE_NAMES]
 SHAPE_SCALAR_TYPES = DenormalizedStructureBuilder.SCALAR_TYPES
-SHAPE_COLLECTION_TYPES = ('structure', 'list','map')
+SHAPE_COLLECTION_TYPES = ('structure', 'list', 'map')
 READ_ONLY_VERBS = ('Describe', 'List', 'Get')
 IDENTIFIER_NAMES = ('arn', 'id', 'name', 'arns', 'ids',
                     'names', 'identifier', 'identifiers', 'number', 'url')
 
 # shape_resolver can't find the reference of BLACKLISTED_SHAPE_NAMES, so they're ignored
-BLACKLISTED_SHAPE_NAMES = ('ComponentChildList','FirewallManagerRuleGroups', 'Rules','HeaderNames', 'ExcludedRules', 'CountryCodes', 'CookieNames', 'TextTransformations', 'ComponentSummaryList','AnomalyMonitors','ConfigurationList','HandshakeResources','JsonPointerPaths','AdministrativeActions','DataValueList','ThemeValuesList','Expressions','CostCategoryRulesList')
+BLACKLISTED_SHAPE_NAMES = ('ComponentChildList', 'FirewallManagerRuleGroups', 'Rules', 'HeaderNames',  # noqa
+    'ExcludedRules', 'CountryCodes', 'CookieNames', 'TextTransformations', 'ComponentSummaryList',  # noqa
+    'AnomalyMonitors', 'ConfigurationList', 'HandshakeResources', 'JsonPointerPaths',  # noqa
+    'AdministrativeActions','DataValueList', 'ThemeValuesList', 'Expressions', 'CostCategoryRulesList') # noqa
 # regex expr for removing html caret tags
 HTML_CLEANER_REGEX = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
 
 console = get_rich_console()
 
-def find_key_in_dict_keys(key:str, dict_keys: Union[list, dict]) -> str:
+
+def find_key_in_dict_keys(key: str, dict_keys: Union[list, dict]) -> str:
     """Case insensitive search for a `key` in a `list` or `dict.keys()`.
     Returns the existing key.
 
@@ -51,8 +51,9 @@ def find_key_in_dict_keys(key:str, dict_keys: Union[list, dict]) -> str:
             return dict_key
     return False
 
-def ifind_key_in_dict_keys(key:str, dict_keys: Union[list, dict]) -> str:
-    """Case insensitive search for a `key` in a `list` or `dict.keys()`. 
+
+def ifind_key_in_dict_keys(key: str, dict_keys: Union[list, dict]) -> str:
+    """Case insensitive search for a `key` in a `list` or `dict.keys()`.
 
     Args:
         key (str): Search case insensively for
@@ -69,6 +70,7 @@ def ifind_key_in_dict_keys(key:str, dict_keys: Union[list, dict]) -> str:
             return dict_key
     return False
 
+
 def get_max_results_value_from_shape(input_shape: Shape) -> int:
     """Finds the `MaxResults` highest value for an input shape.
 
@@ -80,7 +82,6 @@ def get_max_results_value_from_shape(input_shape: Shape) -> int:
     """
     flat_shapes_and_target_paths = flatten_shape_to_its_non_collection_shape_and_target_paths(input_shape)
     flat_members = [_.shape for _ in flat_shapes_and_target_paths]
-    result = False
     for member_shape in flat_members:
         shape_key_name = getattr(member_shape, 'key_name', False)
         is_key_name_maxresults = shape_key_name and (shape_key_name.lower() == 'maxresults')
@@ -92,17 +93,17 @@ def get_max_results_value_from_shape(input_shape: Shape) -> int:
                 return max_value
     return False
 
+
 def get_input_shape(operation_model: OperationModel) -> Shape:
     """Get the input shape of the operation model
 
     Args:
-        operation_model (OperationModel): botocore OperationModel 
+        operation_model (OperationModel): botocore OperationModel
 
     Returns:
         Shape: Input Shape of the OperationModel
     """
     return getattr(operation_model, 'input_shape', False)
-
 
 
 def get_members_shapes(shape: Shape) -> List[Shape]:
@@ -134,10 +135,10 @@ def get_members_shapes(shape: Shape) -> List[Shape]:
 
 
 def is_shape_non_collection_type(shape_and_target_path: ShapeAndTargetPath) -> bool:
-    """Bool function to check ShapeAndTargetPath Named Tuple 
+    """Bool function to check ShapeAndTargetPath Named Tuple
 
     Args:
-        shape_and_target_path (ShapeAndTargetPath): Named Tuple. 
+        shape_and_target_path (ShapeAndTargetPath): Named Tuple
 
     Returns:
         bool: _description_
@@ -148,7 +149,7 @@ def is_shape_non_collection_type(shape_and_target_path: ShapeAndTargetPath) -> b
     return has_key_name and is_non_collection
 
 
-def _flatten_shape_to_its_members_and_target_paths(shape: Shape, target_str:str='') -> List[ShapeAndTargetPath]:
+def _flatten_shape_to_its_members_and_target_paths(shape: Shape, target_str: str = '') -> List[ShapeAndTargetPath]:
     """Recursive function to get each member shape.
     Generates target_str JMESPath selector for each member.
     Returns a flattened list of (shape, target_path) namedtuples."""
@@ -162,12 +163,13 @@ def _flatten_shape_to_its_members_and_target_paths(shape: Shape, target_str:str=
                 new_target_str = f"{member_key_name}"
             else:
                 new_target_str = f"{target_str}[*].{member_key_name}"
-        if member.type_name in ('structure', 'list'):# TODO:SHAPE_COLLECTION_TYPES-('map',):
+        if member.type_name in ('structure', 'list'):  # TODO:SHAPE_COLLECTION_TYPES-('map',):
             inner_list = _flatten_shape_to_its_members_and_target_paths(member, new_target_str)
             result.extend(inner_list)
         else:
             result.append(ShapeAndTargetPath(member, new_target_str))
     return result
+
 
 def flatten_shape_to_its_non_collection_shape_and_target_paths(shape: Shape) -> List[ShapeAndTargetPath]:
     """Return a flat list of shapes all member shapes w/ their JMESPath selector `target_path`
@@ -176,14 +178,14 @@ def flatten_shape_to_its_non_collection_shape_and_target_paths(shape: Shape) -> 
         shape (Shape): shape to list its members
 
     Returns:
-        List[ShapeAndTargetPath]: (shape, target_path) custom namedtuple. 
+        List[ShapeAndTargetPath]: (shape, target_path) custom namedtuple
     """
     all_flat_members_and_target_paths = _flatten_shape_to_its_members_and_target_paths(shape)
     non_collection_shapes_and_target_paths = list(filter(is_shape_non_collection_type, all_flat_members_and_target_paths))
     return non_collection_shapes_and_target_paths
 
 
-def cleanhtml(raw_html:str) -> str:
+def cleanhtml(raw_html: str) -> str:
     """Removes the HTML tags from given raw_html
 
     Args:
@@ -201,15 +203,14 @@ def rich_str_shape(shape: Shape) -> str:
 
     Args:
         shape (Shape): botocore.model.Shape object.
-    
+
     Returns:
         str: Rich string for shape.
     """
     key_name = getattr(shape, 'key_name', '')
     type_name = str(shape.type_name)
     shape_documentation = cleanhtml(shape.documentation)
-    
-    
+
     shape_str = f"[blue bold]{key_name}[/] [white]({type_name})[/]: {shape_documentation}"
     if key_name == '':
         lead = ''
@@ -225,12 +226,12 @@ def rich_str_shape(shape: Shape) -> str:
 def generate_rich_tree_from_shape(shape: Shape) -> Tree:
     """Genereate a rich Tree containing `shape` and it's members."""
     tree = Tree(rich_str_shape(shape), guide_style="red")
-    
+
     def _recursive_stringify_shape(shape, node: Tree):
 
         members = get_members_shapes(shape)
         for member in members:
-            member_str = rich_str_shape(member) 
+            member_str = rich_str_shape(member)
             if member.type_name in SHAPE_COLLECTION_TYPES:
                 new_node = node.add(member_str)
                 _recursive_stringify_shape(member, new_node)
@@ -238,8 +239,8 @@ def generate_rich_tree_from_shape(shape: Shape) -> Tree:
                 node.add(member_str)
     _recursive_stringify_shape(shape, tree)
     return tree
-        
-    
+
+
 # @lru_cache(maxsize=500) # print(get_shape_name.cache_info())
 def get_shape_name(shape: Shape) -> str:
     """Returns the shapes name, using custom set 'key_name' attr
@@ -262,7 +263,8 @@ def get_shape_name(shape: Shape) -> str:
     if shape_key_name:
         return shape_key_name
     return shape_name
-   
+
+
 def get_required_parameter_shapes_from_operation_model(operation_model: OperationModel) -> List[Shape]:
     """Finds required parameter shapes of the operation models input_shape.
 
@@ -274,17 +276,17 @@ def get_required_parameter_shapes_from_operation_model(operation_model: Operatio
     """
     input_shape = get_input_shape(operation_model)
     if not input_shape:
-        return [] # there's no input shape
+        return []  # there's no input shape
     input_shape_members = get_members_shapes(input_shape)
     input_required_member_names = input_shape.required_members
     if input_required_member_names == []:
         return []
-    
+
     required_member_shapes = []
     for input_member in input_shape_members:
         input_member_name = get_shape_name(input_member)
         for required_name in input_required_member_names:
             if icompare_two_camel_case_words(required_name, input_member_name):
                 required_member_shapes.append(input_member)
-            
+
     return required_member_shapes

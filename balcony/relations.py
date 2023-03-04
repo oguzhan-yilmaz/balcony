@@ -106,7 +106,7 @@ class RelationMap:
         service_name = self.service_node.name
         filepath = os.path.join(directory, f"{service_name}.json")
         relations_map = self.get_relations_map()
-        logger.debug(f"Caching relations of [bold green]{service_name}[/] to {filepath}. Use: balcony clear-cache")
+        logger.debug(f"Caching relations of [bold green]{service_name}[/] to {filepath}. Use: [bold]balcony clear-cache[/] to remove.")
         with open(filepath, 'w') as file:
             json.dump(relations_map, file, indent=2, default=str)
 
@@ -149,7 +149,7 @@ class RelationMap:
         ```
         
         Returns:
-            Dict[str, list]: Generated parameter names to Relations list
+            Dict[str, list]: Generated parameter names to Relation dict list map
         """
         resource_nodes = self.service_node.get_resource_nodes()
         # Create a list of dicts for each resource_node, operation_name and required_parameter_names

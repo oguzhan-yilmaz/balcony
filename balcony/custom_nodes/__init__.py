@@ -1,7 +1,6 @@
 """
 When a Python module is imported as `from <module> import *`,
 modules `__init__.py` file is imported.  
-
 """
 
 from .ec2 import *
