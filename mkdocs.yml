@@ -6,11 +6,11 @@ nav:
     - Home: index.md
     - QuickStart: quickstart.md
     - Cookbook: cookbook.md
+    - 'As a Python library': as-a-python-library.md
     - 'How it Works?': 
       - 'About boto3': how-it-works/about-boto3.md
       - 'About balcony': how-it-works/about-balcony.md
       - 'Reading Operations': how-it-works/reading-operations.md
-    - 'As a Python library': as-a-python-library.md
     - 'Config Env Vars': environment-variables.md
     # - Development:
     #   - development/custom-resource-nodes.md
