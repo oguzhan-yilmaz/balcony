@@ -54,9 +54,9 @@ from balcony import BalconyAWS
 baws = BalconyAWS()
 
 policies = baws.read_operation(
-    service_name: 'iam',
-    resource_node_name: 'Policy',
-    operation_name: 'ListPolicies'
+    service_name='iam',
+    resource_node_name='Policy',
+    operation_name='ListPolicies'
 )
 print(policies)
 ```
