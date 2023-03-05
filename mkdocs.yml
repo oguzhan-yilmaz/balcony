@@ -5,21 +5,22 @@ repo_name: oguzhan-yilmaz/balcony
 nav:
     - Home: index.md
     - QuickStart: quickstart.md
-    - Cookbook: practical-usage.md
+    - Cookbook: cookbook.md
     - 'How it Works?': 
       - 'About boto3': how-it-works/about-boto3.md
       - 'About balcony': how-it-works/about-balcony.md
       - 'Reading Operations': how-it-works/reading-operations.md
-    - 'Environment Variables': environment-variables.md
-    - Development:
-      - development/custom-resource-nodes.md
+    - 'As a Python library': as-a-python-library.md
+    - 'Config Env Vars': environment-variables.md
+    # - Development:
+    #   - development/custom-resource-nodes.md
     - Reference:
       - reference/resource-node.md
       - 'ServiceNode': reference/service-node.md
       - 'ServiceReader': reference/service-reader.md
       - reference/relations.md
       - reference/registries.md
-      - reference/factories.md
+      - reference/aws.md
       - 'Utilities': 
         - reference/utils.md
         - reference/botocore_utils.md

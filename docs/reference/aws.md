@@ -1,6 +1,6 @@
-# Factories
+# AWS Provider
 
-::: balcony.factories
+::: balcony.aws
     handler: python
     options:
           show_source: false

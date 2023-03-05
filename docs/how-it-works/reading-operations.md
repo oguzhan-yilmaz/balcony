@@ -20,10 +20,10 @@ sequenceDiagram
   SR->>RN: generate_api_parameters_from_operation_data()
   Note over SR,RN: Tries to generate api parameters from related operations data
   RN->>+RN: generate_jmespath_selector_from_relations()
-  Note left of RN: Tries to generate a JMESPath query for generating api parameter dict
+  Note left of RN: Tries to generate a JMESPath query <br/>for generating api parameter dict
 
   RN->>+RN: complement_api_parameters_list()
-  Note left of RN: Adjusts additional parameters like MaxKeys
+  Note left of RN: Adjusts additional parameters<br/>(e.g. MaxKeys)
   RN-->>SR: ((Generated API Parameters for the operation))
 
 
@@ -36,7 +36,7 @@ sequenceDiagram
   
 
   SR->>SR: search_operation_data(operation)
-  Note over User,SR: List of all the saved responses for the operation
+  Note over User,SR: List of all the saved responses<br/>of the operation
 
   SR-->>User: ((All responses for the operation))
 
