@@ -7,7 +7,7 @@ try:
         clear_relations_cache,
     )
     from .custom_nodes import * # noqa
-    from .factories import Boto3SessionSingleton, ServiceNodeFactory
+    from .aws import Boto3SessionSingleton, BalconyAWS
 except ImportError:
     from utils import get_all_available_services, ifind_similar_names_in_list
     from config import (
@@ -17,7 +17,7 @@ except ImportError:
         clear_relations_cache,
     )
     from custom_nodes import * # noqa
-    from factories import Boto3SessionSingleton, ServiceNodeFactory
+    from aws import Boto3SessionSingleton, BalconyAWS
 
 import typer
 import jmespath
@@ -29,7 +29,7 @@ import logging
 console = get_rich_console()
 logger = get_logger(__name__)
 session = Boto3SessionSingleton().get_session()
-service_factory = ServiceNodeFactory(session)
+service_factory = BalconyAWS(session)
 app = typer.Typer(no_args_is_help=True)
 
 
@@ -178,28 +178,6 @@ def _list_service_or_resource(
         return
 
 
-def aa():
-    s_count = 0
-    total_rn_count = 0
-    total_o_count = 0
-    all_o_count = 0
-    for sname in service_factory.get_available_service_node_names():
-        service_node = service_factory.get_service_node(sname)
-        s_count += 1
-        all_o_count += len(service_node.client._PY_TO_OP_NAME)
-        rns = service_node.get_resource_nodes()
-        rn_count = len(rns)
-        total_rn_count += rn_count
-        o_count = 0
-        for rn in rns:
-            o_count += len(rn.get_operation_names())
-        console.print(sname, rn_count, o_count)
-
-        total_o_count += o_count
-    console.print(s_count, total_rn_count, total_o_count)
-    console.print(all_o_count)
-
-
 @app.command("aws", help="List AWS services, Call read-operations, Show documentation")
 def aws_main_command(  # noqa
     service: Optional[str] = typer.Argument(
@@ -341,7 +319,7 @@ def clear_cache_command(
     logger.debug("Deleting relations cache for services:")
     deleted_service_caches = clear_relations_cache()
     for deleted_service in deleted_service_caches:
-        logger.debug(f"- [green]Deleted[/] {deleted_service}")
+        logger.info(f"[green]Deleted[/] {deleted_service}")
 
 
 # @app.command('version', help='Show version info' )
