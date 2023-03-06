@@ -292,7 +292,7 @@ def aws_main_command(  # noqa
             if read_data:
                 for r_data in read_data:
                     try:
-                        console.print(formatter.format(**r_data))
+                        console.print(formatter.format(**r_data), overflow='ignore')
                     except AttributeError as e:
                         logger.debug(
                             f"Failed to format  [red]{str(e)}[/] with data: {r_data}"

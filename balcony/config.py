@@ -74,7 +74,7 @@ def get_logger(name: str) -> logging.Logger:
         level=LOG_LEVEL,
         format="%(message)s",
         datefmt="[%X]",
-        handlers=[RichHandler(rich_tracebacks=True, markup=True, console=_console)]
+        handlers=[RichHandler(markup=True, console=_console)]
     )
 
     _logger = logging.getLogger(name)

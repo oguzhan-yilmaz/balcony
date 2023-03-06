@@ -222,10 +222,9 @@ class ServiceReader:
             logger.debug(f'[bold]Done Reading[/] {operation_markup}')
             return self.search_operation_data(resource_node_name, operation_name)
 
-        ############## OPERATION HAVE RELATIONS
-        
+        # OPERATION HAVE RELATIONS
         all_related_operations_data = {}
-        
+
         # for each relation, fetch the related resource's data.
         for rel in relations_of_operation:
             rel_operation_data = self.read_operation(rel.get('resource_node_name'), rel.get('operation_name'), refresh=refresh)

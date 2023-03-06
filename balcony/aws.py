@@ -35,9 +35,9 @@ class BalconyAWS:
     Can be used to get ServiceNodes and ServiceReaders.
     Operations can be read with `read_` functions.
 
-    ```python title="Creating a BalconyAWS and reading IAM Roles"
-    service_factory = BalconyAWS()
-    roles = service_factory.read_resource_node('iam', 'Role')
+    ```python title="Creating a BalconyAWS obj and reading IAM Roles"
+    baws = BalconyAWS()
+    roles = baws.read_resource_node('iam', 'Role')
     print(roles)
     ```
     """
