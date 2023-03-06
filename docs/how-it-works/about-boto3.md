@@ -100,7 +100,7 @@ Every data type used in a service is available on `.shapes` definition.
 Types of requests you can make to AWS API are internally called `Operation`.
 
 
-Operations define `input_shape` and `output_shape` for its input and output data structure. It also defines the required parameters for an operation. And also the possible exceptions you might get calling this operation.
+Operations define `input_shape` and `output_shape` for its input & output data structure. It also defines the required parameters for an operation. And also the possible exceptions you might get calling this operation.
 
 ```json
 "operations":{

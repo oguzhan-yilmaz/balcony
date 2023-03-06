@@ -1,89 +1,45 @@
 # balcony
 
-AWS API for us humans.
+balcony is a Python based CLI tool that simplifies the process of enumerating AWS resources.
 
-Balcony helps to lift the undifferentiated heavy lifting that is reading from AWS SDK & API.
+balcony dynamically parses `boto3` library and analyzes required parameters for each operation. 
 
-Balcony fills out the **required parameters** for any operation, automatically. 
+By establishing relations between operations over required parameters, it's able to auto-fill them by reading the related operation beforehand.
 
+By simply entering their name, balcony enables developers to easily list their AWS resources.
 
-## Installation
+It uses _read-only_ operations, it does not take any action on the used AWS account.
 
-```bash
-pip3 install balcony
+### [Go to Documentation](https://oguzhan-yilmaz.github.io/balcony/quickstart)
 
-python3 -m pip install balcony
-```
+## Features
 
+### List available AWS Services 
+Use `balcony aws` to see every AWS service available.
 
-## Basic Usage
-#### List all available AWS Services
-
-```bash
-balcony aws
-```
-#### List all Resource Nodes of a Service
-```bash
-balcony aws iam
-
-balcony aws ec2
-```
-#### See the documentation of a Resource Node and its Operations
-```bash
-balcony aws iam Policy -l
-# or
-balcony aws iam Policy --list
-```
+![](visuals/aws-services-list.gif)
 
 
-#### Read a Resource Node
+### List Resource Nodes of an AWS Service 
+Use `balcony aws <service-name>` to see every Resource Node of a service.
+
+![](visuals/resource-node-list.gif)
 
 
-```bash
-balcony aws iam Policy
+### Reading a Resource Node 
+Use `balcony aws <service-name> <resource-node>` to read operations of a Resource Node.
 
-# if you are curious to see what's going on 
-# under the hood, enable the debug messages 
-balcony aws iam Policy -d
-# or
-balcony aws iam Policy --debug
-```
-#### Read a Resource Nodes specific operation
+![](visuals/reading-a-resource-node.gif)
 
-```bash
-balcony aws iam Policy get
 
-balcony aws iam Policy list
-```
+### Documentation and Input & Output of Operations
+Use the `--list`, `-l` flag to print the given AWS API Operations documentation, input & output structure. 
+ 
 
-#### Filter generated parameters with UNIX style pattern matching
-```bash
-balcony aws iam Policy get  -p "*service-role/*"
+![](visuals/list-option.gif)
 
-# supports multiple patterns 
-balcony aws iam Policy -p "*service-role/*" -p "*prod-*"
 
-```
+### Enable Debug messages 
+Use the `--debug`, `-d` flag to see what's going on under the hood!
 
-#### Use queries for the json data -- like `jq`
-```bash
-balcony aws iam Policy \
-    --jmespath-selector "GetPolicy[*].Policy"
-# or
-balcony aws iam Policy \
-    -js "GetPolicy[*].Policy"
-```
-
-#### Use `--format` option for customized output
-
-```bash
-# create stop-instances script for running instances
-balcony aws ec2 Instances \
-    -js "DescribeInstances[*].Reservations[*].Instances[?State.Name=='running'][][]" \
-    --format "aws ec2 stop-instances --instance-ids {InstanceId} # {Tags}"
-
-# create delete-policy script
-balcony aws iam Policy \
-    --jmespath-selector "GetPolicy[*].Policy" \
-    --format "aws iam delete-policy --policy-arn {Arn}"
-```
+![](visuals/debug-messages.gif)

@@ -1,6 +1,6 @@
 # Cookbook
 
-### Generate delete-policy command for `dev-` service-roles
+### Generate delete-policy command for `dev-` IAM Service Roles
 ```bash
 balcony aws iam Policy \
     --jmespath-selector "GetPolicy[*].Policy" \
@@ -16,6 +16,8 @@ balcony aws ec2 Instances \
     --format "aws ec2 stop-instances --instance-ids {InstanceId} # {Tags}"
 ```
 
-
+balcony aws lambda Function \
+    -js "GetFunction[*].Code[]" \
+    -f "wget {Location}"
 
 

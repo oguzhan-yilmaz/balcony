@@ -108,7 +108,7 @@ balcony aws iam Policy list
     
 
 ```bash
-balcony aws iam Policy get  -p "*service-role/*"
+balcony aws iam Policy -p "*service-role/*"
 
 # supports multiple patterns 
 balcony aws iam Policy -p "*service-role/*" -p "*prod-*"
