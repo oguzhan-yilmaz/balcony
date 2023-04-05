@@ -1,51 +1,26 @@
-try:
-    from .utils import (
-        camel_case_split,
-        compare_nouns,
-        icompare_two_token_lists,
-        compare_two_camel_case_words,
-        str_relations,
-    )
-    from .botocore_utils import (
-        get_input_shape,
-        get_max_results_value_from_shape,
-        find_key_in_dict_keys,
-        generate_rich_tree_from_shape,
-        icompare_two_camel_case_words,
-        ifind_key_in_dict_keys,
-        READ_ONLY_VERBS,
-        IDENTIFIER_NAMES,
-        cleanhtml,
-    )
-    from .relations import RelationMap
-    from .reader import ServiceReader
-    from .registries import ResourceNodeRegistry
-    from .config import get_logger, get_rich_console
-    from .errors import Error
-except ImportError:
-    from utils import (
-        camel_case_split,
-        compare_nouns,
-        icompare_two_token_lists,
-        compare_two_camel_case_words,
-        str_relations,
-    )
-    from botocore_utils import (
-        get_input_shape,
-        get_max_results_value_from_shape,
-        find_key_in_dict_keys,
-        generate_rich_tree_from_shape,
-        icompare_two_camel_case_words,
-        ifind_key_in_dict_keys,
-        READ_ONLY_VERBS,
-        IDENTIFIER_NAMES,
-        cleanhtml,
-    )
-    from relations import RelationMap
-    from reader import ServiceReader
-    from registries import ResourceNodeRegistry
-    from config import get_logger, get_rich_console
-    from errors import Error
+from utils import (
+    camel_case_split,
+    compare_nouns,
+    icompare_two_token_lists,
+    compare_two_camel_case_words,
+    str_relations,
+)
+from botocore_utils import (
+    get_input_shape,
+    get_max_results_value_from_shape,
+    find_key_in_dict_keys,
+    generate_rich_tree_from_shape,
+    icompare_two_camel_case_words,
+    ifind_key_in_dict_keys,
+    READ_ONLY_VERBS,
+    IDENTIFIER_NAMES,
+    cleanhtml,
+)
+from relations import RelationMap, Relation
+from reader import ServiceReader
+from registries import ResourceNodeRegistry
+from config import get_logger, get_rich_console
+from errors import Error
 
 from typing import List, Dict, Tuple, Union
 from botocore.utils import ArgumentGenerator
@@ -73,10 +48,20 @@ class ResourceNode:
         self.operation_names = operation_names
         self._operation_models = {}
 
-    def __init_subclass__(cls, service_name=None, name=None, **kwargs):
+    def __init_subclass__(cls, service_name=None, name=None, **kwargs) -> None:
+        """Initializes the custom subclasses of ResourceNode to ResourceNodeRegistry.
+
+        Args:
+            service_name (_type_, optional): Name of the AWS service. Defaults to None.
+            name (_type_, optional): Name of the AWS Resource Node. Defaults to None.
+        """
         super().__init_subclass__(**kwargs)
         if service_name and name:
             _resource_node_registry.register_class(cls, service_name, name)
+        else:
+            logger.debug(
+                f'{cls.__name__} invalid! You must define "service_name" and "name"'
+            )
 
     def get_operation_types_and_names(self) -> Dict[str, str]:
         operation_names = self.get_operation_names()
@@ -105,11 +90,11 @@ class ResourceNode:
         return self.operation_names
 
     # NOTE: +overrideable
-    def define_extra_relations(self) -> List[Dict]:
+    def define_extra_relations(self) -> Union[List[Dict], List[Relation]]:
         """Extra relations defined in the custom subclasses of ResourceNode
 
         Returns:
-            List[Dict]: List of relations
+            Union[List[Dict], List[Relation]]: List of relations as dicts or Relation objects
         """
         return []
 
@@ -225,8 +210,8 @@ class ResourceNode:
             return False
         relation = relation_list[0]
 
-        target_path = relation.get("target_path")
-        search_shape = relation.get("search_shape_name")
+        target_path = relation.target_path
+        search_shape = relation.required_shape_name
 
         _for_all_the_responses = ""
         if not target_path.startswith("[*]."):
@@ -287,7 +272,7 @@ class ResourceNode:
             )
 
         direct_relation = relations_of_operation[0]
-        direct_relation_op_markup = f"[bold][green]{direct_relation.get('resource_node_name')}[/].[blue]{direct_relation.get('operation_name')}[/][/]"
+        direct_relation_op_markup = f"[bold][green]{direct_relation.resource_node_name}[/].[blue]{direct_relation.operation_name}[/][/]"
 
         resource_node = self
         generated_jmespath_nested_selector = (
@@ -317,7 +302,7 @@ class ResourceNode:
             )
 
         # the first relation we will get
-        direct_related_operation = direct_relation.get("operation_name")
+        direct_related_operation = direct_relation.operation_name
         directly_related_operation_data = related_operations_data.get(
             direct_related_operation
         )
@@ -528,7 +513,7 @@ class ResourceNode:
             # found only one relation, no need to find the correct one
             return generated_relations_for_parameter
 
-        # splitting parameter name by camel case
+        # strip the required parameter name's identifiers
         _parameter_name_tokens = camel_case_split(parameter_name)
         non_id_parameter_tokens = [
             p_token
@@ -536,21 +521,21 @@ class ResourceNode:
             if p_token.lower() not in IDENTIFIER_NAMES
         ]
 
+        # filter the gen. relation's resource name and required parameter name
         same_resource_name_relations = []
-        for relation_dict in generated_relations_for_parameter:
-            operation_name = relation_dict.get("operation_name")
-
-            operation_verb, *operation_name_tokens = camel_case_split(operation_name)
-            # relation_dict.update({'operation_verb': operation_verb, 'operation_name_tokens': operation_name_tokens})
-            # TODO: here
+        for relation_obj in generated_relations_for_parameter:
+            resource_node_name = relation_obj.resource_node_name
+            resource_name_tokens = camel_case_split(resource_node_name)
             all_tokens_match = icompare_two_token_lists(
-                non_id_parameter_tokens, operation_name_tokens
+                non_id_parameter_tokens, resource_name_tokens
             )
             if all_tokens_match:
-                same_resource_name_relations.append(relation_dict)
+                same_resource_name_relations.append(relation_obj)
 
         if not same_resource_name_relations:
             return False
+
+        # if there is only one relation with the same resource name, return it
         if len(same_resource_name_relations) == 1:
             return same_resource_name_relations
 
@@ -560,11 +545,10 @@ class ResourceNode:
             str(i): 0 for i in range(len(possible_relation_list))
         }
 
-        for i, relation_dict in enumerate(possible_relation_list):
+        for i, relation_obj in enumerate(possible_relation_list):
             current_point = 0
-            relations_operation_name = relation_dict.get(
-                "operation_name"
-            )  # promised to all have same operation
+            relations_operation_name = relation_obj.operation_name
+            # promised to all have same operation
             # negative point if it has required parameters
             relations_required_parameters = (
                 self.get_required_parameter_names_from_operation_name(
@@ -635,6 +619,113 @@ class ResourceNode:
     def __str__(self) -> str:
         # return f"[{self.service_node.name}.{self.name}]"
         return f"[{self.name}]"
+
+
+class YamlResourceNode(ResourceNode):
+    def __init__(
+        self,
+        service_node: "ServiceNode",
+        name: str,
+        operation_names: List[str],
+        yaml_config: Dict = None,
+    ) -> None:
+        super().__init__(service_node, name, operation_names)
+        self.yaml_config = yaml_config
+
+    def define_extra_relations(self) -> Union[List[Dict], List[Relation]]:
+        if not self.yaml_config.extra_relations:
+            return []
+        extra_relations = [
+            Relation(**extra_relation.__dict__)
+            for extra_relation in self.yaml_config.extra_relations
+        ]
+        return extra_relations
+
+    # NOTE: +overrideable
+    def get_operations_relations(
+        self, operation_name: str
+    ) -> Tuple[Union[List[Dict], bool], Union[Error, None]]:
+        operations = self.yaml_config.operations
+        for operation in operations:
+            if operation_name == operation.operation_name:
+                # cast schema to Relation objects
+                if operation.explicit_relations:
+                    explicit_relations = [
+                        Relation(**rel_model.__dict__)
+                        for rel_model in operation.explicit_relations
+                    ]
+                    return explicit_relations, None
+        # if no explicit relations are defined, then call the ResourceNode method and return it
+        return super().get_operations_relations(operation_name)
+
+    # NOTE: +overrideable
+    def generate_jmespath_selector_from_relations(
+        self, operation_name: str, relation_list: List[Dict]
+    ) -> str:
+        operations = self.yaml_config.operations
+        for operation in operations:
+            if operation_name == operation.operation_name:
+                if operation.jmespath_selector:
+                    js_selector = operation.jmespath_selector
+                    return js_selector
+
+        return super().generate_jmespath_selector_from_relations(
+            operation_name, relation_list
+        )
+
+    # NOTE: +overrideable
+    def complement_api_parameters_list(
+        self,
+        operation_name: str,
+        related_operations_data: Union[List, Dict],
+        relations_of_operation: List[Dict],
+        raw_api_parameters_list: List,
+    ) -> List:
+
+        precomplemented_api_params = super().complement_api_parameters_list(
+            operation_name,
+            related_operations_data,
+            relations_of_operation,
+            raw_api_parameters_list,
+        )
+
+        for operation in self.yaml_config.operations:
+            if operation_name == operation.operation_name:
+                if operation.complement_api_parameters:
+                    # if the option is defined
+                    for complement_action in operation.complement_api_parameters:
+                        if complement_action.action == "add":
+                            data = complement_action.data
+                            for api_param_item in precomplemented_api_params:
+                                api_param_item.update(data)
+
+                        elif complement_action.action == "remove":
+                            for api_param_item in precomplemented_api_params:
+                                for remove_key in complement_action.keys:
+                                    api_param_item.pop(remove_key, None)
+
+        return precomplemented_api_params
+
+    def generate_api_parameters_from_operation_data(
+        self,
+        operation_name: str,
+        relations_of_operation: List[Dict],
+        related_operations_data: Union[List, Dict],
+    ) -> Tuple[Union[List, bool], Union[Error, None]]:
+        """
+        get a list for api parameters, override them
+        """
+        operations = self.yaml_config.operations
+        for operation in operations:
+            if operation_name == operation.operation_name:
+                override_parameters = operation.override_api_parameters
+                if override_parameters:
+                    return override_parameters, None
+
+        # if not defined, fall back to the default super class method
+        return super().generate_api_parameters_from_operation_data(
+            operation_name, relations_of_operation, related_operations_data
+        )
 
 
 class ServiceNode:
@@ -773,9 +864,22 @@ class ServiceNode:
         )
         if _custom_cls_for_resource_node:
             logger.debug(
-                f"ResourceNodeRegistry: [bold][green]{service_name}[/].[blue]{resource_node_name}[/][/] has extended with: {_custom_cls_for_resource_node}"
+                f"ResourceNodeRegistry: [bold][green]{service_name}[/].[blue]{resource_node_name}[/][/] has extended with: {_custom_cls_for_resource_node.__name__}"
             )
             _ResourceNodeClass = _custom_cls_for_resource_node
+            return _ResourceNodeClass(**kwargs)
+
+        # try to find yaml config defined for this ResourceNode
+        yaml_config_found = _resource_node_registry.search_yaml_config_registry(
+            service_name, resource_node_name
+        )
+        if yaml_config_found:
+            # add the yaml_config for the YamlResourceNode subclass initialization
+            kwargs.update({"yaml_config": yaml_config_found})
+            yaml_resource_node_obj = YamlResourceNode(**kwargs)
+            return yaml_resource_node_obj
+
+        # return default ResourceNode class
         return _ResourceNodeClass(**kwargs)
 
     def _generate_resource_nodes(self) -> List[ResourceNode]:

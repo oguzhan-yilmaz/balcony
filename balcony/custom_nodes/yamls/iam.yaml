@@ -1,0 +1,28 @@
+service_name: iam
+resource_nodes:
+- resource_node_name: Policy
+  extra_relations:
+    - service_name: iam
+      resource_node_name: Policy
+      operation_name: ListPolicies
+      required_shape_name: PolicyArn
+      target_shape_name: Arn
+      target_shape_type: string
+      target_path: Policies[*].Arn
+  operations:
+    # restrict ListPolicies to Local Scope, meaning only customer managed services
+    - operation_name: ListPolicies
+      override_api_parameters:
+        - Scope: Local
+- resource_node_name: PolicyVersion
+  operations:
+    - operation_name: GetPolicyVersion
+      jmespath_selector: "[*].{PolicyArn:__args__.PolicyArn, VersionId:Versions[*].VersionId | [0]}[]"
+      explicit_relations:
+        - service_name: iam
+          resource_node_name: PolicyVersion
+          operation_name: ListPolicyVersions
+          required_shape_name: VersionId
+          target_shape_name: VersionId
+          target_shape_type: string
+          target_path: --ommitted--

@@ -1,0 +1,39 @@
+# This is an example config for customized Resource Nodes
+service_name: <service-name>
+resource_nodes:
+- resource_node_name: <resource-node-name>
+  extra_relations:
+    - service_name: <>
+      resource_node_name: <> 
+      operation_name: <>
+      required_shape_name: <> 
+      target_shape_name: <>
+      target_shape_type: <>
+      target_path: <>
+  operations:
+    - operation_name: <operation-name>
+      jmespath_selector: <jmespath-selector>
+      complement_api_parameters:
+        - action: add
+          data:
+            any: data
+            is: fine
+            to: add
+        - action: remove
+          keys:
+            - remove
+            - these
+            - keys
+      explicit_relations:
+        - service_name: <>
+          resource_node_name: <> 
+          operation_name: <>
+          required_shape_name: <> 
+          target_shape_name: <>
+          target_shape_type: <>
+          target_path: <>
+
+      override_api_parameters:
+        - set: static
+          params: for
+          this: operation
