@@ -129,3 +129,51 @@ class UserPolicy(ResourceNode, service_name="iam", name="UserPolicy"):
         return super().generate_api_parameters_from_operation_data(
             operation_name, relations_of_operation, related_operations_data
         )
+
+
+class GroupPolicy(ResourceNode, service_name="iam", name="GroupPolicy"):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_operations_relations(self, operation_name: str):
+
+        if operation_name == "GetGroupPolicy":
+            return [
+                Relation(
+                    **{
+                        "service_name": "iam",
+                        "resource_node_name": "GroupPolicy",
+                        "operation_name": "ListGroupPolicies",
+                        "required_shape_name": "--ommitted--",
+                        "target_shape_name": "--ommitted--",
+                        "target_shape_type": "--ommitted--",
+                        "target_path": "--ommitted--",
+                    }
+                )
+            ], None
+
+        return super().get_operations_relations(operation_name)
+
+    def generate_api_parameters_from_operation_data(
+        self, operation_name, relations_of_operation, related_operations_data
+    ):
+        if operation_name == "GetGroupPolicy":
+            generated_api_parameters = []
+
+            # select non-empty PolicyNames lists
+            non_empty_policy_names = jmespath.search(
+                "ListGroupPolicies[?length(PolicyNames) > `0`]", related_operations_data
+            )
+            for data in non_empty_policy_names:
+                group_name = data.get("__args__").get("GroupName")
+                policy_names = data.get("PolicyNames")
+                for policy_name in policy_names:
+                    generated_api_parameters.append(
+                        {"GroupName": group_name, "PolicyName": policy_name}
+                    )
+            return generated_api_parameters, None
+
+        # if this is NOT our selected operation, let the normal flow run
+        return super().generate_api_parameters_from_operation_data(
+            operation_name, relations_of_operation, related_operations_data
+        )
