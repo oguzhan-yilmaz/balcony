@@ -118,6 +118,8 @@ balcony aws iam Policy -p "*service-role/*" -p "*prod-*"
 
 You can use [JMESPath](https://jmespath.org/) (like `jq`) to query the output data.
 
+If you are going to use the balcony as a part of your automation scripts, you should use this option to have a more precise output.
+
 ```bash
 balcony aws iam Policy \
     --jmespath-selector "GetPolicy[*].Policy"

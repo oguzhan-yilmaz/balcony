@@ -16,8 +16,4 @@ balcony aws ec2 Instances \
     --format "aws ec2 stop-instances --instance-ids {InstanceId} # {Tags}"
 ```
 
-balcony aws lambda Function \
-    -js "GetFunction[*].Code[]" \
-    -f "wget {Location}"
-
 
