@@ -227,14 +227,14 @@ class ServiceReader:
 
         # for each relation, fetch the related resource's data.
         for rel in relations_of_operation:
-            rel_operation_data = self.read_operation(rel.get('resource_node_name'), rel.get('operation_name'), refresh=refresh)
+            rel_operation_data = self.read_operation(rel.resource_node_name, rel.operation_name, refresh=refresh)
             if not rel_operation_data:
-                logger.debug(f"[red]Failed to read related operation[/]: {rel.get('resource_node_name')}.{rel.get('operation_name')}")
+                logger.debug(f"[red]Failed to read related operation[/]: {rel.resource_node_name}.{rel.operation_name}")
                 return False
           
             # gather all their related operations data, put it under a dict 
             all_related_operations_data.update({
-                rel.get('operation_name'): rel_operation_data
+                rel.operation_name: rel_operation_data
             })
 
         # send the operations_data to resource_node to create valid_api_parameters

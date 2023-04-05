@@ -50,7 +50,7 @@ def str_relations(relations: List[dict]) -> str:
     """Stringify list of relations"""
     return ", ".join(
         [
-            f"[{r.get('service_name')}.{r.get('operation_name')} > {r.get('target_path')}]"
+            f"[{r.service_name}.{r.operation_name} > {r.target_path}]"
             for r in relations
         ]
     )

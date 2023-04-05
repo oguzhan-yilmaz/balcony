@@ -135,7 +135,7 @@ def get_members_shapes(shape: Shape) -> List[Shape]:
 
 
 def is_shape_non_collection_type(shape_and_target_path: ShapeAndTargetPath) -> bool:
-    """Bool function to check ShapeAndTargetPath Named Tuple
+    """Boolean function to check ShapeAndTargetPath Named Tuple
 
     Args:
         shape_and_target_path (ShapeAndTargetPath): Named Tuple
@@ -150,9 +150,17 @@ def is_shape_non_collection_type(shape_and_target_path: ShapeAndTargetPath) -> b
 
 
 def _flatten_shape_to_its_members_and_target_paths(shape: Shape, target_str: str = '') -> List[ShapeAndTargetPath]:
-    """Recursive function to get each member shape.
-    Generates target_str JMESPath selector for each member.
-    Returns a flattened list of (shape, target_path) namedtuples."""
+    """Recursive function to get a shape's all members with targetpaths.
+    Generates target_str JMESPath selector for each member as it's located in the hierarchy.
+    Returns a flattened list of (shape, target_path) namedtuples
+
+    Args:
+        shape (Shape): botocore shape, possibly output shape of an operation
+        target_str (str, optional): Used for keeping track of the target path in recursion.
+
+    Returns:
+        List[ShapeAndTargetPath]: List of ShapeAndTargetPath NamedTuple
+    """
     result = []
     members = get_members_shapes(shape)
     for member in members:
@@ -164,6 +172,7 @@ def _flatten_shape_to_its_members_and_target_paths(shape: Shape, target_str: str
             else:
                 new_target_str = f"{target_str}[*].{member_key_name}"
         if member.type_name in ('structure', 'list'):  # TODO:SHAPE_COLLECTION_TYPES-('map',):
+            # if the member is a collection type, recurse into it
             inner_list = _flatten_shape_to_its_members_and_target_paths(member, new_target_str)
             result.extend(inner_list)
         else:
@@ -175,12 +184,14 @@ def flatten_shape_to_its_non_collection_shape_and_target_paths(shape: Shape) -> 
     """Return a flat list of shapes all member shapes w/ their JMESPath selector `target_path`
 
     Args:
-        shape (Shape): shape to list its members
+        shape (Shape): botocore shape to list its members
 
     Returns:
         List[ShapeAndTargetPath]: (shape, target_path) custom namedtuple
     """
+    # generate all possible members and their target paths
     all_flat_members_and_target_paths = _flatten_shape_to_its_members_and_target_paths(shape)
+    # filter out the collection types beacuse they are not supported by JMESPath
     non_collection_shapes_and_target_paths = list(filter(is_shape_non_collection_type, all_flat_members_and_target_paths))
     return non_collection_shapes_and_target_paths
 
