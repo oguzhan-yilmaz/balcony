@@ -309,11 +309,11 @@ class ResourceNode:
         found_api_paramaters = jmespath.search(
             generated_jmespath_nested_selector, directly_related_operation_data
         )
-        raw_api_parameters_list = []
-        for r_api_param in found_api_paramaters:
-            for r_api_p_value in r_api_param.values():
-                if bool(r_api_p_value):
-                    raw_api_parameters_list.append(r_api_param)
+        raw_api_parameters_list = found_api_paramaters
+        # for r_api_param in found_api_paramaters:
+        #     for r_api_p_value in r_api_param.values():
+        #         if bool(r_api_p_value):
+        #             raw_api_parameters_list.append(r_api_param)
         if raw_api_parameters_list == []:
             # successfull jmespath search that yielded no results. operation data might be empty
             return raw_api_parameters_list, Error(
