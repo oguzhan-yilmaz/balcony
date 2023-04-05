@@ -1,112 +1,131 @@
-try:
-    from ..nodes import ResourceNode
-    from ..config import get_logger
-    from ..errors import Error
-except ImportError:
-    from nodes import ResourceNode
-    from config import get_logger
-    from errors import Error
+from nodes import ResourceNode
+from config import get_logger
+from relations import Relation
+import jmespath
 
 logger = get_logger(__name__)
-from typing import List, Set, Dict, Tuple, Optional, Union
 
 
-
-class Policy(ResourceNode, service_name="iam", name="Policy"):
+class RolePolicy(ResourceNode, service_name="iam", name="RolePolicy"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    
-    def define_extra_relations(self):
-        r= super().define_extra_relations()
-        return [{
-            "service_name": "iam",
-            "resource_node_name": "Policy",
-            "search_shape_name": "PolicyArn",
-            "target_shape_name": "Arn",
-            "target_shape_type": "string",
-            "operation_name": "ListPolicies",
-            "target_path": "Policies[*].Arn"
-        },
-        {
-            "service_name": "iam",
-            "resource_node_name": "Policy",
-            "search_shape_name": "VersionId",
-            "target_shape_name": "DefaultVersionId",
-            "target_shape_type": "string",
-            "operation_name": "ListPolicies",
-            "target_path": "Policies[*].DefaultVersionId"
-        }]
-        
-    
-    def generate_api_parameters_from_operation_data(self, operation_name:str, 
-                                                    relations_of_operation:List[Dict], 
-                                                    related_operations_data: Union[List, Dict]) -> Tuple[Union[List, bool], Union[Error, None]]:
-        generated_api_parameters, err = super().generate_api_parameters_from_operation_data(operation_name, relations_of_operation, related_operations_data)
 
-        if err is not None:
-            return generated_api_parameters, err
-        
-        if operation_name == "ListPolicies":
-            api_parameters = []
-            for api_param in generated_api_parameters:
-                api_param.update({'Scope':'Local'})
-                api_parameters.append(api_param)
-            return api_parameters, None
-            
-        return generated_api_parameters, err
-            
+    def get_operations_relations(self, operation_name: str):
+        """
+        Relations defined in this function overrides the auto generated relations.
+        Operations given in the relations are promised to be called before the current operation.
+        And the related operations data will be passed to the generate_api_parameters_from_operation_data function.
 
-class User(ResourceNode, service_name="iam", name="User"):
+        `GetRolePolicy` operations parameters can be generated from the `ListRolePolicies` operations output.
+        """
+        if operation_name == "GetRolePolicy":
+            return [
+                Relation(
+                    **{
+                        "service_name": "iam",
+                        "resource_node_name": "RolePolicy",
+                        "operation_name": "ListRolePolicies",
+                        "required_shape_name": "PolicyName",
+                        "target_shape_name": "PolicyNames",
+                        "target_shape_type": "list",
+                        "target_path": "--ommitted--",
+                    }
+                )
+            ], None
+
+        return super().get_operations_relations(operation_name)
+
+    def generate_api_parameters_from_operation_data(
+        self, operation_name, relations_of_operation, related_operations_data
+    ):
+        """
+        GetRolePolicy requires RoleName and PolicyName as parameters which can be found in the ListRolePolicies output.
+        The reason to override this method is to generate the valid required parameters which was not possible with only the jmespath query.
+
+        ListRolePolicies output data looks like this:
+        ```
+        [
+            {
+                "PolicyNames": [
+                    "_policy_name_1",
+                    "_policy_name_2"
+                ],
+                "IsTruncated": false,
+                "__args__": {
+                    "RoleName": "_role_name"
+                }
+            },
+        ]
+        ```
+
+        and GetRolePolicy operation requires {"RoleName":..., "PolicyName":...} as parameters.
+        This function generates the required parameters from the ListRolePolicies output if the operation is GetRolePolicy.
+        """
+        if operation_name == "GetRolePolicy":
+            generated_api_parameters = []
+
+            # select non-empty PolicyNames lists
+            non_empty_policy_names = jmespath.search(
+                "ListRolePolicies[?length(PolicyNames) > `0`]", related_operations_data
+            )
+            for data in non_empty_policy_names:
+                role_name = data.get("__args__").get("RoleName")
+                policy_names = data.get("PolicyNames")
+                for policy_name in policy_names:
+                    generated_api_parameters.append(
+                        {"RoleName": role_name, "PolicyName": policy_name}
+                    )
+            return generated_api_parameters, None
+
+        # if this is NOT our selected operation, let the normal flow run
+        return super().generate_api_parameters_from_operation_data(
+            operation_name, relations_of_operation, related_operations_data
+        )
+
+
+class UserPolicy(ResourceNode, service_name="iam", name="UserPolicy"):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-    
-    
-    def get_required_parameter_names_from_operation_name(self, operation_name:str):
-        if operation_name == 'GetUser':
-            return ['UserName']
-        return super().get_required_parameter_names_from_operation_name(operation_name)
 
-    def define_extra_relations(self):
-        r= super().define_extra_relations()
-        return [{
-            "service_name": "iam",
-            "resource_node_name": "User",
-            "search_shape_name": "UserName",
-            "target_shape_name": "UserName",
-            "target_shape_type": "string",
-            "operation_name": "ListUsers",
-            "target_path": "Users[*].UserName"
-        }]
+    def get_operations_relations(self, operation_name: str):
 
-class Role(ResourceNode, service_name="iam", name="Role"):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-    
-    def define_extra_relations(self):
-        r= super().define_extra_relations()
-        return [{
-            "service_name": "iam",
-            "resource_node_name": "Role",
-            "search_shape_name": "RoleName",
-            "target_shape_name": "RoleName",
-            "target_shape_type": "string",
-            "operation_name": "ListRoles",
-            "target_path": "Roles[*].RoleName"
-        }]
-    
-class AccessKeys(ResourceNode, service_name="iam", name="AccessKeys"):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-    
-    def define_extra_relations(self):
-        r= super().define_extra_relations()
-        return [{
-            "service_name": "iam",
-            "resource_node_name": "AccessKeys",
-            "search_shape_name": "AccessKeyId",
-            "target_shape_name": "AccessKeyId",
-            "target_shape_type": "string",
-            "operation_name": "ListAccessKeys",
-            "target_path": "AccessKeyMetadata[*].AccessKeyId"
-        }]
-        
+        if operation_name == "GetUserPolicy":
+            return [
+                Relation(
+                    **{
+                        "service_name": "iam",
+                        "resource_node_name": "UserPolicy",
+                        "operation_name": "ListUserPolicies",
+                        "required_shape_name": "--ommitted--",
+                        "target_shape_name": "--ommitted--",
+                        "target_shape_type": "--ommitted--",
+                        "target_path": "--ommitted--",
+                    }
+                )
+            ], None
+
+        return super().get_operations_relations(operation_name)
+
+    def generate_api_parameters_from_operation_data(
+        self, operation_name, relations_of_operation, related_operations_data
+    ):
+        if operation_name == "GetUserPolicy":
+            generated_api_parameters = []
+
+            # select non-empty PolicyNames lists
+            non_empty_policy_names = jmespath.search(
+                "ListUserPolicies[?length(PolicyNames) > `0`]", related_operations_data
+            )
+            for data in non_empty_policy_names:
+                user_name = data.get("__args__").get("UserName")
+                policy_names = data.get("PolicyNames")
+                for policy_name in policy_names:
+                    generated_api_parameters.append(
+                        {"UserName": user_name, "PolicyName": policy_name}
+                    )
+            return generated_api_parameters, None
+
+        # if this is NOT our selected operation, let the normal flow run
+        return super().generate_api_parameters_from_operation_data(
+            operation_name, relations_of_operation, related_operations_data
+        )
