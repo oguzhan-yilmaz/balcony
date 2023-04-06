@@ -12,7 +12,6 @@ So, all custom classes must be exported here to be imported by balcony.
 Cheers.
 """
 
-from .ec2 import *
 from .codebuild import *
 from .ecs import *
 from .lambda_functions import *
