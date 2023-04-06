@@ -1,0 +1,14 @@
+service_name: ec2
+resource_nodes:
+- resource_node_name: SecurityGroupReferences
+  operations:
+    - operation_name: DescribeSecurityGroupReferences
+      jmespath_selector: "[[*].SecurityGroups[*].GroupId[] | {GroupId:@}]"
+      explicit_relations:
+      - service_name: ec2
+        resource_node_name: SecurityGroups
+        operation_name: DescribeSecurityGroups
+        required_shape_name: GroupId
+        target_shape_name: GroupId
+        target_shape_type: string
+        target_path: SecurityGroups[*].GroupId
