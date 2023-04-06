@@ -30,7 +30,7 @@ iam_client = boto3.client('iam')
 
 ## balcony parses boto3 clients
 
-For each available service name, its `client` is created and parsed for it's functions.
+For each available AWS service, its `boto3.client` is created and parsed for it's functions.
 
 
 Every `client` has a `_PY_TO_OP_NAME` mapping that looks like this:
@@ -43,14 +43,13 @@ Every `client` has a `_PY_TO_OP_NAME` mapping that looks like this:
 | delete_role | DeleteRole |
 | get_role | GetRole |
 
-`_PY_TO_OP_NAME` represents a mapping from the python function names to actual HTTP API operation names. 
+`_PY_TO_OP_NAME` represents a mapping from the pythonic function names ==to actual AWS HTTP API operation names.== 
 
 !!! note ""
 
     AWS API Operation names follows a nice `Verb`+`Resource(s)` convention. 
 
-    Read-only operations only have `Get`, `List`, `Describe` verbs.
-
+    Read-only operations have `Get`, `List`, `Describe` verbs.
 
 
 
@@ -58,9 +57,15 @@ Every `client` has a `_PY_TO_OP_NAME` mapping that looks like this:
 
 Balcony only uses the Operation names starting with `Get`, `List`, `Describe` verbs.
 
-Let's take the a look at `IAM` client, and how `balcony` groups them together.
+This means that it won't take any action on your AWS account other than reads.
+
+
 
 ### Quick look at some of the IAM operations
+
+Let's take the a look at `IAM` client, and how `balcony` groups them together.
+
+Here's some IAM operations:
 
 | get operations | list operations |
 |-- |--|
@@ -74,7 +79,10 @@ Let's take the a look at `IAM` client, and how `balcony` groups them together.
 
 ### Operations can be grouped under their resource names
 
-Naming convention allows parsing CamelCase operation names to `Verb`+`ResourceNodeName`.
+Naming convention allows parsing CamelCase operation names to `Verb`+`ResourceNodeName(s)` format. Plurality is also taken into account.
+
+Some operations have the same `ResourceNodeName` but a different `Verb`. 
+
 
 | Resource Node | Operations |
 |-- |--|
@@ -85,20 +93,18 @@ Naming convention allows parsing CamelCase operation names to `Verb`+`ResourceNo
 | RolePolicy | **Get**RolePolicy, **List**RolePolicies |
 | User | **Get**User, **List**Users |
 
-
-Some operations have the same `ResourceNodeName` but a different `Verb`. These operations are grouped under their respective `ResourceNode`. 
-
+These operations are grouped under their respective `ResourceNode`.  Here's the tree view of an example resource node:
 
 ```txt title="Composition of ServiceNode, ResourceNode and Operations"
 ServiceNode: (iam)
 │
 ├── ResourceNode: (Role)
-│   └── Operations
+│   └── operation_names: list
 │       ├── GetRole
 │       └── ListRoles
 │
 └── ResourceNode: (Policy)
-    └── Operations
+    └── operation_names: list
         ├── GetPolicy
         └── ListPolicies
 ```

@@ -104,7 +104,7 @@ balcony aws iam Policy list
 !!! note "Important note on **--pattern** option" 
     This option only filters the generated api parameters for the given operation.
 
-    Because of this `--pattern` matching is only applied to operations with requried parameters.
+    Because of this `--pattern` matching is only applied to operations with required parameters.
     
 
 ```bash
