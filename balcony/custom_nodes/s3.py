@@ -1,9 +1,6 @@
-try:
-    from ..nodes import ResourceNode
-    from ..config import get_logger
-except ImportError:
-    from nodes import ResourceNode
-    from config import get_logger
+from ..nodes import ResourceNode
+from ..config import get_logger
+
 logger = get_logger(__name__)
 
 class BucketLifecycleConfiguration(ResourceNode, service_name="s3", name="BucketLifecycleConfiguration"):
@@ -15,7 +12,7 @@ class BucketLifecycleConfiguration(ResourceNode, service_name="s3", name="Bucket
         return [{
             "service_name": "s3",
             "resource_node_name": "Buckets",
-            "search_shape_name": "Bucket",
+            "required_shape_name": "Bucket",
             "target_shape_name": "Name",
             "target_shape_type": "string",
             "operation_name": "ListBuckets",

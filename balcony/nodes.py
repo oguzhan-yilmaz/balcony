@@ -1,11 +1,11 @@
-from utils import (
+from .utils import (
     camel_case_split,
     compare_nouns,
     icompare_two_token_lists,
     compare_two_camel_case_words,
     str_relations,
 )
-from botocore_utils import (
+from .botocore_utils import (
     get_input_shape,
     get_max_results_value_from_shape,
     find_key_in_dict_keys,
@@ -16,11 +16,11 @@ from botocore_utils import (
     IDENTIFIER_NAMES,
     cleanhtml,
 )
-from relations import RelationMap, Relation
-from reader import ServiceReader
-from registries import ResourceNodeRegistry
-from config import get_logger, get_rich_console
-from errors import Error
+from .relations import RelationMap, Relation
+from .reader import ServiceReader
+from .registries import ResourceNodeRegistry
+from .config import get_logger, get_rich_console
+from .errors import Error
 
 from typing import List, Dict, Tuple, Union
 from botocore.utils import ArgumentGenerator
@@ -346,7 +346,7 @@ class ResourceNode:
         related_operations_data: Union[List, Dict],
         relations_of_operation: List[Dict],
         raw_api_parameters_list: List,
-    ) -> List:
+    ) -> List[Dict]:
         """Uses the `raw_api_parameters_list` and appends pagination parameters(MaxResults,...) to them.
             Also provided for easy subclass overriding.
 
@@ -357,7 +357,7 @@ class ResourceNode:
             raw_api_parameters_list (List): Generated raw API parameters
 
         Returns:
-            List: Valid API parameters to call the boto operation with
+            List[Dict]: Valid API parameters to call the boto operation with
         """
 
         operation_model = self.get_operation_model(operation_name)

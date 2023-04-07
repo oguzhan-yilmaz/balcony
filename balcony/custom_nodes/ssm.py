@@ -1,11 +1,6 @@
+from ..nodes import ResourceNode
+from ..config import get_logger
 
-
-try:
-    from ..nodes import ResourceNode
-    from ..config import get_logger
-except ImportError:
-    from nodes import ResourceNode
-    from config import get_logger
 logger = get_logger(__name__)
 
 
@@ -20,7 +15,7 @@ class Parameter(ResourceNode, service_name="ssm", name="Parameter"):
             "service_name": "ssm",
             "resource_node_name": "Parameter",
             "operation_name": "GetParameters",
-            "search_shape_name": "Name",
+            "required_shape_name": "Name",
             "target_shape_name": "Name",
             "target_shape_type": "string",
             "target_path": "Parameters[*].Name",
@@ -36,7 +31,7 @@ class ParameterHistory(ResourceNode, service_name="ssm", name="ParameterHistory"
             "service_name": "ssm",
             "resource_node_name": "Parameter",
             "operation_name": "DescribeParameters",
-            "search_shape_name": "Name",
+            "required_shape_name": "Name",
             "target_shape_name": "Name",
             "target_shape_type": "string",
             "target_path": "Parameters[*].Name",

@@ -1,11 +1,6 @@
-try:
-    from .utils import get_all_available_services, _create_boto_session
-    from .nodes import ServiceNode
-    from .reader import ServiceReader
-except ImportError:
-    from utils import get_all_available_services, _create_boto_session
-    from nodes import ServiceNode
-    from reader import ServiceReader
+from .utils import get_all_available_services, _create_boto_session
+from .nodes import ServiceNode
+from .reader import ServiceReader
 
 from typing import Optional, List, Union
 import boto3

@@ -1,5 +1,5 @@
-from config import get_logger, get_rich_console
-from yaml_config import find_and_parse_yaml_services
+from .config import get_logger, get_rich_console
+from .yaml_config import find_and_parse_yaml_services
 from typing import List, Set, Dict, Tuple, Optional, Union
 
 console = get_rich_console()

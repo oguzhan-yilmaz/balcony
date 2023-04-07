@@ -1,9 +1,6 @@
-try:
-    from ..nodes import ResourceNode
-    from ..config import get_logger
-except ImportError:
-    from nodes import ResourceNode
-    from config import get_logger
+from ..nodes import ResourceNode
+from ..config import get_logger
+
 logger = get_logger(__name__)
 
 class Template(ResourceNode, service_name="ses", name="Template"):
@@ -14,7 +11,7 @@ class Template(ResourceNode, service_name="ses", name="Template"):
         return [{
             "service_name": "ses",
             "resource_node_name": "Template",
-            "search_shape_name": "TemplateName",
+            "required_shape_name": "TemplateName",
             "target_shape_name": "Name",
             "target_shape_type": "string",
             "operation_name": "ListTemplates",

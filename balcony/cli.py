@@ -1,23 +1,12 @@
-try:
-    from .utils import get_all_available_services, ifind_similar_names_in_list
-    from .config import (
-        get_logger,
-        get_rich_console,
-        set_log_level_at_runtime,
-        clear_relations_cache,
-    )
-    from .custom_nodes import * # noqa
-    from .aws import Boto3SessionSingleton, BalconyAWS
-except ImportError:
-    from utils import get_all_available_services, ifind_similar_names_in_list
-    from config import (
-        get_logger,
-        get_rich_console,
-        set_log_level_at_runtime,
-        clear_relations_cache,
-    )
-    from custom_nodes import * # noqa
-    from aws import Boto3SessionSingleton, BalconyAWS
+from .utils import get_all_available_services, ifind_similar_names_in_list
+from .config import (
+    get_logger,
+    get_rich_console,
+    set_log_level_at_runtime,
+    clear_relations_cache,
+)
+from .custom_nodes import * # noqa
+from .aws import Boto3SessionSingleton, BalconyAWS
 
 import typer
 import jmespath
@@ -143,7 +132,9 @@ def _list_service_or_resource(
         for _rn in resource_nodes:
             _rn_name = _rn.name
             if len(_rn.get_all_required_parameter_names()) >= 2:
-                _rn_name = f"[bold]{_rn_name}[/]"
+                _rn_name = f"[bold red]{_rn_name}[/]"
+            elif len(_rn.get_all_required_parameter_names()) >= 1:
+                _rn_name = f"[bold green]{_rn_name}[/]"
             resource_node_names.append(_rn_name)
 
         resource_node_name_as_columns = Columns(

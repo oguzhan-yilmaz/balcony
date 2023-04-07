@@ -1,9 +1,5 @@
-try:
-    from .utils import icompare_two_camel_case_words
-    from .config import get_rich_console
-except ImportError:
-    from utils import icompare_two_camel_case_words
-    from config import get_rich_console
+from .utils import icompare_two_camel_case_words
+from .config import get_rich_console
 
 from typing import List, Union
 from botocore.model import Shape, DenormalizedStructureBuilder, OperationModel
