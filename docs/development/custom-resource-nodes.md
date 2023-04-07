@@ -1,14 +1,14 @@
 # Custom Class Resource Nodes
 
-balcony has a class named `ResourceNode` that represent a small group of similarly named [AWS Operations]("Im aa tooltip").
+balcony has a class named `ResourceNode` that represent a small group of similarly named AWS Operations.
 
 
 Reading an AWS Operation would go through the following steps within the `ResourceNode` class:
 
 1. Get Operations Relations
 2. Generate API Parameters from Operation Data
-    a. Generate JMESPath Selector from Relations
-    b. Complement API Parameters List 
+    1. Generate JMESPath Selector from Relations
+    2. Complement API Parameters List 
       
 
 Custom ResourceNode classes can override selected functions to intercept the process of reading an operation. In this manner, balcony behaves as a framework for correctly generating API parameters.

@@ -145,5 +145,5 @@ balcony aws ec2 Instances \
 # create delete-policy script
 balcony aws iam Policy \
     --jmespath-selector "GetPolicy[*].Policy" \
-    --format "aws iam delete-policy --policy-arn {Arn}"
+    --format 'aws iam delete-policy --policy-arn "{Arn}" --version "{DefaultVersionId}"'
 ```
