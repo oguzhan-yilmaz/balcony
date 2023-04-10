@@ -1,5 +1,5 @@
-from ..nodes import ResourceNode
-from ..config import get_logger
+from nodes import ResourceNode
+from config import get_logger
 
 logger = get_logger(__name__)
 

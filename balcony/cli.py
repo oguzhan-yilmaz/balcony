@@ -1,12 +1,12 @@
-from .utils import get_all_available_services, ifind_similar_names_in_list
-from .config import (
+from utils import get_all_available_services, ifind_similar_names_in_list
+from config import (
     get_logger,
     get_rich_console,
     set_log_level_at_runtime,
     clear_relations_cache,
 )
-from .custom_nodes import * # noqa
-from .aws import Boto3SessionSingleton, BalconyAWS
+from custom_nodes import *  # noqa
+from aws import BalconyAWS
 
 import typer
 import jmespath
@@ -14,10 +14,11 @@ from typing import Optional, List
 from rich.columns import Columns
 from rich.panel import Panel
 import logging
+import boto3
 
 console = get_rich_console()
 logger = get_logger(__name__)
-session = Boto3SessionSingleton().get_session()
+session = boto3.session.Session()
 service_factory = BalconyAWS(session)
 app = typer.Typer(no_args_is_help=True)
 
@@ -230,9 +231,7 @@ def aws_main_command(  # noqa
     if not service and not resource_node:
         available_services = _list_service_or_resource(service, resource_node)
         console.print(
-            Panel(
-                "[bold]Please pick one of the AWS Services", title="[red][bold]ERROR"
-            )
+            Panel("[bold]Please pick one of the AWS Services", title="[red][bold]ERROR")
         )
         return {"services": available_services}
 
@@ -283,7 +282,7 @@ def aws_main_command(  # noqa
             if read_data:
                 for r_data in read_data:
                     try:
-                        console.print(formatter.format(**r_data), overflow='ignore')
+                        console.print(formatter.format(**r_data), overflow="ignore")
                     except AttributeError as e:
                         logger.debug(
                             f"Failed to format  [red]{str(e)}[/] with data: {r_data}"

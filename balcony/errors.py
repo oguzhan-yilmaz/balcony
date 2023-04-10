@@ -1,4 +1,4 @@
-from .config import get_logger
+from config import get_logger
 from typing import Dict
 
 logger = get_logger(__name__)

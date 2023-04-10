@@ -1,5 +1,5 @@
-from .config import get_logger
-from .yaml_validators import YamlService
+from config import get_logger
+from yaml_validators import YamlService
 
 import yaml
 import os

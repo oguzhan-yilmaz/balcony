@@ -1,6 +1,6 @@
-from ..nodes import ResourceNode
-from ..config import get_logger
-from ..relations import Relation
+from nodes import ResourceNode
+from config import get_logger
+from relations import Relation
 import jmespath
 
 logger = get_logger(__name__)
