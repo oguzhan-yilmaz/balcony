@@ -1,10 +1,10 @@
-from .botocore_utils import (
+from botocore_utils import (
     get_shape_name,
     flatten_shape_to_its_non_collection_shape_and_target_paths,
     ShapeAndTargetPath,
 )
-from .config import get_logger, BALCONY_RELATIONS_DIR
-from .utils import icompare_two_camel_case_words
+from config import get_logger, BALCONY_RELATIONS_DIR
+from utils import icompare_two_camel_case_words
 from typing import List, Dict, Union
 import json
 import os
