@@ -4,6 +4,7 @@ from typing import List
 import inflect
 import os
 import boto3
+
 # from functools import lru_cache
 
 inflect_engine = inflect.engine()  # used for singular/plural word comparing
@@ -31,12 +32,23 @@ def are_two_lists_same(list_one: List, list_two: List) -> bool:
     return Counter(list_one) == Counter(list_two)
 
 
+def is_word_in_a_list_of_words(word: str, list_of_words: List[str]) -> bool:
+    """Checks if a word is a is in a list_of_words, case insensitive"""
+    lower_word = word.lower()
+    for a_word in list_of_words:
+        if lower_word == a_word.lower():
+            return True
+    return False
+
+    return word.lower() in []
+
+
 def ifind_similar_names_in_list(
     search_for: str, search_in_list: List[str]
 ) -> List[str]:
     """Case insensitive find in list"""
     result = []
-    if not search_for:
+    if not search_for or not search_in_list:
         return result
     lower_search_for = search_for.lower()
 
@@ -49,10 +61,7 @@ def ifind_similar_names_in_list(
 def str_relations(relations: List[dict]) -> str:
     """Stringify list of relations"""
     return ", ".join(
-        [
-            f"[{r.service_name}.{r.operation_name} > {r.target_path}]"
-            for r in relations
-        ]
+        [f"[{r.service_name}.{r.operation_name} > {r.target_path}]" for r in relations]
     )
 
 
