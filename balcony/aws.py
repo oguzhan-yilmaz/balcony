@@ -1,28 +1,28 @@
-from .utils import get_all_available_services, _create_boto_session
-from .nodes import ServiceNode
-from .reader import ServiceReader
+from utils import get_all_available_services, _create_boto_session
+from nodes import ServiceNode
+from reader import ServiceReader
 
 from typing import Optional, List, Union
 import boto3
 
 
-class Boto3SessionSingleton(object):
-    _instance = None
-    _session = None
+# class Boto3SessionSingleton(object):
+#     _instance = None
+#     _session = None
 
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(Boto3SessionSingleton, cls).__new__(cls)
-            # Put any initialization here.
-            # cls._session = _create_boto_session()
-        return cls._instance
+#     def __new__(cls):
+#         if cls._instance is None:
+#             cls._instance = super(Boto3SessionSingleton, cls).__new__(cls)
+#             # Put any initialization here.
+#             # cls._session = _create_boto_session()
+#         return cls._instance
 
-    def __init__(self):
-        if not self._session:
-            self._session = _create_boto_session()
+#     def __init__(self):
+#         if not self._session:
+#             self._session = _create_boto_session()
 
-    def get_session(self):
-        return self._session
+#     def get_session(self):
+#         return self._session
 
 
 class BalconyAWS:
