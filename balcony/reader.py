@@ -1,6 +1,6 @@
-from .config import get_logger, get_rich_console
-from .errors import Error
-from .botocore_utils import ifind_key_in_dict_keys
+from config import get_logger, get_rich_console
+from errors import Error
+from botocore_utils import ifind_key_in_dict_keys
 
 import fnmatch  # unix like pattern matching
 from collections.abc import Iterable
@@ -36,12 +36,13 @@ class ServiceReader:
         self.response_data = {}
 
     def call_operation(
-        self, operation_name: str, api_parameter: dict
+        self, resource_node: "ResourceNode", operation_name: str, api_parameter: Dict
     ) -> Union[dict, bool]:
         """Calls the given AWS operation with `api_parameter` dict.
         Saves the response data on `self.response_data` and returns it.
 
         Args:
+            resource_node(ResourceNode): Operations Resource Node
             operation_name (str): Name of the operation
             api_parameter (dict): dictionary to call the operation with
 
@@ -49,33 +50,46 @@ class ServiceReader:
             Union[dict, bool]: `False` or response got from AWS API
         """
         client = self.service_node.client
+
+        if not resource_node:
+            return False
+
         try:
-            # print(colored(f"{operation_name=} {api_parameters=}",'green'))
             logger.debug(
                 f"Calling operation: [bold blue]{operation_name}[/] with api parameters: {api_parameter}"
             )
             response = client._make_api_call(operation_name, api_parameter)
-            PAGINATOR_KEYS = ["NextToken", "ContinuationToken"]
-            for paginator_key in PAGINATOR_KEYS:
-                # NextToken pagination key can be named differently like 'nextToken'
-                found_paginator_key = ifind_key_in_dict_keys(
-                    paginator_key, response.keys()
+            # check if the operation is paginated
+            pagination_tokens = (
+                resource_node.get_pagination_token_output_to_parameter_name_mapping(
+                    operation_name
                 )
-                if found_paginator_key:
-                    # TODO: follow next tokens
-                    # self.call_operation()
-                    pass
-        except ClientError as e:
-            # print(colored(str(e),'red'))
-            logger.debug(
-                f"[red bold]FAILED: Calling Operation[/]. {operation_name} with api parameters: {api_parameter}. Exception: {str(e)} "
             )
-            return False
-
-        resource_node = self.service_node.find_resource_node_by_operation_name(
-            operation_name
-        )
-        if not resource_node:
+            if pagination_tokens:
+                # try to find the name of the operation you'd want to fill out
+                # and where to find it from in the response
+                pagination_parameter_name = pagination_tokens.get("parameter_name")
+                pagination_output_key = pagination_tokens.get("output_key")
+                print(
+                    operation_name,
+                    pagination_parameter_name,
+                    pagination_output_key,
+                )
+                # we may find out the operation is paginated, but the queried resource might not be much in quantity
+                # so, response might not have a Pagination token, although the operation is paginated
+                page_value_in_response = response.get(pagination_output_key, False)
+                if page_value_in_response:
+                    paginated_api_parameters = api_parameter.copy()
+                    paginated_api_parameters[
+                        pagination_parameter_name
+                    ] = page_value_in_response
+                    self.call_operation(
+                        resource_node, operation_name, paginated_api_parameters
+                    )
+        except ClientError as e:
+            logger.debug(
+                f"[red bold]FAILED: Calling Operation[/]. {operation_name}({api_parameter}). Exception: {str(e)}"
+            )
             return False
 
         # removing ResponseMetadata, it is not needed
@@ -276,7 +290,7 @@ class ServiceReader:
                     api_parameters_for_operation = pattern_matched_api_parameters
                 for api_parameter in api_parameters_for_operation:
                     # for each parameter generated, call the actual operation
-                    self.call_operation(operation_name, api_parameter)
+                    self.call_operation(resource_node, operation_name, api_parameter)
             # after calling the same operation for the different parameters
             # get all the response data made for this operation_name
             logger.debug(f"[bold]Done Reading[/] {operation_markup}")
@@ -327,7 +341,7 @@ class ServiceReader:
                 api_parameters_for_operation = pattern_matched_api_parameters
             for api_parameter in api_parameters_for_operation:
                 # for each parameter generated, call the actual operation
-                self.call_operation(operation_name, api_parameter)
+                self.call_operation(resource_node, operation_name, api_parameter)
         else:
             logger.debug(f"Failed to generate api parameters for {operation_markup}")
 

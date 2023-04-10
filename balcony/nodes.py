@@ -1,11 +1,16 @@
-from .utils import (
+from botocore_utils import (
+    _flatten_shape_to_its_members_and_target_paths,
+    get_shape_name,
+)
+from utils import (
     camel_case_split,
     compare_nouns,
     icompare_two_token_lists,
     compare_two_camel_case_words,
     str_relations,
+    is_word_in_a_list_of_words
 )
-from .botocore_utils import (
+from botocore_utils import (
     get_input_shape,
     get_max_results_value_from_shape,
     find_key_in_dict_keys,
@@ -16,11 +21,11 @@ from .botocore_utils import (
     IDENTIFIER_NAMES,
     cleanhtml,
 )
-from .relations import RelationMap, Relation
-from .reader import ServiceReader
-from .registries import ResourceNodeRegistry
-from .config import get_logger, get_rich_console
-from .errors import Error
+from relations import RelationMap, Relation
+from reader import ServiceReader
+from registries import ResourceNodeRegistry
+from config import get_logger, get_rich_console
+from errors import Error
 
 from typing import List, Dict, Tuple, Union
 from botocore.utils import ArgumentGenerator
@@ -37,7 +42,7 @@ logger = get_logger(__name__)
 _resource_node_registry = ResourceNodeRegistry()
 argument_generator = ArgumentGenerator()
 console = get_rich_console()
-
+PAGINATION_TOKEN_KEYS = ("nexttoken", "continuationtoken", "marker")
 
 class ResourceNode:
     def __init__(
@@ -80,6 +85,16 @@ class ResourceNode:
                 else:
                     types_to_operation_names["get"] = op_name
         return types_to_operation_names
+
+    def get_pagination_output_to_input_keys(self) -> Dict[str, str]:
+        """
+
+        For example, ContinuationToken:
+
+        Returns:
+            Dict[str, str]: Single k/v pair dictionary.
+        """
+        return {}
 
     def get_operation_names(self) -> List[str]:
         """Returns the available operation names in the ResourceNode.
@@ -575,6 +590,45 @@ class ResourceNode:
 
         return False
 
+    def get_pagination_token_output_to_parameter_name_mapping(
+        self, operation_name: str
+    ) -> Union[Dict[str, str], bool]:
+        """Some Operations paginate their output using Pagination Token Parameters defined in `PAGINATION_TOKEN_KEYS`.
+
+        Args:
+            resource_node (ResourceNode): _description_
+            operation_name (str): Name of the operation in the resource_node.
+
+        Returns:
+            Union[Dict[str, str], bool]: False or A dictionary with `parameter_name` and `output_key` keys. e.g. `{"parameter_name":"nextToken", "output_key": "NextToken"}`.
+        """
+        resource_node: ResourceNode = self
+
+        # find all parameter names that are in `PAGINATION_TOKEN_KEYS`, case insensitive
+        parameter_names = [
+            pn
+            for pn in resource_node.get_all_parameter_names_from_operation_name(
+                operation_name
+            )
+            if is_word_in_a_list_of_words(pn, PAGINATION_TOKEN_KEYS)
+        ]
+
+        #  find all output keys that are in `PAGINATION_TOKEN_KEYS`, case insensitive
+        output_keys = [
+            ok
+            for ok in resource_node.get_all_output_keys_from_operation_name(
+                operation_name
+            )
+            if is_word_in_a_list_of_words(ok, PAGINATION_TOKEN_KEYS)
+        ]
+
+        if output_keys and parameter_names:
+            return {
+                "parameter_name": parameter_names[0],
+                "output_key": output_keys[0],
+            }
+        return False
+
     def get_required_parameter_names_from_operation_model(self, operation_model):
         input_shape = get_input_shape(operation_model)
         if not input_shape:
@@ -584,6 +638,38 @@ class ResourceNode:
         if max_results_key:
             required_parameter_names.remove(max_results_key)
         return required_parameter_names
+
+    def get_all_parameter_names_from_operation_name(self, operation_name):
+        operation_model = self.get_operation_model(operation_name)
+        input_shape = get_input_shape(operation_model)
+        if not input_shape:
+            return []
+
+        all_parameter_names = []
+        input_shape_and_target_paths = _flatten_shape_to_its_members_and_target_paths(
+            input_shape
+        )
+        for shape_and_target_path in input_shape_and_target_paths:
+            shape_name = get_shape_name(shape_and_target_path.shape)
+            if shape_name:
+                all_parameter_names.append(shape_name)
+        return all_parameter_names
+
+    def get_all_output_keys_from_operation_name(self, operation_name):
+        operation_model = self.get_operation_model(operation_name)
+        output_shape = operation_model.output_shape
+        if not output_shape:
+            return []
+
+        all_parameter_names = []
+        input_shape_and_target_paths = _flatten_shape_to_its_members_and_target_paths(
+            output_shape
+        )
+        for shape_and_target_path in input_shape_and_target_paths:
+            shape_name = get_shape_name(shape_and_target_path.shape)
+            if shape_name:
+                all_parameter_names.append(shape_name)
+        return all_parameter_names
 
     # TODO: memoization
     def get_required_parameter_names_from_operation_name(
