@@ -70,11 +70,6 @@ class ServiceReader:
                 # and where to find it from in the response
                 pagination_parameter_name = pagination_tokens.get("parameter_name")
                 pagination_output_key = pagination_tokens.get("output_key")
-                print(
-                    operation_name,
-                    pagination_parameter_name,
-                    pagination_output_key,
-                )
                 # we may find out the operation is paginated, but the queried resource might not be much in quantity
                 # so, response might not have a Pagination token, although the operation is paginated
                 page_value_in_response = response.get(pagination_output_key, False)
