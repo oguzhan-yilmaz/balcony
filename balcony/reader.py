@@ -1,10 +1,8 @@
 from config import get_logger, get_rich_console
 from errors import Error
-from botocore_utils import ifind_key_in_dict_keys
-
 import fnmatch  # unix like pattern matching
 from collections.abc import Iterable
-from typing import List, Set, Dict, Tuple, Optional, Union
+from typing import List, Dict, Tuple, Optional, Union
 from botocore.exceptions import ClientError
 
 
@@ -107,7 +105,7 @@ class ServiceReader:
             Union[List[dict], bool]: `False` or Operations data
         """
         resource_node_exists = (
-            self.response_data.get(resource_node_name, False) != False
+            self.response_data.get(resource_node_name, False) != False  # noqa
         )
         if not resource_node_exists:
             return False
@@ -137,7 +135,7 @@ class ServiceReader:
             operation_name (str): Name of the Operation
         """
         resource_node_exists = (
-            self.response_data.get(resource_node_name, False) != False
+            self.response_data.get(resource_node_name, False) != False  # noqa
         )
         if resource_node_exists:
             self.response_data[resource_node_name][operation_name] = []
@@ -153,7 +151,7 @@ class ServiceReader:
             response (dict): boto API response dict
         """
         resource_node_exists = (
-            self.response_data.get(resource_node_name, False) != False
+            self.response_data.get(resource_node_name, False) != False # noqa
         )
 
         if not resource_node_exists:
@@ -197,14 +195,14 @@ class ServiceReader:
                 f"Failed to find the Resource Node while reading the {operation_markup}."
             )
             return None
-        if refresh == True:
+        if refresh == True:  # noqa
             # remove the operation data from the response data,
             self.clear_operations_data(resource_node_name, operation_name)
         already_existing_data = self.search_operation_data(
             resource_node.name, operation_name
         )
 
-        if already_existing_data and refresh == False:
+        if already_existing_data and refresh == False:  # noqa
             logger.debug(
                 f"[green]{resource_node.name}[/].[blue]{operation_name}[/] is already read. Returning already available data."
             )
@@ -257,7 +255,7 @@ class ServiceReader:
             return False, relations_error
 
         if (
-            relations_of_operation == True
+            relations_of_operation == True  # noqa
         ):  # True means no required parameters, so no relations
             # no relations means there are no related operations
             (

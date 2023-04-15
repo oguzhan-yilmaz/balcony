@@ -103,22 +103,9 @@ def _complete_operation_type(ctx: typer.Context) -> List[str]:
 
 
 def _list_service_or_resource(
-    service: Optional[str] = typer.Argument(
-        None,
-        show_default=False,
-        help="The AWS service name",
-        autocompletion=_complete_service_name,
-    ),
-    resource_node: Optional[str] = typer.Argument(
-        None,
-        show_default=False,
-        help="The AWS Resource Node",
-        autocompletion=_complete_resource_node_name,
-    ),
-    screen_pager: Optional[bool] = typer.Option(
-        False,
-        help="Use a new screen to show the output",
-    )
+    service: Optional[str] = False,
+    resource_node: Optional[str] = False,
+    screen_pager: Optional[bool] = False
 ) -> None:
 
     available_service_names = _get_available_service_node_names()
@@ -186,6 +173,8 @@ def _list_service_or_resource(
         if screen_pager:
             with console.pager(styles=True):
                 console.print(operations_panel)
+        else:
+            console.print(operations_panel)
         return
 
 
@@ -252,23 +241,25 @@ def aws_main_command(  # noqa
         help="Output JSON file name. If not provided, will print to console.",
     )
 ): 
-    if not follow_pagination:
-        logger.warning("[yellow bold][WARNING][/] [bold]--paginate, -p[/] option is NOT set. You're likely to get incomplete data.")
+
     if debug:
         set_log_level_at_runtime(logging.DEBUG)
+
     if list_contents:
         _list_service_or_resource(service, resource_node, screen_pager=screen)
         return
 
+    if not follow_pagination:
+        logger.warning("[yellow bold][WARNING][/] [bold]--paginate, -p[/] option is NOT set. You're likely to get incomplete data.")
     if not service and not resource_node:
-        available_services = _list_service_or_resource(service, resource_node)
+        available_services = _list_service_or_resource(service, resource_node, screen_pager=screen)
         console.print(
             Panel("[bold]Please pick one of the AWS Services", title="[red][bold]ERROR")
         )
         return {"services": available_services}
 
     if service and not resource_node:
-        available_resources = _list_service_or_resource(service, resource_node)
+        available_resources = _list_service_or_resource(service, resource_node, screen_pager=screen)
         console.print(
             Panel(
                 f"[bold]Please pick one of the Resource Nodes from [green]{service}[/] Service",
@@ -309,7 +300,6 @@ def aws_main_command(  # noqa
                 f"Using jmespath selector: {jmespath_selector} to query the returned data."
             )
             read_data = jmespath.search(jmespath_selector, read_data)
-
 
         if formatter:
             if read_data:

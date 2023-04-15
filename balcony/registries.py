@@ -1,6 +1,6 @@
 from config import get_logger, get_rich_console
 from yaml_config import find_and_parse_yaml_services
-from typing import List, Set, Dict, Tuple, Optional, Union
+from typing import Dict, Union
 
 console = get_rich_console()
 logger = get_logger(__name__)
@@ -49,7 +49,6 @@ class ResourceNodeRegistry:
             custom_resource_node = service_dict.get(name, False)
             if custom_resource_node:
                 return False
-                # raise Exception(f"A custom ResourceNode is already registered with Service: {service_name}, Resource Node: {name}. Duplication is not allowed.")
             else:
                 self._registry[service_name][name] = cls
 

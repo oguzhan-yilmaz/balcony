@@ -17,6 +17,10 @@ Path(BALCONY_RELATIONS_DIR).mkdir(parents=True, exist_ok=True)
 
 LOG_LEVEL = 'INFO'
 
+# YamlResourceNode customization parameters
+YAML_IGNORE_PREFIX = "_"
+YAML_SERVICES_DIRECTORY = Path(__file__).parent / "custom_nodes" / "yamls"
+
 _console = Console(color_system="auto", markup=True)
 _balcony_loggers = []
 

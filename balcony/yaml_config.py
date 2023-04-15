@@ -1,4 +1,4 @@
-from config import get_logger
+from config import get_logger, YAML_IGNORE_PREFIX, YAML_SERVICES_DIRECTORY
 from yaml_validators import YamlService
 
 import yaml
@@ -6,8 +6,6 @@ import os
 from typing import List, Union, Tuple
 from pathlib import Path
 
-YAML_IGNORE_PREFIX = "_"
-YAML_SERVICES_DIRECTORY = Path(__file__).parent / "custom_nodes" / "yamls"
 
 logger = get_logger(__name__)
 
@@ -73,12 +71,14 @@ def find_and_parse_yaml_services() -> List[YamlService]:
     return found_yaml_services
 
 
-
 # Load input data from YAML
 def _test_example_service_yaml():
-    example_service_filepath = Path(__file__).parent / "custom_nodes" / "yamls" / "_example_service.yaml"
+    example_service_filepath = (
+        Path(__file__).parent / "custom_nodes" / "yamls" / "_example_service.yaml"
+    )
     service = parse_yaml_file_to_service(example_service_filepath)
     print(service)
+
 
 if __name__ == "__main__":
     _test_example_service_yaml()
