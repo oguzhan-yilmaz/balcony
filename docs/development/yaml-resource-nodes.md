@@ -35,6 +35,10 @@ resource_nodes:
   operations:
     # Operation level customization must define a specific `operation_name` 
     - operation_name: <operation-name> 
+      # Pagination token mapping customization
+      pagination_token_mapping:
+        output_key: NextContinuationToken # from output, get this key and
+        parameter_name: ContinuationToken # pass it to this parameter
       # This option overrides the `complement_api_parameters_list` function.
       complement_api_parameters:
         # This option will be evoked after api parameter generation is 

@@ -1,6 +1,6 @@
 FROM python:3.11
 
-RUN apt update && apt install -y curl unzip groff
+RUN apt update -y && apt install -y curl unzip groff
 
 # install aws-cli and 
 # pip install balcony

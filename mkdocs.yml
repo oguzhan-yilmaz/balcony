@@ -6,6 +6,7 @@ nav:
     - Home: index.md
     - QuickStart: quickstart.md
     - Cookbook: cookbook.md
+    - 'Run on Docker': docker.md
     - 'As a Python library': as-a-python-library.md
     - 'How it Works?': 
       - 'About boto3': how-it-works/about-boto3.md

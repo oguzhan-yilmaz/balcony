@@ -77,6 +77,8 @@ balcony aws ec2
 balcony aws iam Policy -l
 # or
 balcony aws iam Policy --list
+# or to open it on a pager
+balcony aws iam Policy -ls
 ```
 
 
