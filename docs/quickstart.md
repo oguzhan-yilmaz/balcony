@@ -108,10 +108,10 @@ balcony aws iam Policy list
     
 
 ```bash
-balcony aws iam Policy -p "*service-role/*"
+balcony aws iam Policy --pattern "*service-role/*"
 
 # supports multiple patterns 
-balcony aws iam Policy -p "*service-role/*" -p "*prod-*"
+balcony aws iam Policy --pattern "*service-role/*" --pattern "*prod-*"
 ```
 
 ### Use JMESPath queries for the json data
