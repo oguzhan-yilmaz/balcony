@@ -1,4 +1,4 @@
-name: Deploy Hello World
+name: Deploy balcony image to GHCR
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - 'main'
 
 jobs:
-  deploy-balcony-image-to-ghrc:
+  deploy-balcony-image-to-ghcr:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
