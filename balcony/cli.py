@@ -1,3 +1,4 @@
+import json
 from utils import get_all_available_services, ifind_similar_names_in_list
 from config import (
     get_logger,
@@ -10,11 +11,13 @@ from aws import BalconyAWS
 
 import typer
 import jmespath
-from typing import Optional, List
+from typing import Optional, List, Dict
 from rich.columns import Columns
 from rich.panel import Panel
 import logging
 import boto3
+from pathlib import Path
+
 
 console = get_rich_console()
 logger = get_logger(__name__)
@@ -38,6 +41,16 @@ def _get_available_service_node_names():
 def generate_service_node_completion_items():
     service_names = _get_available_service_node_names(session)
     return service_names
+
+
+def save_dict_to_output_file(output_filepath: str, data: Dict):
+    with open(output_filepath, "w") as f:
+        json.dump(data, f, indent=2, default=str)
+
+
+def save_str_list_to_output_file(output_filepath: str, lines: List[str]):
+    with open(output_filepath, "w") as f:
+        f.writelines([line + "\n" for line in lines])
 
 
 def _complete_service_name(incomplete: str):
@@ -102,6 +115,10 @@ def _list_service_or_resource(
         help="The AWS Resource Node",
         autocompletion=_complete_resource_node_name,
     ),
+    screen_pager: Optional[bool] = typer.Option(
+        False,
+        help="Use a new screen to show the output",
+    )
 ) -> None:
 
     available_service_names = _get_available_service_node_names()
@@ -166,7 +183,9 @@ def _list_service_or_resource(
         operations_panel = service_node._get_operation_details_panel(
             resource_node_obj.name
         )
-        console.print(operations_panel)
+        if screen_pager:
+            with console.pager(styles=True):
+                console.print(operations_panel)
         return
 
 
@@ -193,9 +212,8 @@ def aws_main_command(  # noqa
     patterns: Optional[List[str]] = typer.Option(
         None,
         "--pattern",
-        "-p",
         show_default=False,
-        help='UNIX pattern matching for generated parameters. Should be quoted. e.g. (-p "*prod-*")',
+        help='UNIX pattern matching for generated parameters. Should be quoted. e.g. (--pattern "*prod-*")',
     ),
     jmespath_selector: Optional[str] = typer.Option(
         None,
@@ -218,14 +236,28 @@ def aws_main_command(  # noqa
         "-l",
         help="Print the details of Service or Resource. Does not make requests.",
     ),
-    paginate: bool = typer.Option(
+    screen: bool = typer.Option(
         False, "--screen", "-s", help="Open the data on a separate paginator on shell."
     ),
-):
+    follow_pagination: bool = typer.Option(
+        False,
+        "--paginate",
+        "-p",
+        help="Paginate through the output if the output is truncated, otherwise will only read one page.",
+    ),
+    output_file: str = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Output JSON file name. If not provided, will print to console.",
+    )
+): 
+    if not follow_pagination:
+        logger.warning("[yellow bold][WARNING][/] [bold]--paginate, -p[/] option is NOT set. You're likely to get incomplete data.")
     if debug:
         set_log_level_at_runtime(logging.DEBUG)
     if list_contents:
-        _list_service_or_resource(service, resource_node)
+        _list_service_or_resource(service, resource_node, screen_pager=screen)
         return
 
     if not service and not resource_node:
@@ -254,7 +286,7 @@ def aws_main_command(  # noqa
         if not is_operation_selected:
             # read all operations in given resource node
             read_data = service_reader.read_resource_node(
-                resource_node, match_patterns=patterns
+                resource_node, match_patterns=patterns, follow_pagination=follow_pagination
             )
 
         else:  # Operation is selected
@@ -268,7 +300,7 @@ def aws_main_command(  # noqa
                 )
                 return False
             read_data = service_reader.read_operation(
-                resource_node, operation_name, match_patterns=patterns
+                resource_node, operation_name, match_patterns=patterns, refresh=False, follow_pagination=follow_pagination
             )
 
         if jmespath_selector:
@@ -278,24 +310,36 @@ def aws_main_command(  # noqa
             )
             read_data = jmespath.search(jmespath_selector, read_data)
 
+
         if formatter:
             if read_data:
+                formatted_output_list = []
                 for r_data in read_data:
                     try:
-                        console.print(formatter.format(**r_data), overflow="ignore")
+                        # try to format and add it to output lines list
+                        formatted_output_list.append(formatter.format(**r_data))
                     except AttributeError as e:
-                        logger.debug(
-                            f"Failed to format  [red]{str(e)}[/] with data: {r_data}"
-                        )
-                return read_data
-            else:
-                logger.debug(
-                    f"[red]No data found.[/] Failed to use --format: '{formatter}'"
-                )
+                        logger.debug(f"Failed to format  [red]{str(e)}[/] with data: {r_data}")
 
-        if paginate:
+                if output_file:
+                    output_filepath = Path(output_file).resolve()
+                    logger.info(f"Saving output to: {output_filepath}")
+                    save_str_list_to_output_file(output_filepath, formatted_output_list)
+                    return
+                else:
+                    # print to console
+                    console.print('\n'.join(formatted_output_list), overflow="ignore")
+                    return read_data
+            else:
+                logger.debug(f"[red]No data found.[/] Failed to use --format: '{formatter}'")
+
+        if screen:
             with console.pager(styles=True):
                 console.print_json(data=read_data, default=str)
+        elif output_file:
+            output_filepath = Path(output_file).resolve()
+            logger.info(f"Saving output to: {output_filepath}")
+            save_dict_to_output_file(output_filepath, read_data)
         else:
             console.print_json(data=read_data, default=str)
         return read_data
@@ -310,7 +354,6 @@ def clear_cache_command(
     deleted_service_caches = clear_relations_cache()
     for deleted_service in deleted_service_caches:
         logger.info(f"[green]Deleted[/] {deleted_service}")
-
 
 # @app.command('version', help='Show version info' )
 # def version_command():

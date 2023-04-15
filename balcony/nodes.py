@@ -42,7 +42,7 @@ logger = get_logger(__name__)
 _resource_node_registry = ResourceNodeRegistry()
 argument_generator = ArgumentGenerator()
 console = get_rich_console()
-PAGINATION_TOKEN_KEYS = ("nexttoken", "continuationtoken", "marker")
+PAGINATION_TOKEN_KEYS = ("nexttoken", "continuationtoken", "marker", "nextcontinuationtoken")
 
 class ResourceNode:
     def __init__(
@@ -86,15 +86,6 @@ class ResourceNode:
                     types_to_operation_names["get"] = op_name
         return types_to_operation_names
 
-    def get_pagination_output_to_input_keys(self) -> Dict[str, str]:
-        """
-
-        For example, ContinuationToken:
-
-        Returns:
-            Dict[str, str]: Single k/v pair dictionary.
-        """
-        return {}
 
     def get_operation_names(self) -> List[str]:
         """Returns the available operation names in the ResourceNode.
@@ -727,6 +718,17 @@ class YamlResourceNode(ResourceNode):
         ]
         return extra_relations
 
+    def get_pagination_token_output_to_parameter_name_mapping(
+            self, operation_name: str
+        ) -> Union[Dict[str, str], bool]:
+        operations = self.yaml_config.operations
+        for operation in operations:
+            if operation_name == operation.operation_name:
+                if operation.pagination_token_mapping:
+                    return operation.pagination_token_mapping
+
+        return super().get_pagination_token_output_to_parameter_name_mapping(operation_name)
+
     # NOTE: +overrideable
     def get_operations_relations(
         self, operation_name: str
@@ -826,10 +828,6 @@ class ServiceNode:
 
     def get_client(self):
         return self.client
-
-    def read(self, resource_node_name):
-        reader = self.get_service_reader()
-        return reader.read_resource_node(resource_node_name)
 
     def get_service_reader(self) -> ServiceReader:
         """Returns/creates the ServiceReader for the current ServiceNode
@@ -950,7 +948,7 @@ class ServiceNode:
         )
         if _custom_cls_for_resource_node:
             logger.debug(
-                f"ResourceNodeRegistry: [bold][green]{service_name}[/].[blue]{resource_node_name}[/][/] has extended with: {_custom_cls_for_resource_node.__name__}"
+                f"ResourceNodeRegistry: [bold][green]{service_name}[/].[blue]{resource_node_name}[/][/] has extended with custom class."
             )
             _ResourceNodeClass = _custom_cls_for_resource_node
             return _ResourceNodeClass(**kwargs)
@@ -962,6 +960,7 @@ class ServiceNode:
         if yaml_config_found:
             # add the yaml_config for the YamlResourceNode subclass initialization
             kwargs.update({"yaml_config": yaml_config_found})
+            logger.debug(f"ResourceNodeRegistry: [bold][green]{service_name}[/].[blue]{resource_node_name}[/][/] has extended with custom yaml config.")
             yaml_resource_node_obj = YamlResourceNode(**kwargs)
             return yaml_resource_node_obj
 

@@ -1,0 +1,9 @@
+service_name: s3
+resource_nodes:
+- resource_node_name: ObjectsV2
+  operations:
+    # restrict ListPolicies to Local Scope, meaning only customer managed services
+    - operation_name: ListObjectsV2
+      pagination_token_mapping:
+        parameter_name: ContinuationToken
+        output_key: NextContinuationToken

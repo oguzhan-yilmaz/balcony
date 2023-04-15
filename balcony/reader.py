@@ -36,7 +36,7 @@ class ServiceReader:
         self.response_data = {}
 
     def call_operation(
-        self, resource_node: "ResourceNode", operation_name: str, api_parameter: Dict
+        self, resource_node: "ResourceNode", operation_name: str, api_parameter: Dict, follow_pagination : Optional[bool] = False # noqa  
     ) -> Union[dict, bool]:
         """Calls the given AWS operation with `api_parameter` dict.
         Saves the response data on `self.response_data` and returns it.
@@ -45,6 +45,7 @@ class ServiceReader:
             resource_node(ResourceNode): Operations Resource Node
             operation_name (str): Name of the operation
             api_parameter (dict): dictionary to call the operation with
+            follow_pagination (Optional[bool]): If the operations output is truncated follow the pagination tokens.
 
         Returns:
             Union[dict, bool]: `False` or response got from AWS API
@@ -65,7 +66,7 @@ class ServiceReader:
                     operation_name
                 )
             )
-            if pagination_tokens:
+            if follow_pagination and pagination_tokens:
                 # try to find the name of the operation you'd want to fill out
                 # and where to find it from in the response
                 pagination_parameter_name = pagination_tokens.get("parameter_name")
@@ -79,7 +80,7 @@ class ServiceReader:
                         pagination_parameter_name
                     ] = page_value_in_response
                     self.call_operation(
-                        resource_node, operation_name, paginated_api_parameters
+                        resource_node, operation_name, paginated_api_parameters, follow_pagination=follow_pagination
                     )
         except ClientError as e:
             logger.debug(
@@ -169,6 +170,7 @@ class ServiceReader:
         operation_name: str,
         match_patterns: Optional[List[str]] = None,
         refresh: Optional[bool] = False,
+        follow_pagination: Optional[bool] = False
     ) -> Tuple[Union[List, bool], Union[Error, None]]:
         """Reads the given operation.
         If the operation is called with generated parameters, `match_patterns` can be used to filter the generated parameters.
@@ -178,6 +180,7 @@ class ServiceReader:
             operation_name (str): Name of the Operation
             match_patterns (List[str], optional): UNIX style patterns to filter matching generated parameters. Defaults to None.
             refresh (bool, optional): Get the cached data or force re-reading the operation. Defaults to False.
+            follow_pagination (bool, optional): Follow pagination tokens. If not only set True, one page call will be made.
 
         Returns:
             Tuple[Union[List, bool], Union[Error, None]]: _description_
@@ -285,7 +288,7 @@ class ServiceReader:
                     api_parameters_for_operation = pattern_matched_api_parameters
                 for api_parameter in api_parameters_for_operation:
                     # for each parameter generated, call the actual operation
-                    self.call_operation(resource_node, operation_name, api_parameter)
+                    self.call_operation(resource_node, operation_name, api_parameter, follow_pagination=follow_pagination)
             # after calling the same operation for the different parameters
             # get all the response data made for this operation_name
             logger.debug(f"[bold]Done Reading[/] {operation_markup}")
@@ -297,7 +300,7 @@ class ServiceReader:
         # for each relation, fetch the related resource's data.
         for rel in relations_of_operation:
             rel_operation_data = self.read_operation(
-                rel.resource_node_name, rel.operation_name, refresh=refresh
+                rel.resource_node_name, rel.operation_name, refresh=refresh, follow_pagination=follow_pagination
             )
             if not rel_operation_data:
                 logger.debug(
@@ -336,7 +339,7 @@ class ServiceReader:
                 api_parameters_for_operation = pattern_matched_api_parameters
             for api_parameter in api_parameters_for_operation:
                 # for each parameter generated, call the actual operation
-                self.call_operation(resource_node, operation_name, api_parameter)
+                self.call_operation(resource_node, operation_name, api_parameter, follow_pagination=follow_pagination)
         else:
             logger.debug(f"Failed to generate api parameters for {operation_markup}")
 
@@ -351,22 +354,26 @@ class ServiceReader:
         resource_node_name: str,
         match_patterns: Optional[List[str]] = None,
         refresh: Optional[bool] = False,
+        follow_pagination: Optional[bool] = False,
     ) -> Union[Dict, bool]:
-        """Reads available operations in the given a resource node
+        """Reads all available operations in the given a resource node
 
         Args:
-            resource_node_name (str): Resource Node name
+            resource_node_name (str): _description_
             match_patterns (List[str], optional): UNIX style patterns to filter the generated parameters. Defaults to None.
+            refresh (Optional[bool], optional): Use the cached data or always make new calls. Defaults to False.
+            follow_pagination (Optional[bool], optional): Follow pagination if the output is truncated.. Defaults to False.
 
         Returns:
-            Union[Dict, bool]: Read data or False
+            Union[Dict, bool]: Data read if successful, or False.
         """
+
         resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
         if not resource_node:
             return False
 
         for operation_name in resource_node.operation_names:
             self.read_operation(
-                resource_node_name, operation_name, match_patterns, refresh
+                resource_node_name, operation_name, match_patterns, refresh=refresh, follow_pagination=follow_pagination
             )
         return self.search_resource_node_data(resource_node.name)

@@ -33,6 +33,8 @@ class YamlResourceNodeOperation(BaseModel):
     complement_api_parameters: Optional[List[YamlComplementApiParameterAction]]
     explicit_relations: Optional[List[YamlRelation]]
     override_api_parameters: Optional[List[Dict[str, Any]]]
+    pagination_token_mapping: Optional[Dict[str, str]]
+
 
 
 class YamlServiceResourceNode(BaseModel):
@@ -52,56 +54,3 @@ class YamlService(BaseModel):
     #             "Either extra_relations or operations must be defined in resource_node"
     #         )
     #     return value
-
-
-# Load input data from YAML
-def test_service_yaml():
-    input_yaml = """
-    service_name: ec2
-    resource_nodes:
-    - resource_node_name: Instance
-    extra_relations:
-        - service_name: x
-        resource_node_name: y 
-        operation_name: z
-        required_shape_name: a 
-        target_shape_name: b
-        target_shape_type: c
-        target_path: d
-    operations:
-        - operation_name: ListOperation
-        jmespath_selector: "[].example"
-        complement_api_parameters:
-            - action: add
-            data:
-                any: data
-                is: fine
-            - action: remove
-            keys:
-                - aa
-                - bb
-        explicit_relations:
-            - service_name: x
-            resource_node_name: y
-            operation_name: z
-            required_shape_name: a
-            target_shape_name: b
-            target_shape_type: c
-            target_path: d
-            - service_name: x1
-            resource_node_name: y1
-            operation_name: z1
-            required_shape_name: a1
-            target_shape_name: b1
-            target_shape_type: c1
-            target_path: d1
-        override_api_parameters:
-            - param1: arg1
-            param2: param2
-            param3: arg3
-    """
-    input_data = yaml.safe_load(input_yaml)
-
-    # Validate input data using the Service model
-    service = YamlService(**input_data)
-    print(service)

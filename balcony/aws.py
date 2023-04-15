@@ -32,7 +32,7 @@ class BalconyAWS:
 
     ```python title="Creating a BalconyAWS obj and reading IAM Roles"
     baws = BalconyAWS()
-    roles = baws.read_resource_node('iam', 'Role')
+    roles = baws.read_resource_node('iam', 'Role', follow_pagination=True)
     print(roles)
     ```
     """
@@ -85,6 +85,7 @@ class BalconyAWS:
         operation_name: str,
         match_patterns: Optional[List[str]] = None,
         refresh: Optional[bool] = False,
+        follow_pagination: Optional[bool] = False,
     ) -> Union[dict, bool]:
         """Call the AWS API operation for the given `service_name`, `resource_node_name` and `operation_name` values.
 
@@ -95,6 +96,7 @@ class BalconyAWS:
             operation_name (str): AWS Read opeartion name
             match_patterns (Optional[List[str]], optional): UNIX style patterns for generated required_parameters. Defaults to None.
             refresh (Optional[bool], optional): Force to re-read instead of returning the data from cache.. Defaults to False.
+            follow_pagination (bool, optional): Follow pagination tokens. If not only set True, one page call will be made.
 
         Returns:
             Union[dict,bool]: Read Operation data, or False.
@@ -102,7 +104,7 @@ class BalconyAWS:
         service_reader = self.get_service_reader(service_name)
         if service_reader:
             data = service_reader.read_operation(
-                resource_node_name, operation_name, match_patterns, refresh
+                resource_node_name, operation_name, match_patterns, refresh, follow_pagination=follow_pagination
             )
             return data
         return False
@@ -113,6 +115,7 @@ class BalconyAWS:
         resource_node_name: str,
         match_patterns: Optional[List[str]] = None,
         refresh: Optional[bool] = False,
+        follow_pagination: Optional[bool] = False
     ) -> Union[dict, bool]:
         """Reads all available Read operations of the given ResourceNode.
 
@@ -120,7 +123,8 @@ class BalconyAWS:
             service_name (str): Name of the AWS Service
             resource_node_name (str): Name of the AWS Resource Node
             match_patterns (Optional[List[str]], optional): UNIX style patterns for generated required_parameters. Defaults to None.
-            refresh (Optional[bool], optional): Force to re-read instead of returning the data from cache.. Defaults to False.
+            refresh (bool, optional): Force to re-read instead of returning the data from cache.. Defaults to False.
+            follow_pagination (bool, optional): Follow the pagination tokens if the output is truncated. Defaults to False.
 
         Returns:
             Union[dict,bool]: Read ResourceNode data or False
@@ -128,7 +132,7 @@ class BalconyAWS:
         service_reader = self.get_service_reader(service_name)
         if service_reader:
             data = service_reader.read_resource_node(
-                resource_node_name, match_patterns, refresh
+                resource_node_name, match_patterns, refresh=refresh, follow_pagination=follow_pagination
             )
             return data
         return False
