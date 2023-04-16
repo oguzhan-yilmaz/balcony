@@ -217,13 +217,13 @@ def aws_main_command(  # noqa
         "--format",
         "-f",
         show_default=False,
-        help="Python f-string expression to generate a line for each item.",
+        help="Python f-string expression to generate a string for each item.",
     ),
     list_contents: bool = typer.Option(
         False,
         "--list",
         "-l",
-        help="Print the details of Service or Resource. Does not make requests.",
+        help="Print the documentation of Service or Resource. Does not make requests.",
     ),
     screen: bool = typer.Option(
         False, "--screen", "-s", help="Open the data on a separate paginator on shell."
@@ -238,6 +238,7 @@ def aws_main_command(  # noqa
         None,
         "--output",
         "-o",
+        show_default=False,
         help="Output JSON file name. If not provided, will print to console.",
     )
 ): 
@@ -249,8 +250,10 @@ def aws_main_command(  # noqa
         _list_service_or_resource(service, resource_node, screen_pager=screen)
         return
 
+    # warn user if pagination is not set
     if not follow_pagination:
         logger.warning("[yellow bold][WARNING][/] [bold]--paginate, -p[/] option is NOT set. You're likely to get incomplete data.")
+
     if not service and not resource_node:
         available_services = _list_service_or_resource(service, resource_node, screen_pager=screen)
         console.print(

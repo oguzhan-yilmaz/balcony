@@ -8,7 +8,7 @@ from utils import (
     icompare_two_token_lists,
     compare_two_camel_case_words,
     str_relations,
-    is_word_in_a_list_of_words
+    is_word_in_a_list_of_words,
 )
 from botocore_utils import (
     get_input_shape,
@@ -42,7 +42,13 @@ logger = get_logger(__name__)
 _resource_node_registry = ResourceNodeRegistry()
 argument_generator = ArgumentGenerator()
 console = get_rich_console()
-PAGINATION_TOKEN_KEYS = ("nexttoken", "continuationtoken", "marker", "nextcontinuationtoken")
+PAGINATION_TOKEN_KEYS = (
+    "nexttoken",
+    "continuationtoken",
+    "marker",
+    "nextcontinuationtoken",
+)
+
 
 class ResourceNode:
     def __init__(
@@ -86,6 +92,8 @@ class ResourceNode:
                     types_to_operation_names["get"] = op_name
         return types_to_operation_names
 
+    def __str__(self) -> str:
+        return f"ResourceNode({self.service_node.name}.{self.name})"
 
     def get_operation_names(self) -> List[str]:
         """Returns the available operation names in the ResourceNode.
@@ -706,10 +714,23 @@ class YamlResourceNode(ResourceNode):
         operation_names: List[str],
         yaml_config: Dict = None,
     ) -> None:
+        """Initializes the YamlResourceNode with `yaml_config`.
+
+        Args:
+            service_node (ServiceNode): ServiceNode object
+            name (str): Name of the ResourceNode
+            operation_names (List[str]): Names of the ResourceNode's operations
+            yaml_config (Dict, optional): Yaml Configuration defined in the `custom_nodes/yamls/*/`. Defaults to None.
+        """
         super().__init__(service_node, name, operation_names)
         self.yaml_config = yaml_config
 
     def define_extra_relations(self) -> Union[List[Dict], List[Relation]]:
+        """Reads the Yaml Configuration for extra_relations defined, and returns the Relation objects.
+
+        Returns:
+            Union[List[Dict], List[Relation]]: Extra relations if they're defined in the Yaml configuration.
+        """
         if not self.yaml_config.extra_relations:
             return []
         extra_relations = [
@@ -719,20 +740,47 @@ class YamlResourceNode(ResourceNode):
         return extra_relations
 
     def get_pagination_token_output_to_parameter_name_mapping(
-            self, operation_name: str
-        ) -> Union[Dict[str, str], bool]:
+        self, operation_name: str
+    ) -> Union[Dict[str, str], bool]:
+        """Tries to find the pagination token in the yaml_config for the given operation.
+
+        ```json title="pagination_token_output_to_parameter_name_mapping example"
+        {
+            "parameter_name": "",
+            "output_key": ""
+        }
+        ```
+
+        Args:
+            operation_name (str): AWS Operation name.
+
+        Returns:
+            Union[Dict[str, str], bool]: A dictionary with pagination token as key and parameter name as value.
+            If no pagination token is defined, then returns False.
+        """
         operations = self.yaml_config.operations
         for operation in operations:
             if operation_name == operation.operation_name:
                 if operation.pagination_token_mapping:
                     return operation.pagination_token_mapping
-
-        return super().get_pagination_token_output_to_parameter_name_mapping(operation_name)
+        # if the operation is not the selected one, let the normal flow run.
+        return super().get_pagination_token_output_to_parameter_name_mapping(
+            operation_name
+        )
 
     # NOTE: +overrideable
     def get_operations_relations(
         self, operation_name: str
     ) -> Tuple[Union[List[Dict], bool], Union[Error, None]]:
+        """Finds the defined `explicit_relations` in the yaml_config for the given operation.
+
+
+        Args:
+            operation_name (str): AWS Operation Name.
+
+        Returns:
+            Tuple[Union[List[Dict], bool], Union[Error, None]]: Returns (value, error) tuple.
+        """
         operations = self.yaml_config.operations
         for operation in operations:
             if operation_name == operation.operation_name:
@@ -750,6 +798,15 @@ class YamlResourceNode(ResourceNode):
     def generate_jmespath_selector_from_relations(
         self, operation_name: str, relation_list: List[Dict]
     ) -> str:
+        """Finds the `jmespath_selector` definition in the `yaml_config` for the selected Operation.
+
+        Args:
+            operation_name (str): AWS Operation name.
+            relation_list (List[Dict]): List of relations for the operation
+
+        Returns:
+            str: JMESPath selector string for extracting api parameters.
+        """
         operations = self.yaml_config.operations
         for operation in operations:
             if operation_name == operation.operation_name:
@@ -769,7 +826,35 @@ class YamlResourceNode(ResourceNode):
         relations_of_operation: List[Dict],
         raw_api_parameters_list: List,
     ) -> List:
+        """After the api parameter genereation is done, this function will be called for each api_parameter generated to complement(add/remove parameters) it.
 
+        ```yaml title="Example yaml_config def. for complement_api_parameters"
+        # This option overrides the `complement_api_parameters_list` function.
+        complement_api_parameters:
+        # This option will be evoked after api parameter generation is
+        # complete. You can use this feature to add key/value pairs,
+        - action: add
+          data:
+            any: data
+            is: OK
+            to: add
+        #  or remove keys from all generated API parameters.
+        - action: remove
+          keys:
+            - remove
+            - these
+            - keys
+        ```
+
+        Args:
+            operation_name (str): _description_
+            related_operations_data (Union[List, Dict]): _description_
+            relations_of_operation (List[Dict]): _description_
+            raw_api_parameters_list (List): _description_
+
+        Returns:
+            List: _description_
+        """
         precomplemented_api_params = super().complement_api_parameters_list(
             operation_name,
             related_operations_data,
@@ -800,8 +885,15 @@ class YamlResourceNode(ResourceNode):
         relations_of_operation: List[Dict],
         related_operations_data: Union[List, Dict],
     ) -> Tuple[Union[List, bool], Union[Error, None]]:
-        """
-        get a list for api parameters, override them
+        """Finds the `override_api_parameters` in the `yaml_config` for the selected operation.
+
+        Args:
+            operation_name (str): AWS Operation name
+            relations_of_operation (List[Dict]): Relation obj list for the Operation
+            related_operations_data (Union[List, Dict]): Related operations are called beforehand and this is their data.
+
+        Returns:
+            Tuple[Union[List, bool], Union[Error, None]]: (value, error) tuple.
         """
         operations = self.yaml_config.operations
         for operation in operations:
@@ -881,6 +973,9 @@ class ServiceNode:
                 return r_node
         return False
 
+    def __str__(self) -> str:
+        return f"ServiceNode({self.name})"
+
     def json(self) -> Dict:
         return {
             "service_name": self.name,
@@ -929,7 +1024,7 @@ class ServiceNode:
         Uses the `ResourceNodeRegistry` to find the custom subclasses of the
         `ResourceNode` class, else defaults to use the ResourceNode class
 
-        Raises: # TODO: fix this, return false instead
+        Raises:
             Exception: _description_
 
         Returns:
@@ -960,7 +1055,9 @@ class ServiceNode:
         if yaml_config_found:
             # add the yaml_config for the YamlResourceNode subclass initialization
             kwargs.update({"yaml_config": yaml_config_found})
-            logger.debug(f"ResourceNodeRegistry: [bold][green]{service_name}[/].[blue]{resource_node_name}[/][/] has extended with custom yaml config.")
+            logger.debug(
+                f"ResourceNodeRegistry: [bold][green]{service_name}[/].[blue]{resource_node_name}[/][/] has extended with custom yaml config."
+            )
             yaml_resource_node_obj = YamlResourceNode(**kwargs)
             return yaml_resource_node_obj
 
