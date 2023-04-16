@@ -37,11 +37,11 @@ class Relation:
 We could read this example relation like this:
 
 - `iam` service has a `Policy` resource node, which has a `ListPolicies` operation.
-- `"Arn"` is the key name of the output dictionary of the `ListPolicies` operation which has a `"string"` type.
-- `required_shape_name`: `"PolicyArn"` is the name of the required parameter that could be populated using the `target` data.
+- `Arn` is the key name of the output dictionary of the `ListPolicies` operation which has a `"string"` type.
+- When you call `ListPolicies`, you can JMESPath search the response with `target_path` to get the `Arn` value out of the output.
+- `required_shape_name`: `"PolicyArn"` is the name of ==the required parameter== that could be populated using output of `ListPolicies`.
 
 
 So if any operation had a `PolicyArn` as a required parameter, we could use the `ListPolicies` operation to get the `Arn` value from the output dictionary.
 
-`target_path` is a JMESPath query to extract the `Arn` value from the output dictionary.
 

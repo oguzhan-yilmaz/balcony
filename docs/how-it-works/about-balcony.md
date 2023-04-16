@@ -1,14 +1,4 @@
-# balcony and boto3
-
-**Listing AWS Services**
-
-All available AWS Services for the current region can be queried using boto3.
-
-```python title="Listing available service names"
-session = boto3.session.Session()
-session.get_available_services()
-# ['accessanalyzer', 'account', 'acm', 'acm-pca', 'alexaforbusiness', ...]
-```
+# About balcony
 
 ## Python lets you inspect anything on runtime
 

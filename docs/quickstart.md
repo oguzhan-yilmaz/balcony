@@ -1,14 +1,16 @@
 # Quick Start
+
 ### Installation
 
 ```bash
 pip3 install balcony
 ```
 
+### Run balcony on Docker
 
+You may choose to [run balcony with Docker](docker.md)
 
 ### Shell Autocompletion
-
 
 === "Setup for the current shell session"
 
@@ -32,12 +34,9 @@ pip3 install balcony
     # restart your shell
     ```
 
-
-
 ### About AWS credentials
 
-
-!!! tip "balcony uses your shell environment for the AWS credentials" 
+!!! tip "balcony uses your shell environment for the AWS credentials"
 
     ```bash  title="See the active profile with awscli"
     aws sts get-caller-identity
@@ -60,19 +59,23 @@ pip3 install balcony
 balcony aws
 ```
 
-!!! note "Remember to get **--help**" 
+!!! note "Remember to get **--help**"
 
     ```bash  title=""
     balcony --help
     balcony aws --help
     ```
+
 ### List all Resource Nodes of a Service
+
 ```bash
 balcony aws iam
 
 balcony aws ec2
 ```
+
 ### See the documentation of a Resource Node and its Operations
+
 ```bash
 balcony aws iam Policy -l
 # or
@@ -81,19 +84,18 @@ balcony aws iam Policy --list
 balcony aws iam Policy -ls
 ```
 
-
 ### Read a Resource Node
-
 
 ```bash
 balcony aws iam Policy
 
-# if you are curious to see what's going on 
-# under the hood, enable the debug messages 
+# if you are curious to see what's going on
+# under the hood, enable the debug messages
 balcony aws iam Policy -d
 # or
 balcony aws iam Policy --debug
 ```
+
 ### Read a Resource Nodes specific operation
 
 ```bash
@@ -103,16 +105,16 @@ balcony aws iam Policy list
 ```
 
 ### Filter generated parameters with UNIX style `--pattern` matching
-!!! note "Important note on **--pattern** option" 
+
+!!! note "Important note on **--pattern** option"
     This option only filters the generated api parameters for the given operation.
 
     Because of this `--pattern` matching is only applied to operations with required parameters.
-    
 
 ```bash
 balcony aws iam Policy --pattern "*service-role/*"
 
-# supports multiple patterns 
+# supports multiple patterns
 balcony aws iam Policy --pattern "*service-role/*" --pattern "*prod-*"
 ```
 
@@ -136,7 +138,7 @@ Using the `--format` option allows you to string format the output json data.
 
 Must be used with `-js | --jmespath-selector` option because `--format` option only works with a list of dictionaries of same structure.
 
-Given format string will be applied to each `dict` in the list, allowing you to use [f-strings](https://peps.python.org/pep-0498/) notation. 
+Given format string will be applied to each `dict` in the list, allowing you to use [f-strings](https://peps.python.org/pep-0498/) notation.
 
 ```bash
 # create stop-instances script for running instances

@@ -1,6 +1,6 @@
-# botocore utils
+# YamlResourceNode
 
-::: balcony.botocore_utils
+::: balcony.nodes.YamlResourceNode
     handler: python
     options:
           show_source: false

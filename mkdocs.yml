@@ -19,7 +19,8 @@ nav:
       - development/custom-resource-nodes.md
       - 'Diagram: Reading Operations': development/diagram-of-reading-operations.md
     - Reference:
-      - reference/resource-node.md
+      - 'ResourceNode': reference/resource-node.md
+      - 'YamlResourceNode': reference/yaml-resource-node.md
       - 'ServiceNode': reference/service-node.md
       - 'ServiceReader': reference/service-reader.md
       - reference/relations.md
@@ -28,6 +29,7 @@ nav:
       - 'Utilities': 
         - reference/utils.md
         - reference/botocore_utils.md
+    - 'Star History': misc.md
 theme:
   name: material
   language: en
@@ -70,6 +72,7 @@ extra:
       
       
 markdown_extensions:
+  - tables
   - pymdownx.critic
   - pymdownx.caret
   - pymdownx.keys

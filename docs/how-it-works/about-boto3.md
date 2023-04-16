@@ -1,50 +1,50 @@
-## About **boto3** and AWS SDK & API
+# About **boto3** and AWS API
 
-**Size of AWS SDK & API**
+Boto3 is the Amazon Web Services Software Development Kit (AWS SDK) for Python, which allows Python developers to write software that makes use of AWS services.
 
-| Type | Count | 
-|:-- |:-- | 
-| Services | 318+ | 
-| ReadOnly Operations | 4577+ | 
-| All Operations | 12129+ | 
+`boto3` is simply a Python wrapper for the existing AWS HTTP API, providing pythonic functions to match the corresponding AWS API Operation.
 
-`boto3` is simply a Python wrapper for the existing AWS HTTP API. 
+AWS HTTP API is constantly being updated, and the SDKs must match them. We can infer that AWS team has to maintain multitude of SDKs for the popular programming languages, and have them match the HTTP API.
 
-It's important to keep in mind that AWS API is versioned and always keeps updated.
+**Absolute unit size of the AWS SDK & API**
 
-Botocore team abstracted the whole API to underlying service definition `.json` files.
+| Entity Type          | Count  |
+| :------------------- | :----- |
+| Services             | 318+   |
+| Read-only Operations | 4577+  |
+| All Operations       | 12129+ |
 
-```python 
+Instead of creating a python function that'd make a call to AWS HTTP API, `botocore` team opted to abstract the whole API definition to underlying service `.json` files.
+
+```python
 import boto3
 iam_client = boto3.client('iam')
 ```
-When you create a `boto3.client` like this, 
-the underlying .json files are used to create clients in runtime. And files are versioned to match the API.
 
+When you create a `boto3.client` object like this, the underlying JSON files are used to dynamically create clients during runtime. These files are versioned to match the API.
 
 You also can see that we get clients by providing their string names, instead of accessing them as composite objects, like `boto3.iam` — _hinting at its generated nature_.
 
-
-
 #### Service definition json files
 
-[Example botocore service definition json](https://github.com/boto/botocore/blob/develop/botocore/data/iam/2010-05-08/service-2.json)
+These files are defined in the [botocore/data/\*\*/](https://github.com/boto/botocore/tree/develop/botocore/data) for each AWS Service.
+
+For example, you can inspect the [AWS IAM Service botocore service definition json](https://github.com/boto/botocore/blob/develop/botocore/data/iam/2010-05-08/service-2.json) file.
 
 These files encapsulate everything needed for making every API request exist in a service:
 
-- endpoint — URI
-- input format — Parameters
-- output format — Response
-- possible errors — Exceptions
+- **endpoint** — URI
+- **input format** — Parameters
+- **output format** — Response
+- **possible errors** — Exceptions
 
+### Outline of boto service definitions
 
-
-### Outline of boto service definitions 
- _botocore/botocore/data/**iam**/2010-05-08/service-2.json_
 
 
 **json outline**
-```json
+
+```json title="botocore/botocore/data/iam/2010-05-08/service-2.json" 
 {
   "version":"2.0",
   "metadata": {...},
@@ -53,6 +53,7 @@ These files encapsulate everything needed for making every API request exist in 
   "documentation": "..."
 }
 ```
+
 **metadata**
 
 Defines the metadata of an AWS Service.
@@ -72,12 +73,13 @@ Defines the metadata of an AWS Service.
 }
 ```
 
-
 **shapes**
 
 `Shape` is a nested data abstraction that is able to represent any data structure, created by `boto` team.
 
-Every data type used in a service is available on `.shapes` definition. 
+`Shape`s are used to define function input & output structures.
+
+Every data type used in a service is available on it's `.shapes` definition.
 
 ```json
 "shapes":{
@@ -97,8 +99,7 @@ Every data type used in a service is available on `.shapes` definition.
 
 **operations**
 
-Types of requests you can make to AWS API are internally called `Operation`.
-
+==Types of requests(API calls) you can make to AWS API are internally called `Operation`.==
 
 Operations define `input_shape` and `output_shape` for its input & output data structure. It also defines the required parameters for an operation. And also the possible exceptions you might get calling this operation.
 
@@ -120,49 +121,46 @@ Operations define `input_shape` and `output_shape` for its input & output data s
         {"shape":"InvalidInputException"},
         {"shape":"ServiceFailureException"}
       ],
-      "documentation":"<p>Retrieves information about the 
-      specified managed policy, including the policy's default 
+      "documentation":"<p>Retrieves information about the
+      specified managed policy, including the policy's default
       version and the..."
     }
 }
 ```
 
-
-
 ### boto3 service clients & their operations
-
 
 Every boto3 client has a `_PY_TO_OP_NAME` mapping that looks like this:
 
-| boto3 client function | Operation Name | 
-| -- | -- | 
-| attach_role_policy | AttachRolePolicy |
-| create_role | CreateRole |
-| delete_role | DeleteRole |
-| detach_role_policy | DetachRolePolicy |
-| get_role | GetRole |
+| boto3 client function | Operation Name   |
+| --------------------- | ---------------- |
+| attach_role_policy    | AttachRolePolicy |
+| create_role           | CreateRole       |
+| delete_role           | DeleteRole       |
+| detach_role_policy    | DetachRolePolicy |
+| get_role              | GetRole          |
 
-This represents a mapping from the python function names to actual operation names. 
+This represents a mapping from the python function names to actual operation names.
 
 You might be already familiar with `Operations` because they are the exact same thing as the **Action** segment on IAM Policies.
 
 **Example IAM Policy**
+
 ```json
 {
   "Statement": [
     {
-        "Effect": "Allow",
-        "Resource": "*",
-        "Action": [
-            "cloudwatch:Describe*",
-            "ec2:DescribeSubnets",
-            "ec2:DescribeVpcs",
-            "iam:ListRoles",
-            "iam:GetRole",
-            "logs:Create*"
-        ]
+      "Effect": "Allow",
+      "Resource": "*",
+      "Action": [
+        "cloudwatch:Describe*",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeVpcs",
+        "iam:ListRoles",
+        "iam:GetRole",
+        "logs:Create*"
+      ]
     }
   ]
 }
 ```
-
