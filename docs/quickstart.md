@@ -59,12 +59,15 @@ You may choose to [run balcony with Docker](docker.md)
 balcony aws
 ```
 
-!!! note "Remember to get **--help**"
+### Remember to get **--help**
 
-    ```bash  title=""
-    balcony --help
-    balcony aws --help
-    ```
+```bash
+balcony --help
+balcony aws --help
+```
+
+![balcony --help output screenshot](images/balcony-help.png)
+
 
 ### List all Resource Nodes of a Service
 
@@ -102,6 +105,17 @@ balcony aws iam Policy --debug
 balcony aws iam Policy get
 
 balcony aws iam Policy list
+```
+
+### Use `--paginate`, `-p` option for pagination
+
+Using the `--paginate`, `-p` option allows you to paginate the outputs if they're truncated. If you don't set this flag ==you may get **incomplete data**.==
+
+```bash
+# Get all instances available on the AWS Account
+balcony aws ec2 Instances \
+    -js "DescribeInstances[*].Reservations[*].Instances[]" \
+    --paginate --debug
 ```
 
 ### Filter generated parameters with UNIX style `--pattern` matching
@@ -150,4 +164,16 @@ balcony aws ec2 Instances \
 balcony aws iam Policy \
     --jmespath-selector "GetPolicy[*].Policy" \
     --format 'aws iam delete-policy --policy-arn "{Arn}" --version "{DefaultVersionId}"'
+```
+
+### Use `--output`, `-o` option for pagination
+
+Using the `--output`, `-o` option allows you to save the output data to a file.
+
+```bash
+# Get all instances available on the AWS Account
+balcony aws ec2 Instances \
+    -js "DescribeInstances[*].Reservations[*].Instances[]" \
+    --paginate --debug \
+    --output /tmp/balcony-output.json
 ```

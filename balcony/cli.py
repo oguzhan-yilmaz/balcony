@@ -178,7 +178,7 @@ def _list_service_or_resource(
         return
 
 
-@app.command("aws", help="List AWS services, Call read-operations, Show documentation")
+@app.command("aws")
 def aws_main_command(  # noqa
     service: Optional[str] = typer.Argument(
         None,
