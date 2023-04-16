@@ -2,7 +2,7 @@
 
 ### Generate aws-cli delete-policy commands for `dev-` IAM Roles
 
-`--paginate` option will follow the pagination tokens to make sure to get all Policies are read.
+`--paginate` option will follow the pagination tokens to make sure that all Policies are read.
 
 ```bash
 balcony aws iam Policy \

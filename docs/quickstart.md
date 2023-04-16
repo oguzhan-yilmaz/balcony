@@ -166,7 +166,7 @@ balcony aws iam Policy \
     --format 'aws iam delete-policy --policy-arn "{Arn}" --version "{DefaultVersionId}"'
 ```
 
-### Use `--output`, `-o` option for pagination
+### Use `--output`, `-o` option for writing the output to a file
 
 Using the `--output`, `-o` option allows you to save the output data to a file.
 
