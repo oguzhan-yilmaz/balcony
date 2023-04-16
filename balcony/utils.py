@@ -4,11 +4,12 @@ from typing import List
 import inflect
 import os
 import boto3
+from config import get_logger
 
 # from functools import lru_cache
 
 inflect_engine = inflect.engine()  # used for singular/plural word comparing
-
+logger = get_logger(__name__)
 
 _camel_case_regex_compiled = compile(
     r".+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)"
@@ -41,6 +42,12 @@ def is_word_in_a_list_of_words(word: str, list_of_words: List[str]) -> bool:
     return False
 
     return word.lower() in []
+
+
+def inform_about_develeoping_custom_resource_nodes():
+    logger.debug(
+        "[bold yellow][WARNING][/] It seems balcony [red bold]failed[/] to read this operation. You can create Custom ResourceNodes to fix the failed operation. Visit [bold]https://oguzhan-yilmaz.github.io/balcony/development/developing-custom-resource-nodes/[/] to learn more."
+    )
 
 
 def ifind_similar_names_in_list(

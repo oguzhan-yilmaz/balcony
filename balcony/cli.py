@@ -241,8 +241,7 @@ def aws_main_command(  # noqa
         show_default=False,
         help="Output JSON file name. If not provided, will print to console.",
     )
-): 
-
+):
     if debug:
         set_log_level_at_runtime(logging.DEBUG)
 
