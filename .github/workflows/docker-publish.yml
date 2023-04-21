@@ -13,6 +13,6 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Build and Push the balcony Docker image
       run: |
-            docker build . --tag ghcr.io/oguzhan-yilmaz/balcony:latest
+            docker build --tag ghcr.io/oguzhan-yilmaz/balcony:latest dockerfiles/.
             docker run ghcr.io/oguzhan-yilmaz/balcony:latest
             docker push ghcr.io/oguzhan-yilmaz/balcony:latest
