@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "balcony"
-version = "0.0.82"
+version = "0.0.83"
 description = "AWS API for humans"
 authors = ["Oguzhan Yilmaz <oguzhanylmz271@gmail.com>"]
 license = "GPL-3.0-or-later"
