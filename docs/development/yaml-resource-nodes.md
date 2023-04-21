@@ -3,7 +3,7 @@
 You can create a YAML file to alter the behavior of specific ResourceNodes and Operations. 
 
 !!! important "Complete YAML example"
-    Check out the documented YAML file: [balcony/custom_nodes/yamls/_example_service.yaml](https://github.com/oguzhan-yilmaz/balcony/blob/main/balcony/custom_nodes/yamls/_example_service.yaml) in the repository
+    Check out the documented YAML file: [balcony/custom_nodes/yamls/_example_service.yaml](https://github.com/oguzhan-yilmaz/balcony/blob/main/balcony/custom_nodes/yamls/_example_service.yaml) in the repository.
 
 
 ## YAML Structure
@@ -11,7 +11,9 @@ You can create a YAML file to alter the behavior of specific ResourceNodes and O
 
 Custom YAML files are defined in the `custom_nodes/yamls/` folder and picked up by balcony automatically.
 
-balcony uses `pydantic` for configuration input validation, and the custom yaml file should be in the following format:
+balcony uses `pydantic` for configuration input validation, and apart from `service_name` and `resource_node_name` all other keys are optional. 
+
+The custom yaml file should be in the following format:
 
 
 ```yaml title="balcony/custom_nodes/yamls/_example_service.yaml"
@@ -20,7 +22,8 @@ balcony uses `pydantic` for configuration input validation, and the custom yaml 
 # It's advised to check out other .yaml files.
 service_name: <service-name> # AWS Service short name
 resource_nodes:
-- resource_node_name: <resource-node-name> # ResourceNode in this Service
+- resource_node_name: <resource-node-name> # non-optional
+  # rest of this level keys are all optional 
   extra_relations: 
     # extra_relations will be visible to the current and all other 
     # operations in this Service. Use this feature to add a missing 

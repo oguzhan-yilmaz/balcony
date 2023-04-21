@@ -200,7 +200,7 @@ def _flatten_shape_to_its_members_and_target_paths(
 ) -> List[ShapeAndTargetPath]:
     """Recursive function to get a shape's all members with targetpaths.
     Generates target_str JMESPath selector for each member as it's located in the hierarchy.
-    Returns a flattened list of (shape, target_path) namedtuples
+    Returns a flat list of (shape, target_path) namedtuples
 
     Args:
         shape (Shape): botocore shape, possibly output shape of an operation

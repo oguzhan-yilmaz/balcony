@@ -72,7 +72,7 @@ def str_relations(relations: List[dict]) -> str:
     )
 
 
-def get_all_available_services(session) -> List[str]:
+def get_all_available_services(session: boto3.session.Session) -> List[str]:
     """Gets available services from boto3 session"""
     return session.get_available_services()
 

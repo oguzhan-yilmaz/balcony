@@ -55,7 +55,12 @@ def supress_other_module_logs() -> None:
             logging.getLogger(_logger_name).setLevel(logging.CRITICAL)
 
 
-def set_log_level_at_runtime(log_level):
+def set_log_level_at_runtime(log_level: str):
+    """Sets the log level of loggers that balcony uses at runtime.
+
+    Args:
+        log_level (str): Log level string: INFO, WARNING, DEBUG etc.
+    """
     for _logger in _balcony_loggers:
         _logger.setLevel(log_level)
         # for handler in _logger.handlers:

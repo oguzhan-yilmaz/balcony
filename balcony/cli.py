@@ -11,7 +11,7 @@ from aws import BalconyAWS
 
 import typer
 import jmespath
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Generator
 from rich.columns import Columns
 from rich.panel import Panel
 import logging
@@ -22,7 +22,7 @@ from pathlib import Path
 console = get_rich_console()
 logger = get_logger(__name__)
 session = boto3.session.Session()
-service_factory = BalconyAWS(session)
+balcony_aws = BalconyAWS(session)
 app = typer.Typer(no_args_is_help=True)
 
 
@@ -32,15 +32,6 @@ def _main_app_callback(
 ):
     if debug:
         set_log_level_at_runtime(logging.DEBUG)
-
-
-def _get_available_service_node_names():
-    return get_all_available_services(session)
-
-
-def generate_service_node_completion_items():
-    service_names = _get_available_service_node_names(session)
-    return service_names
 
 
 def save_dict_to_output_file(output_filepath: str, data: Dict):
@@ -53,8 +44,16 @@ def save_str_list_to_output_file(output_filepath: str, lines: List[str]):
         f.writelines([line + "\n" for line in lines])
 
 
-def _complete_service_name(incomplete: str):
-    service_names = _get_available_service_node_names()
+def _complete_service_name(incomplete: str) -> Generator[str, None, None]:
+    """Typer autocompletion function. Finds matching service names.
+
+    Args:
+        incomplete (str): Service names that're starting with this string.
+
+    Yields:
+        _type_: _description_
+    """
+    service_names = get_all_available_services(session)
     if not incomplete:
         for name in service_names:
             yield name
@@ -64,11 +63,11 @@ def _complete_service_name(incomplete: str):
                 yield name
 
 
-def _complete_resource_node_name(ctx: typer.Context, incomplete: str) -> List[str]:
+def _complete_resource_node_name(ctx: typer.Context, incomplete: str) -> Generator[str, None, None]:
     service = ctx.params.get("service", False)
     if not service:
         return []
-    service_node = service_factory.get_service_node(service)
+    service_node = balcony_aws.get_service_node(service)
     if not service_node:
         return []
     resource_nodes = service_node.get_resource_nodes()
@@ -92,7 +91,7 @@ def _complete_operation_type(ctx: typer.Context) -> List[str]:
     resource_node = ctx.params.get("resource_node", False)
     if not service or not resource_node:
         return []
-    service_node = service_factory.get_service_node(service)
+    service_node = balcony_aws.get_service_node(service)
     if not service_node:
         return []
     resource_node_obj = service_node.get_resource_node_by_name(resource_node)
@@ -105,10 +104,10 @@ def _complete_operation_type(ctx: typer.Context) -> List[str]:
 def _list_service_or_resource(
     service: Optional[str] = False,
     resource_node: Optional[str] = False,
-    screen_pager: Optional[bool] = False
+    screen_pager: Optional[bool] = False,
 ) -> None:
 
-    available_service_names = _get_available_service_node_names()
+    available_service_names = get_all_available_services(session)
     if not service and not resource_node:
         # nothing is given
         console.print(Columns(available_service_names, equal=True, expand=True))
@@ -130,7 +129,7 @@ def _list_service_or_resource(
                     f"Invalid service name: {service}. Please pick a proper one."
                 )
 
-        service_node = service_factory.get_service_node(service)
+        service_node = balcony_aws.get_service_node(service)
         resource_nodes = service_node.get_resource_nodes()
 
         resource_node_names = []
@@ -150,7 +149,7 @@ def _list_service_or_resource(
 
     elif service and resource_node:
         # we got both options filled
-        service_node = service_factory.get_service_node(service)
+        service_node = balcony_aws.get_service_node(service)
         resource_nodes = service_node.get_resource_nodes()
         resource_node_names = [_rn.name for _rn in resource_nodes]
         resource_node_obj = service_node.get_resource_node_by_name(resource_node)
@@ -240,38 +239,46 @@ def aws_main_command(  # noqa
         "-o",
         show_default=False,
         help="Output JSON file name. If not provided, will print to console.",
-    )
+    ),
 ):
     if debug:
         set_log_level_at_runtime(logging.DEBUG)
 
     if list_contents:
         _list_service_or_resource(service, resource_node, screen_pager=screen)
-        return
+        raise typer.Exit()
+
 
     # warn user if pagination is not set
     if not follow_pagination:
-        logger.warning("[yellow bold][WARNING][/] [bold]--paginate, -p[/] option is NOT set. You're likely to get incomplete data.")
+        logger.warning(
+            "[yellow bold][WARNING][/] [bold]--paginate, -p[/] option is NOT set. You're likely to get incomplete data."
+        )
 
     if not service and not resource_node:
-        available_services = _list_service_or_resource(service, resource_node, screen_pager=screen)
+        # print out resource nodes of this service.
+        _list_service_or_resource(
+            service, resource_node, screen_pager=screen
+        )
         console.print(
             Panel("[bold]Please pick one of the AWS Services", title="[red][bold]ERROR")
         )
-        return {"services": available_services}
+        raise typer.Exit()
 
     if service and not resource_node:
-        available_resources = _list_service_or_resource(service, resource_node, screen_pager=screen)
+        _list_service_or_resource(
+            service, resource_node, screen_pager=screen
+        )
         console.print(
             Panel(
                 f"[bold]Please pick one of the Resource Nodes from [green]{service}[/] Service",
                 title="[red][bold]ERROR",
             )
         )
-        return {"service": service, "resources": available_resources}
+        raise typer.Exit()
 
     elif service and resource_node:
-        service_node = service_factory.get_service_node(service)
+        service_node = balcony_aws.get_service_node(service)
         service_reader = service_node.get_service_reader()
 
         is_operation_selected = operation is not None
@@ -279,7 +286,9 @@ def aws_main_command(  # noqa
         if not is_operation_selected:
             # read all operations in given resource node
             read_data = service_reader.read_resource_node(
-                resource_node, match_patterns=patterns, follow_pagination=follow_pagination
+                resource_node,
+                match_patterns=patterns,
+                follow_pagination=follow_pagination,
             )
 
         else:  # Operation is selected
@@ -291,9 +300,14 @@ def aws_main_command(  # noqa
                 console.print(
                     f"[red bold]Given {operation} is not supported by {resource_node}. Try: {supported_operation_types}"
                 )
-                return False
+                raise typer.Exit(code=-1)
+
             read_data = service_reader.read_operation(
-                resource_node, operation_name, match_patterns=patterns, refresh=False, follow_pagination=follow_pagination
+                resource_node,
+                operation_name,
+                match_patterns=patterns,
+                refresh=False,
+                follow_pagination=follow_pagination,
             )
 
         if jmespath_selector:
@@ -311,19 +325,23 @@ def aws_main_command(  # noqa
                         # try to format and add it to output lines list
                         formatted_output_list.append(formatter.format(**r_data))
                     except AttributeError as e:
-                        logger.debug(f"Failed to format  [red]{str(e)}[/] with data: {r_data}")
+                        logger.debug(
+                            f"Failed to format  [red]{str(e)}[/] with data: {r_data}"
+                        )
 
                 if output_file:
                     output_filepath = Path(output_file).resolve()
                     logger.info(f"Saving output to: {output_filepath}")
                     save_str_list_to_output_file(output_filepath, formatted_output_list)
-                    return
+                    raise typer.Exit()
                 else:
                     # print to console
-                    console.print('\n'.join(formatted_output_list), overflow="ignore")
-                    return read_data
+                    console.print("\n".join(formatted_output_list), overflow="ignore")
+                    raise typer.Exit()
             else:
-                logger.debug(f"[red]No data found.[/] Failed to use --format: '{formatter}'")
+                logger.debug(
+                    f"[red]No data found.[/] Failed to use --format: '{formatter}'"
+                )
 
         if screen:
             with console.pager(styles=True):
@@ -334,7 +352,7 @@ def aws_main_command(  # noqa
             save_dict_to_output_file(output_filepath, read_data)
         else:
             console.print_json(data=read_data, default=str)
-        return read_data
+        raise typer.Exit()
 
 
 @app.command("clear-cache", help="Clear relations json cache")
@@ -346,6 +364,7 @@ def clear_cache_command(
     deleted_service_caches = clear_relations_cache()
     for deleted_service in deleted_service_caches:
         logger.info(f"[green]Deleted[/] {deleted_service}")
+
 
 # @app.command('version', help='Show version info' )
 # def version_command():

@@ -6,29 +6,11 @@ from typing import Optional, List, Union
 import boto3
 
 
-# class Boto3SessionSingleton(object):
-#     _instance = None
-#     _session = None
-
-#     def __new__(cls):
-#         if cls._instance is None:
-#             cls._instance = super(Boto3SessionSingleton, cls).__new__(cls)
-#             # Put any initialization here.
-#             # cls._session = _create_boto_session()
-#         return cls._instance
-
-#     def __init__(self):
-#         if not self._session:
-#             self._session = _create_boto_session()
-
-#     def get_session(self):
-#         return self._session
-
-
 class BalconyAWS:
-    """Represents the whole AWS API.
-    Can be used to get ServiceNodes and ServiceReaders.
-    Operations can be read with `read_` functions.
+    """Provides a concise interface for using balcony's functionalities.
+
+    It can be used to reading AWS Operations, or accessing underlying
+    ServiceNodes and ServiceReaders.
 
     ```python title="Creating a BalconyAWS obj and reading IAM Roles"
     baws = BalconyAWS()
@@ -38,13 +20,22 @@ class BalconyAWS:
     """
 
     def __init__(self, boto3_session: Optional[boto3.session.Session] = None):
+        """Initializes this object with an optional `boto3.session.Session` object.
+        If it's not provided, default boto3 session is created from the shell credentials.
+
+        Args:
+            boto3_session (Optional[boto3.session.Session], optional): Custom boto3 Session object. If not given,
+                                                                        default Session will be used.
+        """
         self.boto3_session = boto3_session
         if boto3_session is None:
             self.boto3_session = _create_boto_session()
+
+        # Stores the created ServiceNodes by their names
         self._service_nodes_map = {}
 
     def _create_service_node(self, service_name: str) -> None:
-        """Creates the ServiceNode w/ the `self.boto3_session`
+        """Creates the ServiceNode with the `self.boto3_session`
 
         Args:
             service_name (str): Name of the AWS Service
@@ -89,7 +80,6 @@ class BalconyAWS:
     ) -> Union[dict, bool]:
         """Call the AWS API operation for the given `service_name`, `resource_node_name` and `operation_name` values.
 
-
         Args:
             service_name (str): AWS Service name.
             resource_node_name (str): AWS ResourceNode name
@@ -104,7 +94,11 @@ class BalconyAWS:
         service_reader = self.get_service_reader(service_name)
         if service_reader:
             data = service_reader.read_operation(
-                resource_node_name, operation_name, match_patterns, refresh, follow_pagination=follow_pagination
+                resource_node_name,
+                operation_name,
+                match_patterns,
+                refresh,
+                follow_pagination=follow_pagination,
             )
             return data
         return False
@@ -115,7 +109,7 @@ class BalconyAWS:
         resource_node_name: str,
         match_patterns: Optional[List[str]] = None,
         refresh: Optional[bool] = False,
-        follow_pagination: Optional[bool] = False
+        follow_pagination: Optional[bool] = False,
     ) -> Union[dict, bool]:
         """Reads all available Read operations of the given ResourceNode.
 
@@ -132,13 +126,16 @@ class BalconyAWS:
         service_reader = self.get_service_reader(service_name)
         if service_reader:
             data = service_reader.read_resource_node(
-                resource_node_name, match_patterns, refresh=refresh, follow_pagination=follow_pagination
+                resource_node_name,
+                match_patterns,
+                refresh=refresh,
+                follow_pagination=follow_pagination,
             )
             return data
         return False
 
     def get_available_service_names(self) -> List[str]:
-        """Lists available AWS service names
+        """Lists available AWS service namese
 
         Returns:
             List[str]: Available service names for current `boto3.session.Session`
