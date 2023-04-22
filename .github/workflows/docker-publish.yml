@@ -26,6 +26,6 @@ jobs:
         uses: macbre/push-to-ghcr@master
         with:
           image_name: ${{ github.repository }}
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GHCR_TOKEN }}
           dockerfile: dockerfiles/Dockerfile
           image_tag: latest
