@@ -1,23 +1,31 @@
-name: Build & Push to GHCR
+name: Build and publish a Docker image to ghcr.io
 on:
+
+  # publish on releases, e.g. v2.1.13 (image tagged as "2.1.13" - "v" prefix is removed)
+  release:
+    types: [ published ]
+
+  # publish on pushes to the main branch (image tagged as "latest")
   push:
+    paths-ignore:
+      - 'docs/**'
+      - '.flake8'
+      - 'mkdocs.yml'
+      - 'README.md'
     branches:
-      - 'main'
+      - main
+
 jobs:
-  docker:
-    runs-on: ubuntu-latest
+  docker_publish:
+    runs-on: "ubuntu-20.04"
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+      - uses: actions/checkout@v2
+      # https://github.com/marketplace/actions/push-to-ghcr
+      - name: Build and publish a Docker image for ${{ github.repository }}
+        uses: macbre/push-to-ghcr@master
         with:
-          context: .
-          file: ./dockerfiles/Dockerfile
-          platforms: ${{ matrix.platforms }}
-          push: true
-          outputs: type=image,name=target,annotation-index.org.opencontainers.image.description=Balcony MultiArch Docker Image
+          image_name: ${{ github.repository }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          dockerfile: dockerfiles/Dockerfile
+          image_tag: latest
