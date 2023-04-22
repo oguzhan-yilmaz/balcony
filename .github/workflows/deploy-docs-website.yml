@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'docs/**'
+
 jobs:
   deploy-mkdocs-docs-website:
     runs-on: ubuntu-latest
