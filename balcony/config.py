@@ -21,7 +21,7 @@ LOG_LEVEL = 'INFO'
 YAML_IGNORE_PREFIX = "_"
 YAML_SERVICES_DIRECTORY = Path(__file__).parent / "custom_nodes" / "yamls"
 
-_console = Console(color_system="auto", markup=True)
+_console = Console(color_system="auto", markup=True, )
 _balcony_loggers = []
 
 
@@ -87,5 +87,6 @@ def get_logger(name: str) -> logging.Logger:
     )
 
     _logger = logging.getLogger(name)
+    # keep track of the created loggers
     _balcony_loggers.append(_logger)
     return _logger

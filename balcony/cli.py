@@ -135,10 +135,10 @@ def _list_service_or_resource(
         resource_node_names = []
         for _rn in resource_nodes:
             _rn_name = _rn.name
-            if len(_rn.get_all_required_parameter_names()) >= 2:
-                _rn_name = f"[bold red]{_rn_name}[/]"
-            elif len(_rn.get_all_required_parameter_names()) >= 1:
-                _rn_name = f"[bold green]{_rn_name}[/]"
+            # if len(_rn.get_all_required_parameter_names()) >= 2:
+            #     _rn_name = f"[bold red]{_rn_name}[/]"
+            # elif len(_rn.get_all_required_parameter_names()) >= 1:
+            #     _rn_name = f"[bold green]{_rn_name}[/]"
             resource_node_names.append(_rn_name)
 
         resource_node_name_as_columns = Columns(
@@ -248,10 +248,9 @@ def aws_main_command(  # noqa
         _list_service_or_resource(service, resource_node, screen_pager=screen)
         raise typer.Exit()
 
-
     # warn user if pagination is not set
     if not follow_pagination:
-        logger.warning(
+        logger.debug(
             "[yellow bold][WARNING][/] [bold]--paginate, -p[/] option is NOT set. You're likely to get incomplete data."
         )
 
