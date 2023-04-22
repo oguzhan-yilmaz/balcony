@@ -20,7 +20,7 @@ jobs:
     runs-on: "ubuntu-20.04"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       # https://github.com/marketplace/actions/push-to-ghcr
       - name: Install toml-cli
         run: pip install toml-cli
