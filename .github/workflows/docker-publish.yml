@@ -5,11 +5,11 @@ on:
   release:
     types: [ published ]
 
-  # publish on pushes to the main branch (image tagged as "latest")
-  push:
-    paths:
-      # Docker Images follow the project version
-      - 'pyproject.toml'
+  # # publish on pushes to the main branch (image tagged as "latest")
+  # push:
+  #   paths:
+  #     # Docker Images follow the project version
+  #     - 'pyproject.toml'
     # paths-ignore:
     #   - 'docs/**'
     #   - '.flake8'
