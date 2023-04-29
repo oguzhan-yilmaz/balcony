@@ -1,13 +1,24 @@
 """
-Any resource that app system is going to use must be exported here.
-Otherwise different import statements would create new global static objects
-for AppRegistry etc.
+The general export for the balcony's functionality.
+
+Symbols exported in this file can be used in the following way:
+
+```python
+from balcony import BalconyAWS
+```
+
+Otherwise you'd need to specify the module name:
+
+```python
+from balcony.aws import BalconyAWS
+```
 """
 import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
+# TODO: Fix this import mess
 try:
     from .aws import BalconyAWS
     from .config import get_rich_console, get_logger

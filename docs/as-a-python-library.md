@@ -20,7 +20,7 @@ boto3_session = boto3.session.Session(
 baws = BalconyAWS(boto3_session)
 ```
 
-If you don't provide your `boto3_session`, default AWS credentials will be used.s
+If you don't provide your `boto3_session`, default AWS credentials will be used.
 
 ### Listing available AWS services 
 
@@ -37,7 +37,7 @@ print(service_names)
 
 This operation read all operations for given `resource_node_name`.
 
-For example, if `iam.Policy` has `GetPolicy` and `ListPolicies` operations, so both of them will be read.
+For example, if `iam.Policy` has `GetPolicy` and `ListPolicies` operations, both of them will be read.
 
 ```python
 from balcony import BalconyAWS

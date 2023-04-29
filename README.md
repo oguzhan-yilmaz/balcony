@@ -1,17 +1,20 @@
-# balcony
+# balcony - AWS API for humans
 
-balcony is a Python based CLI tool that simplifies the process of enumerating AWS resources.
+balcony is a read-only CLI tool that simplifies the process of listing all resources on the AWS account.
 
-balcony dynamically parses `boto3` library and analyzes required parameters for each operation. 
+balcony dynamically parses AWS SDK(`boto3` library) and analyzes required parameters for each operation. 
 
-By establishing relations between operations over required parameters, it's able to auto-fill them by reading the related operation beforehand.
+By **establishing relations between operations over required parameters**, it's *able to auto-fill* them by reading the related operation beforehand.
 
 By simply entering their name, balcony enables developers to easily list their AWS resources.
 
-It uses _read-only_ operations, it does not take any action on the used AWS account.
+<!-- It uses _read-only_ operations, it does not take any action on the used AWS account. -->
 
-### [Go to Documentation Website](https://oguzhan-yilmaz.github.io/balcony/quickstart)
+### Installation & Documentation 
 
+**[https://oguzhan-yilmaz.github.io/balcony/](https://oguzhan-yilmaz.github.io/balcony/quickstart)**
+
+Balcony's documentation website contains quickstart guide, usage cookbook and more.
 ## Features
 
 ### List available AWS Services 
