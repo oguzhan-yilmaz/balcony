@@ -13,6 +13,7 @@ class YamlRelation(BaseModel):
 
 
 class YamlComplementApiParameterAction(BaseModel):
+    """Defines the `add` and `remove` options for complement_api_parameters in YamlResourceNodeOperation"""
     _ACTION_TYPES = ("add", "remove")
 
     action: str
@@ -21,12 +22,14 @@ class YamlComplementApiParameterAction(BaseModel):
 
     @validator("action")
     def action_must_be_valid(cls, v):
+        """Validates the action field. Must be 'add' or 'remove'"""
         if v not in cls._ACTION_TYPES:
             raise ValueError("action must be 'add' or 'remove'")
         return v
 
 
 class YamlResourceNodeOperation(BaseModel):
+    """Defines the customizations for a specific operation in a Resource Node."""
     operation_name: str
     jmespath_selector: Optional[str]
     complement_api_parameters: Optional[List[YamlComplementApiParameterAction]]
@@ -36,12 +39,14 @@ class YamlResourceNodeOperation(BaseModel):
 
 
 class YamlServiceResourceNode(BaseModel):
+    """Defines a Resource Node in a Service. It can have extra_relations and list of operations"""
     resource_node_name: str
     extra_relations: Optional[List[YamlRelation]]
     operations: Optional[List[YamlResourceNodeOperation]]
 
 
 class YamlService(BaseModel):
+    """Defines a Service in a Yaml file. It can have multiple Resource Nodes"""
     service_name: str
     resource_nodes: Optional[List[YamlServiceResourceNode]]
 

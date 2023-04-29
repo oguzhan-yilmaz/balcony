@@ -19,14 +19,14 @@ LOG_LEVEL = 'INFO'
 
 # YamlResourceNode customization parameters
 YAML_IGNORE_PREFIX = "_"
-YAML_SERVICES_DIRECTORY = Path(__file__).parent / "custom_nodes" / "yamls"
+YAML_SERVICES_DIRECTORY = Path(__file__).parent / "custom_yamls"
 
 _console = Console(color_system="auto", markup=True, )
 _balcony_loggers = []
 
 
 def clear_relations_cache() -> None:
-    """Removes the `<service>.json` files."""
+    """Removes the cached relations of services in the  `$BALCONY_RELATIONS_DIR/<service>.json` files."""
     relation_files = os.listdir(BALCONY_RELATIONS_DIR)
     deleted_filenames = []
     for rel_file in relation_files:
@@ -34,7 +34,7 @@ def clear_relations_cache() -> None:
             rel_file_abs_path = os.path.join(BALCONY_RELATIONS_DIR, rel_file)
             if os.path.exists(rel_file_abs_path):
                 os.remove(rel_file_abs_path)
-                deleted_filenames.append(rel_file)
+                deleted_filenames.append(rel_file_abs_path)
     return deleted_filenames
 
 

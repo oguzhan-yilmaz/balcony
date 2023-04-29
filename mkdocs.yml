@@ -26,6 +26,7 @@ nav:
       - reference/relations.md
       - reference/registries.md
       - reference/aws.md
+      - reference/yaml_configuration.md
       - 'Utilities': 
         - reference/utils.md
         - reference/botocore_utils.md

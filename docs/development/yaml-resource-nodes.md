@@ -3,20 +3,20 @@
 You can create a YAML file to alter the behavior of specific ResourceNodes and Operations. 
 
 !!! important "Complete YAML example"
-    Check out the documented YAML file: [balcony/custom_nodes/yamls/_example_service.yaml](https://github.com/oguzhan-yilmaz/balcony/blob/main/balcony/custom_nodes/yamls/_example_service.yaml) in the repository.
+    Check out the documented YAML file: [balcony/custom_yamls/_example_service.yaml](https://github.com/oguzhan-yilmaz/balcony/blob/main/balcony/custom_yamls/_example_service.yaml) in the repository.
 
 
 ## YAML Structure
 
 
-Custom YAML files are defined in the `custom_nodes/yamls/` folder and picked up by balcony automatically.
+Custom YAML files are defined in the `custom_yamls/` folder and picked up by balcony automatically.
 
 balcony uses `pydantic` for configuration input validation, and apart from `service_name` and `resource_node_name` all other keys are optional. 
 
 The custom yaml file should be in the following format:
 
 
-```yaml title="balcony/custom_nodes/yamls/_example_service.yaml"
+```yaml title="balcony/custom_yamls/_example_service.yaml"
 # This is an example config for customizing behaviors of Resource Nodes.
 # Almost all features you can define are **optional**, define what you need.
 # It's advised to check out other .yaml files.
