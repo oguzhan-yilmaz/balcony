@@ -7,20 +7,25 @@ on:
 
   # publish on pushes to the main branch (image tagged as "latest")
   push:
-    paths-ignore:
-      - 'docs/**'
-      - '.flake8'
-      - 'mkdocs.yml'
-      - 'README.md'
+    paths:
+      # Docker Images follow the project version
+      - 'pyproject.toml'
+    # paths-ignore:
+    #   - 'docs/**'
+    #   - '.flake8'
+    #   - 'mkdocs.yml'
+    #   - 'README.md'
     branches:
       - main
+      - 'releases/**'
+    
 
 jobs:
   docker_publish:
     runs-on: "ubuntu-20.04"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       # https://github.com/marketplace/actions/push-to-ghcr
       - name: Install toml-cli
         run: pip install toml-cli
