@@ -17,7 +17,7 @@ You can create a YAML file to alter the behavior of specific ResourceNodes and O
 - complement the generated api parameters (adding/removing parameters)
 - provide custom jmepath selector for parameter generation
 
-balcony will automatically register the custom `YamlResourceNode`s defined in the `balcony/custom_nodes/yamls/` folder.
+balcony will automatically register the custom `YamlResourceNode`s defined in the `balcony/custom_yamls/` folder.
 
 ## 2. Custom Class Resource Nodes
 
@@ -43,4 +43,4 @@ But if you need to implement custom logic to generate the parameters, you can us
 You can find a documented examples of custom resource nodes in the following files and across the repository:
 
 - **Custom Class Customization**: [custom_nodes/iam.py](https://github.com/oguzhan-yilmaz/balcony/blob/main/balcony/custom_nodes/iam.py)
-- **Yaml Customization**: [custom_nodes/yamls/iam.yaml](https://github.com/oguzhan-yilmaz/balcony/blob/main/balcony/custom_nodes/yamls/iam.yaml)
+- **Yaml Customization**: [custom_yamls/iam.yaml](https://github.com/oguzhan-yilmaz/balcony/blob/main/balcony/custom_yamls/iam.yaml)

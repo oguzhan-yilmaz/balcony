@@ -731,7 +731,7 @@ class YamlResourceNode(ResourceNode):
             service_node (ServiceNode): ServiceNode object
             name (str): Name of the ResourceNode
             operation_names (List[str]): Names of the ResourceNode's operations
-            yaml_config (Dict, optional): Yaml Configuration defined in the `custom_nodes/yamls/*/`. Defaults to None.
+            yaml_config (Dict, optional): Yaml Configuration defined in the `custom_yamls/*`. Defaults to None.
         """
         super().__init__(service_node, name, operation_names)
         self.yaml_config = yaml_config
