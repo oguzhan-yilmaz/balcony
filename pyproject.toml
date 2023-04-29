@@ -11,7 +11,7 @@ balcony = "balcony.cli:run_app"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-typer = "^0.6.1"
+typer = ">=0.6.1,<0.8.0"
 rich = "^12.5.1"
 boto3 = "^1.24.80"
 jmespath = "^1.0.1"
