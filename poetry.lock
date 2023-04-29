@@ -445,13 +445,13 @@ mkdocstrings = ">=0.19"
 
 [[package]]
 name = "nose3"
-version = "1.3.7"
+version = "1.3.8"
 description = "nose extends unittest to make testing easier"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "nose3-1.3.7.tar.gz", hash = "sha256:14c214035ee0990c2104baec38f0838d6b875367b30e5eac2fcc08cc8cfa05c5"},
+    {file = "nose3-1.3.8.tar.gz", hash = "sha256:762aae22cadb898b00b9d4f4bbb9f8e87f8e0dde6c49a88cd0c554f4e5925b76"},
 ]
 
 [[package]]
