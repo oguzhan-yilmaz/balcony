@@ -1,0 +1,6 @@
+dist/*
+docs/*
+.github/*
+.vscode/*
+mkdocs.yml
+
