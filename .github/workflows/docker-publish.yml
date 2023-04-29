@@ -15,9 +15,9 @@ on:
     #   - '.flake8'
     #   - 'mkdocs.yml'
     #   - 'README.md'
-    branches:
-      - main
-      - 'releases/**'
+    # branches:
+    #   - main
+    #   - 'releases/**'
     
 
 jobs:
