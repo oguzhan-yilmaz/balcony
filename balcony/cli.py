@@ -23,7 +23,7 @@ console = get_rich_console()
 logger = get_logger(__name__)
 session = boto3.session.Session()
 balcony_aws = BalconyAWS(session)
-app = typer.Typer(no_args_is_help=True)
+app = typer.Typer(no_args_is_help=True, pretty_exceptions_enable=False)
 
 
 @app.callback()
