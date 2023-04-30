@@ -2,7 +2,7 @@
 name: Custom Resource Node Request
 about: Template for requesting a failing read for a specific Service/ResourceNode
 title: "[CRN-Request] service-name/ResourceNode [OperationName]"
-labels: enhancement
+labels: CRN-Request
 assignees: oguzhan-yilmaz
 
 ---
