@@ -10,7 +10,7 @@ By simply entering their name, balcony enables developers to easily list their A
 
 <!-- It uses _read-only_ operations, it does not take any action on the used AWS account. -->
 
-### Installation & Documentation 
+## Installation & Documentation 
 
 **[https://oguzhan-yilmaz.github.io/balcony/](https://oguzhan-yilmaz.github.io/balcony/quickstart)**
 
