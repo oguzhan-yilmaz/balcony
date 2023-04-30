@@ -1,4 +1,5 @@
 import json
+import textwrap
 from utils import get_all_available_services, ifind_similar_names_in_list
 from config import (
     get_logger,
@@ -6,6 +7,7 @@ from config import (
     set_log_level_at_runtime,
     clear_relations_cache,
 )
+# required for loading custom resource nodes into registry
 from custom_nodes import *  # noqa
 from aws import BalconyAWS
 
@@ -363,6 +365,22 @@ def clear_cache_command(
     deleted_service_caches = clear_relations_cache()
     for deleted_service in deleted_service_caches:
         logger.info(f"[green]Deleted[/] {deleted_service}")
+
+
+@app.command("info", help="Information about the AWS Profile and Region currently used", )
+def info_command():
+    created_session = balcony_aws.boto3_session
+    console.print(f"[bold underline]AWS Region:[/] [bold blue]{created_session.region_name}[/]")
+    console.print(f"[bold underline]AWS Profile:[/] [bold blue]{created_session.profile_name}")
+    console.print()
+    console.print("[bold underline]Available Profiles:[/]")
+
+    for available_profile in created_session.available_profiles or []:
+        console.print(f"  - [green bold]{available_profile}[/]")
+    console.print(textwrap.dedent("""
+        [yellow]You can configure the AWS Profile and Region by setting the
+        the $[bold]AWS_DEFAULT_REGION[/] and $[bold]AWS_PROFILE[/] environment variables.[/]
+    """))
 
 
 # @app.command('version', help='Show version info' )
