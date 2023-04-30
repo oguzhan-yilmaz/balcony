@@ -1,5 +1,6 @@
 from collections import Counter
 from re import finditer, compile
+import textwrap
 from typing import List
 import inflect
 import os
@@ -45,8 +46,14 @@ def is_word_in_a_list_of_words(word: str, list_of_words: List[str]) -> bool:
 
 
 def inform_about_develeoping_custom_resource_nodes():
-    logger.debug(
-        "[bold yellow][WARNING][/] It seems balcony [red bold]failed[/] to read this operation. You can create Custom ResourceNodes to fix the failed operation. Visit [bold]https://oguzhan-yilmaz.github.io/balcony/development/developing-custom-resource-nodes/[/] to learn more."
+    logger.debug(textwrap.dedent("""
+        [bold yellow][FAILURE][/] It seems balcony [red bold]failed[/] to read this operation. 
+        
+        You can create Custom ResourceNodes to fix the failed operation. 
+        Visit [bold][link=https://oguzhan-yilmaz.github.io/balcony/development/developing-custom-resource-nodes/]Custom Resource Development Documentation[/link][/] to learn more.
+        
+        You can also track the [bold][link=https://github.com/oguzhan-yilmaz/balcony/issues]Github Issues[/link][/] or create a new issue.
+        """.lstrip('\n'))
     )
 
 

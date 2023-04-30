@@ -188,7 +188,7 @@ class ServiceReader:
         operation_markup = (
             f"[bold][green]{self.service_node.name}[/].[blue]{operation_name}[/][/]"
         )
-        logger.debug(f"[bold]Reading[/] {operation_markup}")
+        logger.debug(f"[underline][bold]Reading[/] {operation_markup}[/]")
 
         resource_node = self.service_node.get_resource_node_by_name(resource_node_name)
         if not resource_node:
@@ -292,7 +292,7 @@ class ServiceReader:
                     self.call_operation(resource_node, operation_name, api_parameter, follow_pagination=follow_pagination)
             # after calling the same operation for the different parameters
             # get all the response data made for this operation_name
-            logger.debug(f"[bold]Done Reading[/] {operation_markup}")
+            logger.debug(f"[underline][bold]Done Reading[/] {operation_markup}[/]")
             return self.search_operation_data(resource_node_name, operation_name)
 
         # OPERATION HAVE RELATIONS
@@ -348,7 +348,7 @@ class ServiceReader:
 
         # after calling the same operation for the different parameters
         # get all the response data made for this operation_name
-        logger.debug(f"[bold]Done Reading[/] {operation_markup}")
+        logger.debug(f"[underline][bold]Done Reading[/] {operation_markup}[/]")
 
         return self.search_operation_data(resource_node_name, operation_name)
 

@@ -253,7 +253,7 @@ def aws_main_command(  # noqa
     # warn user if pagination is not set
     if not follow_pagination:
         logger.debug(
-            "[yellow bold][WARNING][/] [bold]--paginate, -p[/] option is NOT set. You're likely to get incomplete data."
+            "[underline][yellow bold][WARNING][/] [bold][--paginate, -p][/] option [bold red]is NOT set[/]. You're likely to get incomplete data.[/]"
         )
 
     if not service and not resource_node:

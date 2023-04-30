@@ -71,11 +71,11 @@ def find_and_parse_yaml_services() -> List[YamlService]:
     return found_yaml_services
 
 
-# Load input data from YAML
 def _test_example_service_yaml():
     example_service_filepath = (
         Path(__file__).parent / "custom_nodes" / "yamls" / "_example_service.yaml"
     )
+    # Load input data from YAML
     service = parse_yaml_file_to_service(example_service_filepath)
     print(service)
 
