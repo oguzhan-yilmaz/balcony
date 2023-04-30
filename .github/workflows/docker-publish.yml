@@ -38,5 +38,4 @@ jobs:
         with:
           image_name: ${{ github.repository }}
           github_token: ${{ secrets.GHCR_TOKEN }}
-          dockerfile: dockerfiles/Dockerfile
           image_tag: ${{ steps.read-pyproject-version.outputs.version }}
