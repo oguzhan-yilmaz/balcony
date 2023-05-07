@@ -23,7 +23,8 @@ jobs:
           IMAGE_TAG: ${{ steps.read-pyproject-version.outputs.version }}
           REPOSITORY: "ghcr.io"
           DOCKER_BUILDKIT: 1
-          DOCKERFILE_PATH: "./Dockerfile"
+          DOCKERFILE_PATH: "."
+          DOCKER_CONTEXT: "."
         
         run: |
           echo "Using $(docker -v)"
@@ -53,7 +54,7 @@ jobs:
           export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           export GITHUB_URL=https://github.com/${{ github.repository }}
 
-          echo "::group::Building the Docker image: ${REPOSITORY}/${IMAGE_NAME}:${COMMIT_TAG} from ${{ inputs.dockerfile }} in ${{ inputs.context}} context ..."
+          echo "::group::Building the Docker image: ${REPOSITORY}/${IMAGE_NAME}:${COMMIT_TAG} from ${DOCKERFILE_PATH} in ${DOCKER_CONTEXT} context ..."
 
           # https://docs.docker.com/develop/develop-images/build_enhancements/
           # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
@@ -75,7 +76,7 @@ jobs:
             --label org.opencontainers.image.created=${BUILD_DATE} \
             --label org.opencontainers.image.source=${GITHUB_URL} \
             --label org.opencontainers.image.revision=${GITHUB_SHA} \
-            ${{ inputs.context }}
+            ${DOCKER_CONTEXT}
 
 
           docker tag ${REPOSITORY}/${IMAGE_NAME}:${COMMIT_TAG} ${REPOSITORY}/${IMAGE_NAME}:latest
