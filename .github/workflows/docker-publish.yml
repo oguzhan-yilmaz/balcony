@@ -23,7 +23,7 @@ jobs:
           IMAGE_TAG: ${{ steps.read-pyproject-version.outputs.version }}
           REPOSITORY: "ghcr.io"
           DOCKER_BUILDKIT: 1
-          DOCKERFILE_PATH: "."
+          DOCKERFILE_PATH: "./Dockerfile"
           DOCKER_CONTEXT: "."
         
         run: |
@@ -76,7 +76,7 @@ jobs:
             --label org.opencontainers.image.created=${BUILD_DATE} \
             --label org.opencontainers.image.source=${GITHUB_URL} \
             --label org.opencontainers.image.revision=${GITHUB_SHA} \
-            ${DOCKER_CONTEXT}
+            .
 
 
           docker tag ${REPOSITORY}/${IMAGE_NAME}:${COMMIT_TAG} ${REPOSITORY}/${IMAGE_NAME}:latest
