@@ -65,7 +65,6 @@ jobs:
             --build-arg GITHUB_SHA=${GITHUB_SHA} \
             \
             --tag ${{ inputs.repository }}/${IMAGE_NAME}:${COMMIT_TAG} \
-            --tag ${{ inputs.repository }}/${IMAGE_NAME}:latest \
             \
             --label org.label-schema.build-date=${BUILD_DATE} \
             --label org.label-schema.vcs-url=${GITHUB_URL} \
@@ -76,6 +75,8 @@ jobs:
             --label org.opencontainers.image.revision=${GITHUB_SHA} \
             ${{ inputs.context }}
 
+          
+          docker tag ${{ inputs.repository }}/${IMAGE_NAME}:${COMMIT_TAG} ${{ inputs.repository }}/${IMAGE_NAME}:latest
           echo "::endgroup::"
 
           echo "::group::Inspecting the image ..."
