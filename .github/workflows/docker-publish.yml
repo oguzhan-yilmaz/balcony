@@ -19,9 +19,9 @@ jobs:
       - name: Log in to the Container registry
         env:
           GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN }}
-          IMAGE_NAME: ${{ github.repository }}
+          IMAGE_NAME: oguzhan-yilmaz/balcony
           IMAGE_TAG: ${{ steps.read-pyproject-version.outputs.version }}
-          REPOSITORY: "ghcr.io"
+          REGISTRY: "ghcr.io"
           DOCKER_BUILDKIT: 1
           DOCKERFILE_PATH: "./Dockerfile"
           DOCKER_CONTEXT: "."
@@ -54,20 +54,19 @@ jobs:
           export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           export GITHUB_URL=https://github.com/${{ github.repository }}
 
-          echo "::group::Building the Docker image: ${REPOSITORY}/${IMAGE_NAME}:${COMMIT_TAG} from ${DOCKERFILE_PATH} in ${DOCKER_CONTEXT} context ..."
+          echo "::group::Building the Docker image: ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} from ${DOCKERFILE_PATH} in ${DOCKER_CONTEXT} context ..."
 
           # https://docs.docker.com/develop/develop-images/build_enhancements/
           # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
           >&0 docker build \
             --file ${DOCKERFILE_PATH} \
             --progress tty \
-            --cache-from ${REPOSITORY}/${IMAGE_NAME}:latest \
             --build-arg BUILDKIT_INLINE_CACHE=1 \
             \
             --build-arg BUILD_DATE=${BUILD_DATE} \
             --build-arg GITHUB_SHA=${GITHUB_SHA} \
             \
-            --tag ${REPOSITORY}/${IMAGE_NAME}:${COMMIT_TAG} \
+            --tag ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} \
             \
             --label org.label-schema.build-date=${BUILD_DATE} \
             --label org.label-schema.vcs-url=${GITHUB_URL} \
@@ -79,22 +78,22 @@ jobs:
             .
 
 
-          docker tag ${REPOSITORY}/${IMAGE_NAME}:${COMMIT_TAG} ${REPOSITORY}/${IMAGE_NAME}:latest
+          docker tag ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} ${REGISTRY}/${IMAGE_NAME}:latest
           echo "::endgroup::"
 
           echo "::group::Inspecting the image ..."
           docker images
 
           echo "Labels:"
-          docker image inspect ${REPOSITORY}/${IMAGE_NAME}:${COMMIT_TAG} | jq '.[].Config.Labels'
+          docker image inspect ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} | jq '.[].Config.Labels'
 
           echo "Env variables:"
-          docker image inspect ${REPOSITORY}/${IMAGE_NAME}:${COMMIT_TAG} | jq '.[].Config.Env'
+          docker image inspect ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} | jq '.[].Config.Env'
 
           echo "::endgroup::"
 
-          echo "::group::Pushing the Docker image to ${REPOSITORY} ..."
-          >&0 docker push ${REPOSITORY}/${IMAGE_NAME}:${COMMIT_TAG} && echo "Pushed"
+          echo "::group::Pushing the Docker image to ${REGISTRY} ..."
+          >&0 docker push ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} && echo "Pushed"
           echo "::endgroup::"
 
       # - name: Build and publish a Docker image for ${{ github.repository }}
