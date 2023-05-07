@@ -1,104 +1,157 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+# GitHub recommends pinning actions to a commit SHA.
+# To get a newer version, you will need to update the SHA.
+# You can also reference a tag or branch, but the action may change without warning.
+
 name: Build and publish a Docker image to ghcr.io
 on:
   # publish on releases, e.g. v2.1.13 (image tagged as "2.1.13" - "v" prefix is removed)
   release:
     types: [ published ]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
-  docker_publish:
-    runs-on: "ubuntu-20.04"
+  build-and-push-image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      - uses: actions/checkout@v3
-      # https://github.com/marketplace/actions/push-to-ghcr
-      - name: Install toml-cli
-        run: pip install toml-cli
-      - name: Read balcony version
-        id: read-pyproject-version
-        run: echo ::set-output name=version::$(toml get pyproject.toml tool.poetry.version | tr -d '[:space:]')
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Log in to the Container registry
-        env:
-          GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN }}
-          IMAGE_NAME: oguzhan-yilmaz/balcony
-          IMAGE_TAG: ${{ steps.read-pyproject-version.outputs.version }}
-          REGISTRY: "ghcr.io"
-          DOCKER_BUILDKIT: 1
-          DOCKERFILE_PATH: "./Dockerfile"
-          DOCKER_CONTEXT: "."
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+
+
+# name: Build and publish a Docker image to ghcr.io
+# on:
+#   # publish on releases, e.g. v2.1.13 (image tagged as "2.1.13" - "v" prefix is removed)
+#   release:
+#     types: [ published ]
+
+# jobs:
+#   docker_publish:
+#     runs-on: "ubuntu-20.04"
+
+#     steps:
+#       - uses: actions/checkout@v3
+#       # https://github.com/marketplace/actions/push-to-ghcr
+#       - name: Install toml-cli
+#         run: pip install toml-cli
+#       - name: Read balcony version
+#         id: read-pyproject-version
+#         run: echo ::set-output name=version::$(toml get pyproject.toml tool.poetry.version | tr -d '[:space:]')
+#       - name: Log in to the Container registry
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN }}
+#           IMAGE_NAME: oguzhan-yilmaz/balcony
+#           IMAGE_TAG: ${{ steps.read-pyproject-version.outputs.version }}
+#           REGISTRY: "ghcr.io"
+#           DOCKER_BUILDKIT: 1
+#           DOCKERFILE_PATH: "./Dockerfile"
+#           DOCKER_CONTEXT: "."
         
-        run: |
-          echo "Using $(docker -v)"
+#         run: |
+#           echo "Using $(docker -v)"
 
-          echo "::group::Logging into the GitHub Container registry (ghcr.io) ..."
-          echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-          echo "::endgroup::"
+#           echo "::group::Logging into the GitHub Container registry (ghcr.io) ..."
+#           echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+#           echo "::endgroup::"
 
-          echo "::group::Set commit tag and image name"
-          if [ "${{ github.event_name }}" = "release" ]; then
-            export COMMIT_TAG=${GITHUB_REF:10}
-            export COMMIT_TAG=${COMMIT_TAG//v/}
-          else
-            if [ -z ${IMAGE_TAG} ]; then
-              export COMMIT_TAG=latest
-            else
-              export COMMIT_TAG=${IMAGE_TAG}
-            fi
-          fi
+#           echo "::group::Set commit tag and image name"
+#           if [ "${{ github.event_name }}" = "release" ]; then
+#             export COMMIT_TAG=${GITHUB_REF:10}
+#             export COMMIT_TAG=${COMMIT_TAG//v/}
+#           else
+#             if [ -z ${IMAGE_TAG} ]; then
+#               export COMMIT_TAG=latest
+#             else
+#               export COMMIT_TAG=${IMAGE_TAG}
+#             fi
+#           fi
           
-          # lowercase the image name
-          export IMAGE_NAME=$(echo ${IMAGE_NAME} | tr '[:upper:]' '[:lower:]')
+#           # lowercase the image name
+#           export IMAGE_NAME=$(echo ${IMAGE_NAME} | tr '[:upper:]' '[:lower:]')
 
-          echo "Tagging with ${COMMIT_TAG}"
-          echo "::endgroup::"
+#           echo "Tagging with ${COMMIT_TAG}"
+#           echo "::endgroup::"
 
-          export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          export GITHUB_URL=https://github.com/${{ github.repository }}
+#           export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+#           export GITHUB_URL=https://github.com/${{ github.repository }}
 
-          echo "::group::Building the Docker image: ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} from ${DOCKERFILE_PATH} in ${DOCKER_CONTEXT} context ..."
+#           echo "::group::Building the Docker image: ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} from ${DOCKERFILE_PATH} in ${DOCKER_CONTEXT} context ..."
 
-          # https://docs.docker.com/develop/develop-images/build_enhancements/
-          # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
-          >&0 docker build \
-            --file ${DOCKERFILE_PATH} \
-            --progress tty \
-            --build-arg BUILDKIT_INLINE_CACHE=1 \
-            \
-            --build-arg BUILD_DATE=${BUILD_DATE} \
-            --build-arg GITHUB_SHA=${GITHUB_SHA} \
-            \
-            --tag ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} \
-            \
-            --label org.label-schema.build-date=${BUILD_DATE} \
-            --label org.label-schema.vcs-url=${GITHUB_URL} \
-            --label org.label-schema.vcs-ref=${GITHUB_SHA} \
-            \
-            --label org.opencontainers.image.created=${BUILD_DATE} \
-            --label org.opencontainers.image.source=${GITHUB_URL} \
-            --label org.opencontainers.image.revision=${GITHUB_SHA} \
-            .
+#           # https://docs.docker.com/develop/develop-images/build_enhancements/
+#           # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
+#           >&0 docker build \
+#             --file ${DOCKERFILE_PATH} \
+#             --progress tty \
+#             --build-arg BUILDKIT_INLINE_CACHE=1 \
+#             \
+#             --build-arg BUILD_DATE=${BUILD_DATE} \
+#             --build-arg GITHUB_SHA=${GITHUB_SHA} \
+#             \
+#             --tag ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} \
+#             \
+#             --label org.label-schema.build-date=${BUILD_DATE} \
+#             --label org.label-schema.vcs-url=${GITHUB_URL} \
+#             --label org.label-schema.vcs-ref=${GITHUB_SHA} \
+#             \
+#             --label org.opencontainers.image.created=${BUILD_DATE} \
+#             --label org.opencontainers.image.source=${GITHUB_URL} \
+#             --label org.opencontainers.image.revision=${GITHUB_SHA} \
+#             .
 
 
-          docker tag ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} ${REGISTRY}/${IMAGE_NAME}:latest
-          echo "::endgroup::"
+#           docker tag ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} ${REGISTRY}/${IMAGE_NAME}:latest
+#           echo "::endgroup::"
 
-          echo "::group::Inspecting the image ..."
-          docker images
+#           echo "::group::Inspecting the image ..."
+#           docker images
 
-          echo "Labels:"
-          docker image inspect ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} | jq '.[].Config.Labels'
+#           echo "Labels:"
+#           docker image inspect ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} | jq '.[].Config.Labels'
 
-          echo "Env variables:"
-          docker image inspect ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} | jq '.[].Config.Env'
+#           echo "Env variables:"
+#           docker image inspect ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} | jq '.[].Config.Env'
 
-          echo "::endgroup::"
+#           echo "::endgroup::"
 
-          echo "::group::Pushing the Docker image to ${REGISTRY} ..."
-          >&0 docker push ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} && echo "Pushed"
-          echo "::endgroup::"
+#           echo "::group::Pushing the Docker image to ${REGISTRY} ..."
+#           >&0 docker push ${REGISTRY}/${IMAGE_NAME}:${COMMIT_TAG} && echo "Pushed"
+#           echo "::endgroup::"
 
-      # - name: Build and publish a Docker image for ${{ github.repository }}
-      #   uses: macbre/push-to-ghcr@master
-      #   with:
-      #     image_name: ${{ github.repository }}
-      #     github_token: ${{ secrets.GHCR_TOKEN }}
-      #     image_tag: 
+#       # - name: Build and publish a Docker image for ${{ github.repository }}
+#       #   uses: macbre/push-to-ghcr@master
+#       #   with:
+#       #     image_name: ${{ github.repository }}
+#       #     github_token: ${{ secrets.GHCR_TOKEN }}
+#       #     image_tag: 
