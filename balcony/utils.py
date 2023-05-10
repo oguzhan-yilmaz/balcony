@@ -6,7 +6,7 @@ import inflect
 import os
 import boto3
 from config import get_logger
-
+import botocore
 # from functools import lru_cache
 
 inflect_engine = inflect.engine()  # used for singular/plural word comparing
@@ -18,15 +18,38 @@ _camel_case_regex_compiled = compile(
 
 
 def _create_boto_session():
+    """Tries to create a boto3 session with the given environment variables.
+    Handles the exceptions and exits the program if it fails.
+
+    Returns:
+        boto3.session.Session: created boto3 session
+    """
     profile_name = os.environ.get("AWS_PROFILE", False)
-    region_name = os.environ.get("AWS_REGION", False)
+    region_name = os.environ.get("AWS_REGION", False) or os.environ.get("AWS_DEFAULT_REGION", False)
     _kwargs_dict = {}
     if profile_name:
         _kwargs_dict["profile_name"] = profile_name
     if region_name:
         _kwargs_dict["region_name"] = region_name
-    session = boto3.session.Session(**_kwargs_dict)
-    return session
+    session = None
+
+    try:
+        if _kwargs_dict:
+            session = boto3.session.Session(**_kwargs_dict)
+        else:
+            session = boto3.session.Session()
+        return session
+    except botocore.exceptions.BotoCoreError as e:
+        logger.error(
+            f"Failed to create boto3 session. Check [bold yellow]AWS_PROFILE, AWS_REGION or "
+            f"AWS_DEFAULT_REGION[/] environment variables.\nException: [red bold]{str(e)}[/]"
+        )
+        exit(1)
+    except Exception as e:
+        logger.error(
+            f"Unexpected error while creating boto3 session.\nException: [red bold]{str(e)}[/]"
+        )
+        exit(1)
 
 
 def are_two_lists_same(list_one: List, list_two: List) -> bool:

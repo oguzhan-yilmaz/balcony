@@ -1,6 +1,10 @@
 import json
 import textwrap
-from utils import get_all_available_services, ifind_similar_names_in_list
+from utils import (
+    get_all_available_services,
+    ifind_similar_names_in_list,
+    _create_boto_session
+)
 from config import (
     get_logger,
     get_rich_console,
@@ -23,7 +27,7 @@ from pathlib import Path
 
 console = get_rich_console()
 logger = get_logger(__name__)
-session = boto3.session.Session()
+session = _create_boto_session()
 balcony_aws = BalconyAWS(session)
 app = typer.Typer(no_args_is_help=True, pretty_exceptions_enable=False)
 
@@ -255,6 +259,8 @@ def aws_main_command(  # noqa
         logger.debug(
             "[underline][yellow bold][WARNING][/] [bold][--paginate, -p][/] option [bold red]is NOT set[/]. You're likely to get incomplete data.[/]"
         )
+    service_markup = f"[green]{service}[/]"
+    resource_node_markup = f"[green]{service}[/].[blue]{resource_node}[/]"
 
     if not service and not resource_node:
         # print out resource nodes of this service.
@@ -272,7 +278,7 @@ def aws_main_command(  # noqa
         )
         console.print(
             Panel(
-                f"[bold]Please pick one of the Resource Nodes from [green]{service}[/] Service",
+                f"[bold]Please pick one of the Resource Nodes from {service_markup} Service",
                 title="[red][bold]ERROR",
             )
         )
