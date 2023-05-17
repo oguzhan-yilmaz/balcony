@@ -1,6 +1,14 @@
-# balcony - AWS API for humans
+# balcony
 
-balcony is a read-only CLI tool that simplifies the process of listing all resources on the AWS account.
+
+<div style="display: flex;">
+  <a href="https://github.com/oguzhan-yilmaz/balcony/actions/workflows/docker-publish.yml"><img src="https://github.com/oguzhan-yilmaz/balcony/actions/workflows/docker-publish.yml/badge.svg" alt="Build and publish a Docker image to ghcr.io"></a>
+  <span style="width: 5px"></span>
+
+<a href="https://github.com/oguzhan-yilmaz/balcony/actions/workflows/pages/pages-build-deployment"><img src="https://github.com/oguzhan-yilmaz/balcony/actions/workflows/pages/pages-build-deployment/badge.svg" alt="Build and Deploy Documentation website"></a>
+</div>
+
+
 
 balcony dynamically parses AWS SDK(`boto3` library) and analyzes required parameters for each operation. 
 
@@ -8,7 +16,6 @@ By **establishing relations between operations over required parameters**, it's 
 
 By simply entering their name, balcony enables developers to easily list their AWS resources.
 
-<!-- It uses _read-only_ operations, it does not take any action on the used AWS account. -->
 
 ## Installation & Documentation 
 
