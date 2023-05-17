@@ -23,7 +23,7 @@ By simply entering their name, balcony enables developers to easily list their A
 
 Balcony's documentation website contains quickstart guide, usage cookbook and more.
 ## Features & GIFs
-
+> click to play the videos
 ### List available AWS Services 
 `balcony aws` to see every AWS service available.
 
