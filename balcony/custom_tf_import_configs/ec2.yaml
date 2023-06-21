@@ -1,0 +1,14 @@
+maintainers:
+  - name: "Oguzhan Yilmaz"
+    github: "oguzhan_yilmaz"
+import_configurations:
+  - service: ec2
+    resource_node: Instances
+    operation_name: DescribeInstances
+    to_resource_type: aws_instance
+    jmespath_query: "[].Reservations[].Instances[]"
+    to_resource_name_jinja2_template: | 
+      {{ InstanceId }}
+    id_generator_jinja2_template: |
+      {{ InstanceId }}
+ 

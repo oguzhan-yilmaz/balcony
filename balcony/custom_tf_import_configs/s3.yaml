@@ -1,0 +1,13 @@
+maintainers:
+  - name: "Oguzhan Yilmaz"
+    github: "oguzhan_yilmaz"
+import_configurations:
+  - service: s3
+    resource_node: Buckets
+    operation_name: ListBuckets
+    to_resource_type: aws_s3_bucket
+    jmespath_query: "[].Buckets[]"
+    to_resource_name_jinja2_template: | 
+      {{ Name }}
+    id_generator_jinja2_template: |
+      {{ Name }}

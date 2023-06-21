@@ -1,8 +1,7 @@
 from config import get_logger, YAML_IGNORE_PREFIX, YAML_SERVICES_DIRECTORY
 from yaml_validators import YamlService
-
+from utils import find_all_yaml_files
 import yaml
-import os
 from typing import List, Union, Tuple
 from pathlib import Path
 
@@ -30,22 +29,6 @@ def parse_yaml_file_to_service(
         return False, e
 
 
-def find_all_yaml_files(directory: str) -> List[str]:
-    """Find all yaml files in a directory with the exception of files starting with "_".
-
-    Args:
-        directory (str): Directory to search for yaml files
-
-    Returns:
-        List[str]: List of yaml file paths
-    """
-    yaml_files = []
-    for root, _, files in os.walk(directory):
-        for file in files:
-            # support any yaml file with the exception of files starting with "YAML_IGNORE_PREFIX"
-            if file.endswith(".yaml") and not file.startswith(YAML_IGNORE_PREFIX):
-                yaml_files.append(os.path.join(root, file))
-    return yaml_files
 
 
 def find_and_parse_yaml_services() -> List[YamlService]:

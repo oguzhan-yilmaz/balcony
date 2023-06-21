@@ -3,7 +3,7 @@ import textwrap
 from utils import (
     get_all_available_services,
     ifind_similar_names_in_list,
-    _create_boto_session
+    _create_boto_session,
 )
 from config import (
     get_logger,
@@ -11,6 +11,7 @@ from config import (
     set_log_level_at_runtime,
     clear_relations_cache,
 )
+
 # required for loading custom resource nodes into registry
 from custom_nodes import *  # noqa
 from aws import BalconyAWS
@@ -23,7 +24,7 @@ from rich.panel import Panel
 import logging
 import boto3
 from pathlib import Path
-
+from terraform_import.importer import generate_import_block_for_resource
 
 console = get_rich_console()
 logger = get_logger(__name__)
@@ -69,7 +70,9 @@ def _complete_service_name(incomplete: str) -> Generator[str, None, None]:
                 yield name
 
 
-def _complete_resource_node_name(ctx: typer.Context, incomplete: str) -> Generator[str, None, None]:
+def _complete_resource_node_name(
+    ctx: typer.Context, incomplete: str
+) -> Generator[str, None, None]:
     service = ctx.params.get("service", False)
     if not service:
         return []
@@ -264,18 +267,14 @@ def aws_main_command(  # noqa
 
     if not service and not resource_node:
         # print out resource nodes of this service.
-        _list_service_or_resource(
-            service, resource_node, screen_pager=screen
-        )
+        _list_service_or_resource(service, resource_node, screen_pager=screen)
         console.print(
             Panel("[bold]Please pick one of the AWS Services", title="[red][bold]ERROR")
         )
         raise typer.Exit()
 
     if service and not resource_node:
-        _list_service_or_resource(
-            service, resource_node, screen_pager=screen
-        )
+        _list_service_or_resource(service, resource_node, screen_pager=screen)
         console.print(
             Panel(
                 f"[bold]Please pick one of the Resource Nodes from {service_markup} Service",
@@ -362,6 +361,67 @@ def aws_main_command(  # noqa
         raise typer.Exit()
 
 
+@app.command("tf-import")
+def terraform_import_command(  # noqa
+    service: Optional[str] = typer.Argument(
+        None,
+        show_default=False,
+        help="Name of the AWS Service",
+        autocompletion=_complete_service_name,
+    ),
+    resource_node: Optional[str] = typer.Argument(
+        None,
+        show_default=False,
+        help="Name of the AWS Resource Node",
+        autocompletion=_complete_resource_node_name,
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug messages."),
+    follow_pagination: bool = typer.Option(
+        False,
+        "--paginate",
+        "-p",
+        help="Paginate through the output if the output is truncated, otherwise will only read one page.",
+    ),
+    output_file: str = typer.Option(
+        None,
+        "--output",
+        "-o",
+        show_default=False,
+        help="Output JSON file name. If not provided, will print to console.",
+    ),
+):
+    # set debug level if enabled
+    if debug:
+        set_log_level_at_runtime(logging.DEBUG)
+
+    # warn user if pagination is not set
+    if not follow_pagination:
+        logger.debug(
+            "[underline][yellow bold][WARNING][/] [bold][--paginate, -p][/] option [bold red]is NOT set[/]. You're likely to get incomplete data.[/]"
+        )
+    # service_markup = f"[green]{service}[/]"
+    resource_node_markup = f"[green]{service}[/].[blue]{resource_node}[/]"
+
+    # TODO: fill here, the terraform import logic
+
+    import_blocks = generate_import_block_for_resource(
+        balcony_aws,
+        service,
+        resource_node,
+        follow_pagination=follow_pagination,
+    )
+    
+    if output_file:
+        output_filepath = Path(output_file).resolve()
+        logger.info(f"Saving output to: {output_filepath}")
+        save_str_list_to_output_file(output_filepath, import_blocks)
+        raise typer.Exit()
+    
+    else:
+        console.print('\n'.join(import_blocks))
+    
+    return import_blocks
+
 @app.command("clear-cache", help="Clear relations json cache")
 def clear_cache_command(
     # service: Optional[str] = typer.Argument(None, show_default='all',
@@ -373,20 +433,31 @@ def clear_cache_command(
         logger.info(f"[green]Deleted[/] {deleted_service}")
 
 
-@app.command("info", help="Information about the AWS Profile and Region currently used", )
+@app.command(
+    "info",
+    help="Information about the AWS Profile and Region currently used",
+)
 def info_command():
     created_session = balcony_aws.boto3_session
-    console.print(f"[bold underline]AWS Region:[/] [bold blue]{created_session.region_name}[/]")
-    console.print(f"[bold underline]AWS Profile:[/] [bold blue]{created_session.profile_name}")
+    console.print(
+        f"[bold underline]AWS Region:[/] [bold blue]{created_session.region_name}[/]"
+    )
+    console.print(
+        f"[bold underline]AWS Profile:[/] [bold blue]{created_session.profile_name}"
+    )
     console.print()
     console.print("[bold underline]Available Profiles:[/]")
 
     for available_profile in created_session.available_profiles or []:
         console.print(f"  - [green bold]{available_profile}[/]")
-    console.print(textwrap.dedent("""
+    console.print(
+        textwrap.dedent(
+            """
         [yellow]You can configure the AWS Profile and Region by setting the
         the $[bold]AWS_DEFAULT_REGION[/] and $[bold]AWS_PROFILE[/] environment variables.[/]
-    """))
+    """
+        )
+    )
 
 
 # @app.command('version', help='Show version info' )

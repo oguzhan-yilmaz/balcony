@@ -6,6 +6,12 @@
 pip3 install balcony
 ```
 
+```bash  title="Set your AWS credentials"
+export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+export AWS_DEFAULT_REGION=us-west-2
+```
+
 ### Run balcony on Docker
 
 You may choose to [run balcony with Docker](docker.md)
@@ -36,7 +42,7 @@ You may choose to [run balcony with Docker](docker.md)
 
 ### About AWS credentials
 
-!!! tip "balcony uses your shell environment for the AWS credentials"
+!!! warning "balcony uses your shell environment for the AWS credentials"
 
     ```bash  title="See the active profile with awscli"
     aws sts get-caller-identity

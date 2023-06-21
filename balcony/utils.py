@@ -5,8 +5,9 @@ from typing import List
 import inflect
 import os
 import boto3
-from config import get_logger
+from config import get_logger, YAML_IGNORE_PREFIX
 import botocore
+
 # from functools import lru_cache
 
 inflect_engine = inflect.engine()  # used for singular/plural word comparing
@@ -17,6 +18,24 @@ _camel_case_regex_compiled = compile(
 )
 
 
+def find_all_yaml_files(directory: str) -> List[str]:
+    """Find all .yaml files in a directory with the exception of files starting with "_".
+
+    Args:
+        directory (str): Directory to search for yaml files
+
+    Returns:
+        List[str]: List of yaml file paths
+    """
+    yaml_files = []
+    for root, _, files in os.walk(directory):
+        for file in files:
+            # support any yaml file with the exception of files starting with "YAML_IGNORE_PREFIX"
+            if file.endswith(".yaml") and not file.startswith(YAML_IGNORE_PREFIX):
+                yaml_files.append(os.path.join(root, file))
+    return yaml_files
+
+
 def _create_boto_session():
     """Tries to create a boto3 session with the given environment variables.
     Handles the exceptions and exits the program if it fails.
@@ -25,7 +44,9 @@ def _create_boto_session():
         boto3.session.Session: created boto3 session
     """
     profile_name = os.environ.get("AWS_PROFILE", False)
-    region_name = os.environ.get("AWS_REGION", False) or os.environ.get("AWS_DEFAULT_REGION", False)
+    region_name = os.environ.get("AWS_REGION", False) or os.environ.get(
+        "AWS_DEFAULT_REGION", False
+    )
     _kwargs_dict = {}
     if profile_name:
         _kwargs_dict["profile_name"] = profile_name
@@ -69,14 +90,19 @@ def is_word_in_a_list_of_words(word: str, list_of_words: List[str]) -> bool:
 
 
 def inform_about_develeoping_custom_resource_nodes():
-    logger.debug(textwrap.dedent("""
+    logger.debug(
+        textwrap.dedent(
+            """
         [bold yellow][FAILURE][/] It seems balcony [red bold]failed[/] to read this operation. 
         
         You can create Custom ResourceNodes to fix the failed operation. 
         Visit [bold][link=https://oguzhan-yilmaz.github.io/balcony/development/developing-custom-resource-nodes/]Custom Resource Development Documentation[/link][/] to learn more.
         
         You can also track the [bold][link=https://github.com/oguzhan-yilmaz/balcony/issues]Github Issues[/link][/] or create a new issue.
-        """.lstrip('\n'))
+        """.lstrip(
+                "\n"
+            )
+        )
     )
 
 

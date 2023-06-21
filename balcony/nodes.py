@@ -497,10 +497,11 @@ class ResourceNode:
         operation_model = self.get_operation_model(operation_name)
         input_shape = get_input_shape(operation_model)
         output_shape = operation_model.output_shape
-
-        input_shape_tree = Text("[yellow]No Input Shape Found")
+        input_shape_name = 'No Input Shape Found'
+        input_shape_tree = Text("No Input Shape Found")
         if input_shape:
             input_shape_tree = generate_rich_tree_from_shape(input_shape)
+            input_shape_name = input_shape.name
         output_shape_tree = generate_rich_tree_from_shape(output_shape)
 
         operation_docs = cleanhtml(operation_model.documentation)
@@ -508,7 +509,7 @@ class ResourceNode:
             Padding(f"[bold underline]Documentation:[/] {operation_docs}", (1, 2)),
             Panel(
                 input_shape_tree,
-                title=f"Input: [yellow]{input_shape.name}",
+                title=f"Input: [yellow]{input_shape_name}",
                 title_align="left",
                 padding=(1, 1),
             ),
