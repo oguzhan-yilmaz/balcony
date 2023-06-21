@@ -28,7 +28,7 @@ RUN poetry config virtualenvs.create false \
 # Creating folders, and files for a project:
 
 RUN apt update -y \
-    && apt install -y curl unzip -y \ 
+    && apt install -y curl unzip bat -y \ 
     && apt autoremove -y 
 
 
