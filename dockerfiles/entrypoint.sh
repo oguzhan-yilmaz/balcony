@@ -35,7 +35,7 @@ echo "--------------------------"
 
 echo "Running balcony tf-import command to generate import blocks"
 # TODO change balcony command
-python3 balcony/cli.py "$@" -o $GEN_TF_DIR/generated_imports.tf
+python3 balcony/cli.py tf-import "$@" -o $GEN_TF_DIR/generated_imports.tf
 
 echo "Balcony has generated the following import blocks:"
 echo "--------------------------"
