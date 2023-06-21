@@ -10,9 +10,12 @@
 name: Build and publish a Balcony tf-import Docker image to ghcr.io
 on:
   # publish on releases, e.g. v2.1.13 (image tagged as "2.1.13" - "v" prefix is removed)
-  release:
-    types: [ published ]
+  # release:
+  #   types: [ published ]
 
+  push:
+    branches:
+      - 'main'
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}-tf-import
