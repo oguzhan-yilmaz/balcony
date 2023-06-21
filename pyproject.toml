@@ -21,6 +21,7 @@ mkdocs-material = ">=8.5.7,<10.0.0"
 mkdocs-autorefs = "^0.4.1"
 PyYAML = "^6.0"
 pydantic = "^1.10.7"
+Jinja2 = "^3.1.2"
 
 
 [tool.poetry.group.dev.dependencies]
