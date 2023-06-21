@@ -16,7 +16,7 @@ rich = "^13.3.4"
 boto3 = "^1.24.80"
 jmespath = "^1.0.1"
 inflect = "^6.0.0"
-mkdocstrings = {version = "^0.21.2", extras = ["python"]}
+mkdocstrings = {version = ">=0.21.2,<0.23.0", extras = ["python"]}
 mkdocs-material = ">=8.5.7,<10.0.0"
 mkdocs-autorefs = "^0.4.1"
 PyYAML = "^6.0"
