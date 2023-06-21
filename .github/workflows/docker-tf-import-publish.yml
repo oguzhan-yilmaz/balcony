@@ -7,7 +7,7 @@
 # To get a newer version, you will need to update the SHA.
 # You can also reference a tag or branch, but the action may change without warning.
 
-name: Build and publish a Balcony Docker image to ghcr.io
+name: Build and publish a Balcony tf-import Docker image to ghcr.io
 on:
   # publish on releases, e.g. v2.1.13 (image tagged as "2.1.13" - "v" prefix is removed)
   release:
@@ -15,10 +15,10 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}-tf-import
 
 jobs:
-  build-and-push-balcony-docker-image:
+  build-and-push-balcony-tf-import-docker-image:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -39,7 +39,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-tf-import
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
@@ -48,4 +48,4 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-
+          file: dockerfiles/terraform-import.Dockerfile
