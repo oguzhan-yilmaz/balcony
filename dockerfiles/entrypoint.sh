@@ -20,7 +20,7 @@ pip3 show balcony
 echo "Using $GEN_TF_DIR directory to save generated terraform files."
 
 echo "Using Terraform AWS provider with profile: $AWS_PROFILE and region: $AWS_DEFAULT_REGION"
-bat << EOF >> $GEN_TF_DIR/provider.tf
+cat << EOF >> $GEN_TF_DIR/provider.tf
 
 provider "aws" {
     profile = "$AWS_PROFILE"
@@ -28,7 +28,7 @@ provider "aws" {
 }
 EOF
 echo "--------------------------"
-bat  $GEN_TF_DIR/provider.tf
+cat  $GEN_TF_DIR/provider.tf
 echo "--------------------------"
 
 
@@ -39,7 +39,7 @@ python3 balcony/cli.py tf-import "$@" -o $GEN_TF_DIR/generated_imports.tf
 
 echo "Balcony has generated the following import blocks:"
 echo "--------------------------"
-bat $GEN_TF_DIR/generated_imports.tf
+cat $GEN_TF_DIR/generated_imports.tf
 echo "--------------------------"
 
 
@@ -52,6 +52,6 @@ echo "You may see stderr output of terraform above this. It is expected, as the 
 
 echo "Terraform has finished generating the terraform code"
 echo "--------------------------"
-bat tf_generated.tf
+cat tf_generated.tf
 echo "--------------------------"
 exit 0
