@@ -5,7 +5,7 @@ from config import (
     USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY,
     set_log_level_at_runtime,
 )
-from terraform_import.validators import (
+from terraform_import.models import (
     CustomTerraformImportConfigFile,
     TerraformImportConfig,
 )

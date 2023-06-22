@@ -1,7 +1,9 @@
 from typing import List, Dict, Optional, Any
 from pydantic import BaseModel, validator
 
-
+from typing import Dict
+    
+    
 class TerraformImportConfig(BaseModel):
     service: str  # ec2
     resource_node: str  # Instances
@@ -11,15 +13,25 @@ class TerraformImportConfig(BaseModel):
     to_resource_name_jinja2_template: str  # "{{ .InstanceId }}"
     id_generator_jinja2_template: str  # "{{ .InstanceId }}"
 
-    # TODO: create validators
+    @validator('to_resource_name_jinja2_template')
+    def validate_to_resource_name_jinja2_template(cls, value):
+        # Add your validation logic here
+        # You can raise a ValueError if the value is invalid
+        return value
 
+    @validator('id_generator_jinja2_template')
+    def validate_id_generator_jinja2_template(cls, value):
+        # Add your validation logic here
+        # You can raise a ValueError if the value is invalid
+        return value
 
 class MaintainersBlock(BaseModel):
+    """List of maintainers for the terraform import config file."""
     name: str
     github: Optional[str]
     email: Optional[str]
 
 
 class CustomTerraformImportConfigFile(BaseModel):
-    maintainers: Optional[MaintainersBlock]
+    maintainers: Optional[List[MaintainersBlock]]
     import_configurations: List[TerraformImportConfig]

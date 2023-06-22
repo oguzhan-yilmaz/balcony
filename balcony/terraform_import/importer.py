@@ -1,6 +1,6 @@
 import re
 import textwrap
-from typing import List
+from typing import List, Union
 import jmespath
 from terraform_import.parsers import parse_custom_tf_import_config
 from config import get_logger
@@ -10,19 +10,39 @@ from jinja2 import Environment
 logger = get_logger(__name__)
 
 
-def generate_import_id_list(data, id_generator_tpl):
-    template = Environment().from_string(id_generator_tpl)
-    rendered_output = template.render(data=data, **data).strip()
-    # import_id_list = [ro for ro in rendered_output.split("\n") if ro]
-    # return import_id_list
-    return rendered_output
+def extract_name_tag(data: dict) -> Union[str, bool]]:
+    """_summary_
+
+    Args:
+        data (dict): An AWS resource data
+
+    Returns:
+        _type_: _description_
+    """
+    tags = data.get("Tags", [])
+    if not tags:
+        return False
+    name_tag = list(filter(lambda tag: tag.get("Key") == "Name", tags))
+    if name_tag and len(name_tag) >= 1:
+        found_tag = name_tag[0].get("Value", False)
+        return found_tag
+    return False
 
 
-def generate_to_resource_name_list(data, resource_name_generator_tpl):
-    to_resource_node_template = Environment().from_string(resource_name_generator_tpl)
-    rendered_output = to_resource_node_template.render(data=data, **data).strip()
-    # to_resource_name_list = [ro for ro in rendered_output.split("\n") if ro]
-    # return to_resource_name_list
+def render_jinja2_template_with_data(data, jinja2_template_str):
+    template = Environment().from_string(jinja2_template_str)
+
+    kwargs = {"data": data}
+    # if the data is a dict, add the key-value pairs as kwargs
+    if isinstance(data, dict):
+        kwargs.update(data)
+        kwargs["data"] = data
+        # if there's a tag.Name, add it as name_tag variable
+        name_tag = extract_name_tag(data)
+        logger.debug(f"Found name tag: {name_tag}")
+        kwargs["name_tag"] = name_tag
+
+    rendered_output = template.render(**kwargs).strip()
     return rendered_output
 
 
@@ -36,19 +56,23 @@ def gen_resource_name_and_import_id_from_op_data_(
         list_of_resource_data = jmespath.search(jmespath_query, operation_data)
         logger.debug(f"Filtered data using jmespath query: {jmespath_query}")
         for a_resource_data in list_of_resource_data:
-            resource_name = generate_to_resource_name_list(
+            resource_name = render_jinja2_template_with_data(
                 a_resource_data, to_resource_name_tpl
             )
-            import_id = generate_import_id_list(a_resource_data, id_generator_tpl)
+            import_id = render_jinja2_template_with_data(
+                a_resource_data, id_generator_tpl
+            )
             result.append((resource_name, import_id))
         return result
     else:
         # no jmespath query given, use the whole operation data
 
-        resource_name_multiline = generate_to_resource_name_list(
+        resource_name_multiline = render_jinja2_template_with_data(
             a_resource_data, to_resource_name_tpl
         )
-        import_id_multiline = generate_import_id_list(a_resource_data, id_generator_tpl)
+        import_id_multiline = render_jinja2_template_with_data(
+            a_resource_data, id_generator_tpl
+        )
         # split them on newlines
         resource_name_list = [ro for ro in resource_name_multiline.split("\n") if ro]
         import_id_list = [ro for ro in import_id_multiline.split("\n") if ro]
