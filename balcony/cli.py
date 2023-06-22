@@ -24,7 +24,11 @@ from rich.panel import Panel
 import logging
 import boto3
 from pathlib import Path
-from terraform_import.importer import generate_import_block_for_resource
+from terraform_import.importer import (
+    generate_import_block_for_resource,
+    get_importable_resources,
+)
+from rich.table import Table
 
 console = get_rich_console()
 logger = get_logger(__name__)
@@ -382,12 +386,18 @@ def terraform_import_command(  # noqa
         "-p",
         help="Paginate through the output if the output is truncated, otherwise will only read one page.",
     ),
+    list_available_resources: bool = typer.Option(
+        False,
+        "--list",
+        "-l",
+        help="Lists currently available resources for Terraform imports.",
+    ),
     output_file: str = typer.Option(
         None,
         "--output",
         "-o",
         show_default=False,
-        help="Output JSON file name. If not provided, will print to console.",
+        help="Output file name. If not provided, will print to console.",
     ),
 ):
     # set debug level if enabled
@@ -399,10 +409,28 @@ def terraform_import_command(  # noqa
         logger.debug(
             "[underline][yellow bold][WARNING][/] [bold][--paginate, -p][/] option [bold red]is NOT set[/]. You're likely to get incomplete data.[/]"
         )
-    # service_markup = f"[green]{service}[/]"
-    resource_node_markup = f"[green]{service}[/].[blue]{resource_node}[/]"
 
-    # TODO: fill here, the terraform import logic
+    if list_available_resources:
+        service_resource_list = get_importable_resources()
+
+        def render_importable_resources(service_and_resource_tuples: List[Tuple]):
+
+            table = Table(
+                title="Balcony - Supported Service/Resources for Terraform Import"
+            )
+
+            table.add_column("service", style="bold magenta")
+            table.add_column("resource", style="bold green")
+
+            for service_name, resource_name in service_and_resource_tuples:
+                table.add_row(service_name, resource_name)
+            return table
+
+        rendered_service_resource_list = render_importable_resources(
+            service_resource_list
+        )
+        console.print(rendered_service_resource_list)
+        return  # list option is enabled, do not run the actual importing code.
 
     import_blocks = generate_import_block_for_resource(
         balcony_aws,
@@ -410,17 +438,18 @@ def terraform_import_command(  # noqa
         resource_node,
         follow_pagination=follow_pagination,
     )
-    
+
     if output_file:
         output_filepath = Path(output_file).resolve()
         logger.info(f"Saving output to: {output_filepath}")
         save_str_list_to_output_file(output_filepath, import_blocks)
         raise typer.Exit()
-    
+
     else:
-        console.print('\n'.join(import_blocks))
-    
+        console.print("\n".join(import_blocks))
+
     return import_blocks
+
 
 @app.command("clear-cache", help="Clear relations json cache")
 def clear_cache_command(

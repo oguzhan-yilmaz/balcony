@@ -33,7 +33,7 @@ def render_jinja2_template_with_data(data, jinja2_template_str):
         kwargs["data"] = data
         # if there's a tag.Name, add it as name_tag variable
         tags_as_kwargs = extract_resource_tags_as_kwargs(data)
-        logger.debug(f"Found name tag: {tags_as_kwargs}")
+        # logger.debug(f"Found name tag: {tags_as_kwargs}")
         kwargs.update(tags_as_kwargs)
 
     rendered_output = template.render(**kwargs).strip()
@@ -49,6 +49,8 @@ def gen_resource_name_and_import_id_from_op_data_(
         # and render them one by one
         list_of_resource_data = jmespath.search(jmespath_query, operation_data)
         logger.debug(f"Filtered data using jmespath query: {jmespath_query}")
+        
+        
         for a_resource_data in list_of_resource_data:
             resource_name = render_jinja2_template_with_data(
                 a_resource_data, to_resource_name_tpl
@@ -95,6 +97,14 @@ def generate_terraform_import_block(to_resource_type, to_resource_name, import_i
     ).strip()
     return rendered_output
 
+def get_importable_resources():
+    custom_tf_config_dict = parse_custom_tf_import_config()
+
+    importable_services_and_resources = []
+    for service_name, resource_config_dict in custom_tf_config_dict.items():
+        for resource_node_name, resource_config in resource_config_dict.items():
+            importable_services_and_resources.append((service_name, resource_node_name))
+    return importable_services_and_resources
 
 def generate_import_block_for_resource(
     balcony_client: BalconyAWS,

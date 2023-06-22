@@ -10,3 +10,11 @@ import_configurations:
     to_resource_name_jinja2_template: "{{ tag_Name or InstanceId }}"
     id_generator_jinja2_template: "{{ InstanceId }}"
  
+  - service: ec2
+    resource_node: Volumes
+    operation_name: DescribeVolumes
+    to_resource_type: aws_ebs_volume
+    jmespath_query: "[].Volumes[]"
+    to_resource_name_jinja2_template: "{{ VolumeId }}"
+    id_generator_jinja2_template: "{{ VolumeId }}"
+ 
