@@ -7,6 +7,6 @@ import_configurations:
     operation_name: DescribeInstances
     to_resource_type: aws_instance
     jmespath_query: "[].Reservations[].Instances[]"
-    to_resource_name_jinja2_template: "{{ name_tag or InstanceId }}"
+    to_resource_name_jinja2_template: "{{ tag_Name or InstanceId }}"
     id_generator_jinja2_template: "{{ InstanceId }}"
  

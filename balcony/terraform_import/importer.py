@@ -10,23 +10,17 @@ from jinja2 import Environment
 logger = get_logger(__name__)
 
 
-def extract_name_tag(data: dict) -> Union[str, bool]]:
-    """_summary_
+def extract_resource_tags_as_kwargs(data: dict) -> dict:
+    tags_as_kwargs = {}
+    tag_list = data.get("Tags", [])
+    if not tag_list:
+        return tags_as_kwargs
 
-    Args:
-        data (dict): An AWS resource data
-
-    Returns:
-        _type_: _description_
-    """
-    tags = data.get("Tags", [])
-    if not tags:
-        return False
-    name_tag = list(filter(lambda tag: tag.get("Key") == "Name", tags))
-    if name_tag and len(name_tag) >= 1:
-        found_tag = name_tag[0].get("Value", False)
-        return found_tag
-    return False
+    for tag in tag_list:
+        key = tag.get("Key")
+        value = tag.get("Value")
+        tags_as_kwargs[f"tag_{key}"] = value
+    return tags_as_kwargs
 
 
 def render_jinja2_template_with_data(data, jinja2_template_str):
@@ -38,9 +32,9 @@ def render_jinja2_template_with_data(data, jinja2_template_str):
         kwargs.update(data)
         kwargs["data"] = data
         # if there's a tag.Name, add it as name_tag variable
-        name_tag = extract_name_tag(data)
-        logger.debug(f"Found name tag: {name_tag}")
-        kwargs["name_tag"] = name_tag
+        tags_as_kwargs = extract_resource_tags_as_kwargs(data)
+        logger.debug(f"Found name tag: {tags_as_kwargs}")
+        kwargs.update(tags_as_kwargs)
 
     rendered_output = template.render(**kwargs).strip()
     return rendered_output

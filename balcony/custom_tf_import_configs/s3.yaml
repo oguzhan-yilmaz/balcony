@@ -7,7 +7,5 @@ import_configurations:
     operation_name: ListBuckets
     to_resource_type: aws_s3_bucket
     jmespath_query: "[].Buckets[]"
-    to_resource_name_jinja2_template: | 
-      {{ Name }}
-    id_generator_jinja2_template: |
-      {{ Name }}
+    to_resource_name_jinja2_template: "{{ Name }}"
+    id_generator_jinja2_template: "{{ Name }}"
