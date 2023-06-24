@@ -22,14 +22,13 @@ By simply entering their name, balcony enables developers to easily list their A
 **[https://oguzhan-yilmaz.github.io/balcony/](https://oguzhan-yilmaz.github.io/balcony/quickstart)**
 
 Balcony's documentation website contains quickstart guide, usage cookbook and more.
+
+
+
+
+
 ## Features & GIFs
 > click to play the videos
-### List available AWS Services 
-`balcony aws` to see every AWS service available.
-
-![](https://github.com/oguzhan-yilmaz/balcony/blob/main/docs/visuals/aws-services-list.gif)
-
-
 ### List Resource Nodes of an AWS Service 
 `balcony aws <service-name>` to see every Resource Node of a service.
 
@@ -47,9 +46,3 @@ Use the `--list`, `-l` flag to print the given AWS API Operations documentation,
  
 
 ![](https://github.com/oguzhan-yilmaz/balcony/blob/main/docs/visuals/list-option.gif)
-
-
-### Enable Debug messages 
-Use the `--debug`, `-d` flag to see what's going on under the hood!
-
-![](https://github.com/oguzhan-yilmaz/balcony/blob/main/docs/visuals/debug-messages.gif)
