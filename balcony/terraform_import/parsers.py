@@ -3,7 +3,6 @@ from config import (
     get_logger,
     YAML_TF_IMPORT_CONFIGS_DIRECTORY,
     USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY,
-    set_log_level_at_runtime,
 )
 from terraform_import.models import (
     CustomTerraformImportConfigFile,
@@ -14,7 +13,6 @@ import yaml
 from collections import defaultdict
 
 logger = get_logger(__name__)
-# set_log_level_at_runtime("DEBUG")  # TODO delete this
 
 
 def parse_yaml_file_to_tf_import_config(

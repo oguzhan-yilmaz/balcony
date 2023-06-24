@@ -52,7 +52,7 @@ def save_dict_to_output_file(output_filepath: str, data: Dict):
 
 def save_str_list_to_output_file(output_filepath: str, lines: List[str]):
     with open(output_filepath, "w") as f:
-        f.writelines([line + "\n" for line in lines])
+        f.writelines([str(line) + "\n" for line in lines])
 
 
 def _complete_service_name(incomplete: str) -> Generator[str, None, None]:

@@ -31,9 +31,8 @@ def render_jinja2_template_with_data(data, jinja2_template_str):
     if isinstance(data, dict):
         kwargs.update(data)
         kwargs["data"] = data
-        # if there's a tag.Name, add it as name_tag variable
+        # if there's add it as tag_Name variable
         tags_as_kwargs = extract_resource_tags_as_kwargs(data)
-        # logger.debug(f"Found name tag: {tags_as_kwargs}")
         kwargs.update(tags_as_kwargs)
 
     rendered_output = template.render(**kwargs).strip()
@@ -62,6 +61,7 @@ def gen_resource_name_and_import_id_from_op_data_(
         return result
     else:
         # no jmespath query given, use the whole operation data
+        # assumes there's multiple lines of output from the template 
 
         resource_name_multiline = render_jinja2_template_with_data(
             a_resource_data, to_resource_name_tpl
@@ -85,6 +85,7 @@ def generate_terraform_import_block(to_resource_type, to_resource_name, import_i
         to = {{ to_resource_type }}.{{ to_resource_name }}
         id = "{{ import_id }}"
     }
+    
     """
     ).lstrip()
 
@@ -157,6 +158,7 @@ def generate_import_block_for_resource(
                 result.append((sanitized_resource_name, import_id))
         return result
 
+    # Replace unsupported chars from the to-resource-name with underscore 
     sanitized_resource_name_and_import_ids = sanitize_resource_name_and_import_ids(
         resource_name_and_import_ids
     )
