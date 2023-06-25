@@ -10,6 +10,8 @@ debug_echo "Docker entrypoint script started to run"
 # Create an empty string to store the filename
 gen_terraform_filename=""
 
+
+
 # Iterate over all arguments to generate the generated terraform filename
 for arg in "$@"
 do
@@ -23,6 +25,7 @@ done
 
 # Append the .tf extension
 gen_terraform_filename+=".tf"
+gen_terraform_import_blocks_filename="import-blocks-${gen_terraform_filename}"
 
 # Print the gen_terraform_filename
 debug_echo "Generated gen_terraform_filename: $gen_terraform_filename"
@@ -107,15 +110,15 @@ echo "--------------------------"
 
 echo "Running balcony terraform-import command to generate import blocks"
 
-balcony terraform-import "$@" --paginate -o $GEN_TF_DIR/generated_imports.tf
+balcony terraform-import "$@" --paginate -o $GEN_TF_DIR/$gen_terraform_import_blocks_filename
 
 # check if the file is generated or not
-if [[ -f $GEN_TF_DIR/generated_imports.tf ]]; then
-  echo "File $GEN_TF_DIR/generated_imports.tf exists."
+if [[ -f $GEN_TF_DIR/$gen_terraform_import_blocks_filename ]]; then
+  echo "File $GEN_TF_DIR/$gen_terraform_import_blocks_filename exists."
   echo "Balcony has generated the following import blocks:"
   echo "--------------------------"
-  cat  $GEN_TF_DIR/generated_imports.tf
-  cp $GEN_TF_DIR/generated_imports.tf /balcony-output
+  cat  $GEN_TF_DIR/$gen_terraform_import_blocks_filename
+  cp $GEN_TF_DIR/$gen_terraform_import_blocks_filename /balcony-output
   echo "--------------------------"
 
 else
