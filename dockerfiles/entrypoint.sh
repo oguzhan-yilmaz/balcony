@@ -53,7 +53,7 @@ if [[ $BALCONY_DEBUG -eq 1 ]]; then
 fi
 
 debug_echo "Upgrading the balcony package to the latest version."
-pip3 install --upgrade --no-input -q balcony
+pip3 install --upgrade --no-python-version-warning --disable-pip-version-check --no-input -q balcony
 
 debug_echo "Using $GEN_TF_DIR directory to save generated terraform files."
 
@@ -99,10 +99,11 @@ else
   echo "Neither the AWS_PROFILE nor the AWS_ACCESS_KEY_ID environment variable is set. Please set one of them and rerun the script."
   exit 1
 fi
+echo "The AWS_DEFAULT_REGION environment variable is set to '${AWS_DEFAULT_REGION}'."
 
 # ------ Generate provider "aws" block to provider.tf file
 
-echo "--------------------------"
+echo "--------provider.tf-------"
 cat   $GEN_TF_DIR/provider.tf
 echo "--------------------------"
 
@@ -116,10 +117,10 @@ balcony terraform-import "$@" --paginate -o $GEN_TF_DIR/$gen_terraform_import_bl
 if [[ -f $GEN_TF_DIR/$gen_terraform_import_blocks_filename ]]; then
   echo "File $GEN_TF_DIR/$gen_terraform_import_blocks_filename exists."
   echo "Balcony has generated the following import blocks:"
-  echo "--------------------------"
+  echo "-------$gen_terraform_import_blocks_filename-----------"
   cat  $GEN_TF_DIR/$gen_terraform_import_blocks_filename
   cp $GEN_TF_DIR/$gen_terraform_import_blocks_filename /balcony-output
-  echo "--------------------------"
+  echo "------------------------------------"
 
 else
   echo "Balcony failed to generate the import blocks. Running the same command in debug mode."
@@ -141,7 +142,7 @@ echo "^^^^^^^^^^^^^^^^^^^^^^^^^^"
 echo "You may see stderr output of terraform above this. It is expected, as the import feature under active development."
 
 debug_echo "Terraform has finished generating the terraform code"
-echo "--------------------------"
+echo "---------$gen_terraform_filename-----------"
 cat $gen_terraform_filename
 cp $gen_terraform_filename  /balcony-output 
 
