@@ -21,7 +21,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}-terraform-import
 
 jobs:
-  build-and-push-balcony-tf-import-docker-image:
+  build-and-push-balcony-terraform-import-docker-image:
     runs-on: ubuntu-latest
     permissions:
       contents: read
