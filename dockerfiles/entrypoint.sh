@@ -82,7 +82,7 @@ fi
 
 
 echo "--------------------------"
-batcat -P  $GEN_TF_DIR/provider.tf
+batcat   $GEN_TF_DIR/provider.tf
 echo "--------------------------"
 
 
@@ -93,7 +93,7 @@ python3 balcony/cli.py terraform-import "$@" -o $GEN_TF_DIR/generated_imports.tf
 
 echo "Balcony has generated the following import blocks:"
 echo "--------------------------"
-batcat -P $GEN_TF_DIR/generated_imports.tf
+batcat  $GEN_TF_DIR/generated_imports.tf
 echo "--------------------------"
 
 
@@ -106,6 +106,6 @@ echo "You may see stderr output of terraform above this. It is expected, as the 
 
 echo "Terraform has finished generating the terraform code"
 echo "--------------------------"
-batcat -P tf_generated.tf
+batcat  tf_generated.tf
 echo "--------------------------"
 exit 0
