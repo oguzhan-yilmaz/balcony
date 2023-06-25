@@ -79,15 +79,12 @@ def gen_resource_name_and_import_id_from_op_data_(
 
 
 def generate_terraform_import_block(to_resource_type, to_resource_name, import_id):
-    jinja_tmpl = textwrap.dedent(
-        """
-    import {
+    jinja_tmpl = textwrap.dedent("""import {
         to = {{ to_resource_type }}.{{ to_resource_name }}
         id = "{{ import_id }}"
     }
     
-    """
-    ).lstrip()
+    """)
 
     jinja_env = Environment()
     template = jinja_env.from_string(jinja_tmpl)
