@@ -8,6 +8,7 @@ function debug_echo {
 
 debug_echo "Docker entrypoint script started to run"
 
+pip3 install --upgrade balcony
 
 if [[ $BALCONY_DEBUG -eq 1 ]]; then
   echo "Debugging mode is enabled."
