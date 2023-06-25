@@ -19,6 +19,7 @@ RUN apt update -y \
     && mv terraform /usr/local/bin/ \
     && rm -rf terraform.zip \
     && pip3 install --no-cache-dir balcony \
+    && echo "trigger a whole new build" \
     && terraform init -upgrade \
     && chmod +x entrypoint.sh
 
