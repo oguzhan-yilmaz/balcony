@@ -50,7 +50,7 @@ echo "--------------------------"
 
 
 echo "Running balcony terraform-import command to generate import blocks"
-# TODO change balcony command
+
 python3 balcony/cli.py terraform-import "$@" -o $GEN_TF_DIR/generated_imports.tf
 
 echo "Balcony has generated the following import blocks:"
