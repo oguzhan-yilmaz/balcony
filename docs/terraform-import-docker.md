@@ -65,6 +65,8 @@ You can also copy the output from the terminal window if you don't use this opti
 
 ## Alias Commands
 
+You can copy these alias commands to your `~/.bashrc` or `~/.zshrc` file to persist them.
+
 ```bash title="Alias with ~.aws/ folder mounted"
 # set your options here
 BALCONY_AWS_PROFILE="hepapi"
@@ -74,7 +76,7 @@ BALCONY_DEBUG=0
 
 # create the alias command, with your options
 alias balcony-tf-import="mkdir -p $BALCONY_TF_GEN_OUTPUT_DIR \
-    && docker pull -q ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main \
+    && docker pull ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main \
     && echo \"Generated files will be saved to: $BALCONY_TF_GEN_OUTPUT_DIR\n\" \
     && docker run \
         -v ~/.aws:/root/.aws \
@@ -85,18 +87,25 @@ alias balcony-tf-import="mkdir -p $BALCONY_TF_GEN_OUTPUT_DIR \
         --rm -it ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main"
 ```
 
+Brief explanation of the alias command:
 
-!!! Warning
-    You can't use `--output, -o` option with the docker image. 
-
-    That's because we have a staticly defined output directory in the image, so don't use it.
+- `mkdir -p $BALCONY_TF_GEN_OUTPUT_DIR`: Create the output directory if it doesn't exist
+- `docker pull -q ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main`: Pull the newer Docker image 
+-  `echo \"Generated files will be saved to: $BALCONY_TF_GEN_OUTPUT_DIR\n\"`: inform about output directory
+- `docker run`: runs the docker image with the options talked above. This kind of alias command is called a [function-like alias](https://unix.stackexchange.com/a/330002), allows us to pass arguments to our `entrypoint.sh`.
 
 
 ```bash title="Running the 'balcony-tf-import' alias"
+
 balcony-tf-import ec2 Instances --paginate
 
 
 balcony-tf-import ec2 Instances --list
 ```
 
+
+!!! Warning
+    You can't use `--output, -o` option with the docker image. 
+
+    That's because we have a staticly defined output directory in the image, so don't use it.
 
