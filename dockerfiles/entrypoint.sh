@@ -7,6 +7,12 @@ function debug_echo {
 
 debug_echo "Docker entrypoint script started to run"
 
+
+if [[ $# -ne 2 ]]; then
+    echo "This script requires exactly two arguments: service and resource_name"
+    exit 1
+fi
+
 if [[ $BALCONY_DEBUG -eq 1 ]]; then
   echo "Debugging mode is enabled."
 
@@ -21,8 +27,6 @@ if [[ $BALCONY_DEBUG -eq 1 ]]; then
 
   pip3 show balcony
   echo ""
-
-
 fi
 
 debug_echo "Upgrading the balcony package to the latest version."
@@ -83,7 +87,7 @@ echo "--------------------------"
 
 echo "Running balcony terraform-import command to generate import blocks"
 
-balcony terraform-import "$@" -o $GEN_TF_DIR/generated_imports.tf
+balcony terraform-import "$@" --paginate -o $GEN_TF_DIR/generated_imports.tf
 
 # check if the file is generated or not
 if [[ -f $GEN_TF_DIR/generated_imports.tf ]]; then
@@ -114,7 +118,7 @@ echo "You may see stderr output of terraform above this. It is expected, as the 
 
 debug_echo "Terraform has finished generating the terraform code"
 echo "--------------------------"
-cat  tf_generated.tf
+cat tf_generated.tf
 cp tf_generated.tf /balcony-output 
 
 if [[ $BALCONY_DEBUG -eq 1 ]]; then
