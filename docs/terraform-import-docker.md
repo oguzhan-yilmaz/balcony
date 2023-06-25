@@ -83,7 +83,7 @@ alias balcony-tf-import="mkdir -p $BALCONY_TF_GEN_OUTPUT_DIR \
         -e AWS_PROFILE=\"$BALCONY_AWS_PROFILE\" \
         -e AWS_DEFAULT_REGION=\"$BALCONY_AWS_DEFAULT_REGION\" \
         -e BALCONY_DEBUG=\"$BALCONY_DEBUG\" \
-        -v $BALCONY_TF_GEN_OUTPUT_DIR:/terraform_app \
+        -v $BALCONY_TF_GEN_OUTPUT_DIR:/balcony-output \
         --rm -it ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main"
 ```
 

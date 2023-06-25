@@ -42,7 +42,6 @@ balcony terraform-import --list
 
 
 ```bash title="Generate import blocks for a resource type in your AWS account"
-
 # Read the first page for ec2 Instances, and generate the import blocks for them
 balcony terraform-import ec2 Instances
 
