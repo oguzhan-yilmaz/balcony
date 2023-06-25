@@ -15,57 +15,84 @@ But it's still not generating the actual Terraform code for us. Let's fix that.
 docker pull ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main
 ```
 
-This Docker image installs `balcony` and `terraform v.1.5+` on top of the `python:3.9-slim-buster` image.
+This Docker image installs `balcony` and `terraform v.1.5+` on top of the base image.
 
-It also copies over the `entrypoint.sh` and `provider.tf` files to image.
-
-
-
-
+It also copies over 2 files to image:
+- `provider.tf`: Used for `terraform init`ialization on image build-time.
+- `entrypoint.sh`: Bash script for running `balcony terraform-import` and `terraform plan -gen-generate-config-out=`.
 
 
 
+## How to use the `balcony-terraform-import` Docker image
+
+Our Docker image has a lot of options, so it's handy to create an `alias` command for it.
+
+There're multiple ways of providing these options. First, let's walk through the options.
+### Option: AWS Credentials
+
+**1. Mounting your AWS Credentials**
+
+If you use `AWS CLI`, you can mount your `~/.aws/` folder to the container.
+
+You'd also need to set the `AWS_PROFILE` and `AWS_DEFAULT_REGION` environment variables to select from your credential files.
 
 
+```bash title="Docker options for mounting ~/.aws/ folder to container"
+  -v ~/.aws:/root/.aws \
+  -e AWS_PROFILE="default" \
+  -e AWS_DEFAULT_REGION="eu-west-1"
+```
+
+**2. Directly giving the AWS Credentials in Env Vars**
+
+You can also directly give the AWS Credentials in environment variables.
+
+```bash title="AWS Credentials in Environment Variables"
+  -e AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \
+  -e AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" \
+  -e AWS_DEFAULT_REGION="eu-west-1" 
+```
+
+### Option: Output Directory
+
+Docker image will use `/terraform_app` as the default output directory. 
+
+You can mount a folder you have as a volume to the container. This way you'll get the files in your local machine.
+
+We can achieve by providing the docker run with `-v <your-directory>:/terraform_app`
+
+You can also copy the output from the terminal window if you don't use this option.
 
 ## Alias Commands
 
-
 ```bash title="Alias with ~.aws/ folder mounted"
+# set your options here
+BALCONY_AWS_PROFILE="hepapi"
+BALCONY_AWS_DEFAULT_REGION="eu-central-1"
+BALCONY_TF_GEN_OUTPUT_DIR="/tmp/balcony-terraform-gen"
+BALCONY_DEBUG=0
 
-
-alias balcony-tf-import='docker run \
-  -v ~/.aws:/root/.aws \
-  -v ~/tf_gen_outputs:/terraform_app \
-  -e AWS_PROFILE="default" \
-  -e AWS_DEFAULT_REGION="eu-west-1" \
-  --rm -it ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main'
-```
-
-
-
-
-```bash title="Alias with ~.aws/ folder mounted"
-
-
-
-
-alias balcony-tf-import='mkdir -p /tmp/balcony-terraform-gen \
-    && docker pull ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main \
+# create the alias command, with your options
+alias balcony-tf-import="mkdir -p $BALCONY_TF_GEN_OUTPUT_DIR \
+    && docker pull -q ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main \
+    && echo \"Generated files will be saved to: $BALCONY_TF_GEN_OUTPUT_DIR\n\" \
     && docker run \
         -v ~/.aws:/root/.aws \
-        -v /tmp/balcony-terraform-gen:/terraform_app \
-        -e AWS_PROFILE="hepapi" \
-        -e AWS_DEFAULT_REGION="eu-west-1" \
-        --rm -it ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main \
-    && echo "Generated files are saved to: /tmp/balcony-terraform-gen"'
-
-
-
-
-
-
+        -e AWS_PROFILE=\"$BALCONY_AWS_PROFILE\" \
+        -e AWS_DEFAULT_REGION=\"$BALCONY_AWS_DEFAULT_REGION\" \
+        -e BALCONY_DEBUG=\"$BALCONY_DEBUG\" \
+        -v $BALCONY_TF_GEN_OUTPUT_DIR:/terraform_app \
+        --rm -it ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main"
 ```
 
+
+- Note: You can't use `--output, -o` option with this docker image. 
+
+```bash title="Running the 'balcony-tf-import' alias"
+balcony-tf-import ec2 Instances --paginate
+
+
+balcony-tf-import ec2 Instances --list
+```
 
 
