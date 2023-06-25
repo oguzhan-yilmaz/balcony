@@ -15,13 +15,15 @@ Prior to release of  `v.1.5`, Terraform users had to manually write the Terrafor
 
 With the import blocks feature, users can now define their imports as-code, and you can generate the Terraform code for these resources.
 
-```hcl title="import_blocks.tf"
+```tf title="import_blocks.tf"
 # with terraform 1.5+, resources can be imported as-code
 import {
   to = aws_instance.example
   id = "i-abcd1234"
 }
 ```
+
+
 
 ## `balcony terraform-import` command
 
@@ -70,7 +72,7 @@ tree .  # it should look like this:
 After that generate the import blocks for the resource type you want to import. In this case, it's EC2 Instances.
 
 ```bash title="Generate Terraform import blocks with balcony"
-balcony terraform-import ec2 Instances --paginate --output ec2-instances-import-blocks.tf
+balcony terraform-import ec2 Instances --paginate -o ec2-instances-import-blocks.tf
 ```
 
 
@@ -80,6 +82,9 @@ After defining the import block, you can generate your Terraform code using the 
 terraform plan -generate-config-out=generated-ec2-instances.tf
 ```
 
+!!! warning "Use Terraform v.1.5+" 
+    Make sure to have [Terraform version 1.5+](https://github.com/hashicorp/terraform/releases) installed on your machine. Otherwise, you'll get an error.
+
 When terraform finishes executing, you could see the generated Terraform code in the `generated.tf` file.
 
 ```bash title="Print out the Generated Terraform code"
@@ -88,13 +93,22 @@ cat generated-ec2-instances.tf
 
 That's it! You can now use the generated Terraform code to manage your existing resources.
 
+
+
+You can use balcony terraform-import feature with Docker and generate the Terraform code for it in the container.
+
+!!! Tip "Can I have the actual Terraform code!?"
+    Yeah definitely! I've created a Docker image do exactly that.
+
+    See the [relevant docs on how to run balcony terraform-import on Docker](terraform-import-docker.md), create an alias command and use it to generate the **actual Terraform code** for your resources.
+
+
+
 **Next Steps**
 
-- You can use balcony terraform-import feature with Docker and generate the Terraform code for it in the container.
-  [See the relevant docs on how to run balcony terraform-import on Docker.](terraform-import-docker.md)
+- [Generating Terraform Code - Official Terraform Documentation](https://developer.hashicorp.com/terraform/language/import/generating-configuration)
 
-- All kinds of resources must have it's own import configuration. This is because each resource has it's own unique identifier. 
+- All kinds of resources must have it's own import configuration. This is because each resource has it's own unique import identifier, and it must know which AWS API call to make. 
   You can develop your own import configuration that balcony can understand and serve you with.
   Please check out [Developing Terraform Import Configurations](developing-terraform-import.md)
 
-- [Generating Terraform Code - Official Terraform Documentation](https://developer.hashicorp.com/terraform/language/import/generating-configuration)

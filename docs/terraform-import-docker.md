@@ -86,7 +86,11 @@ alias balcony-tf-import="mkdir -p $BALCONY_TF_GEN_OUTPUT_DIR \
 ```
 
 
-- Note: You can't use `--output, -o` option with this docker image. 
+!!! Warning
+    You can't use `--output, -o` option with the docker image. 
+
+    That's because we have a staticly defined output directory in the image, so don't use it.
+
 
 ```bash title="Running the 'balcony-tf-import' alias"
 balcony-tf-import ec2 Instances --paginate
