@@ -20,6 +20,7 @@ RUN apt update -y \
     && rm -rf terraform.zip \
     && pip3 install --no-cache-dir balcony \
     && terraform init -upgrade \
+    && mkdir -p /balcony-output \
     && chmod +x entrypoint.sh
 
 ENTRYPOINT [ "./entrypoint.sh"]
