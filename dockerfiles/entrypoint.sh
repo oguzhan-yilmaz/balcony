@@ -1,5 +1,5 @@
 #!/bin/bash
-
+set -x
 function debug_echo {
   if [[ $BALCONY_DEBUG -eq 1 ]]; then
     echo "$@"
@@ -121,4 +121,5 @@ debug_echo "Terraform has finished generating the terraform code"
 echo "--------------------------"
 batcat  tf_generated.tf
 echo "--------------------------"
+set +x
 exit 0
