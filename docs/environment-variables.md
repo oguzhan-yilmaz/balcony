@@ -18,7 +18,6 @@ export BALCONY_RELATIONS_DIR="$HOME/.balcony/relations"
 ```bash title="Introducing your own terraform import config directory"
 # This is the directory where balcony will look for user defined terraform import configs
 # This option is False by default. If you want to use it, you need to set it to a directory
-export BALCONY_TERRAFOM_IMPORT_CONFIG_DIR="$HOME/my_import_configs/"
+export BALCONY_TERRAFOM_IMPORT_CONFIG_DIR="$HOME/balcony-tf-import-yamls/"
 ```
 
-USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY = os.getenv('BALCONY_TERRAFOM_IMPORT_CONFIG_DIR', False)

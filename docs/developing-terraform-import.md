@@ -1,12 +1,16 @@
-# Developing Terraform Import Configurations
+# Developing Balcony terraform import configurations for AWS resources 
+
+This document details the process of developing Terraform import configurations for balcony.
 
 
-## How to Generate Terraform Code for Existing AWS Resources
+!!! Tip 
+    You can define your own configurations on a local folder that you have, and they'll be loaded to balcony. You just have to set an environment variable.
 
-Terraform has released version 1.5, and it includes the [import blocks feature](https://developer.hashicorp.com/terraform/language/import) that allows users to define their imports as code. 
+    ```bash 
+    export BALCONY_TERRAFOM_IMPORT_CONFIG_DIR=$HOME/balcony-tf-yamls
+    ```
 
-
-This is a great feature that allows you to import existing resources into Terraform and **generate Terraform code** for them.
+    Allowing you to add/override import configurations. 
 
 ### What is an import block?
 
@@ -23,11 +27,7 @@ import {
 }
 ```
 
-After defining the import block, you can generate your Terraform code using the `-generate-config-out` option.
-
-```bash title="Generating terraform code using import blocks"
-terraform plan -generate-config-out=generated.tf
-```
+[See the relevant docs page for more details](terraform-import.md)
 
 
 !!! Note
@@ -39,7 +39,7 @@ terraform plan -generate-config-out=generated.tf
      
 
 This means that in order to generate Terraform code for a resource, you'll need to have:
-- type and name of the resource that'll be used to generate the Terraform code for
+- `terraform type` and `name` of the resource that'll be used to generate the Terraform code for
 - the resource ID that'll be used to import the resource (which is different for each resource type)
 
 ### This is great, but...
@@ -82,11 +82,14 @@ resource_node: Instances
 operation_name: DescribeInstances
 ```
 
+
+You can see the data you'd get using the `balcony aws ec2 Instances describe` command, which would read the Describe operation specifically.
+
 To see the Operations of a ResourceNode, you can use the  `--list, -l` option. (e.g. `balcony aws ec2 Instances --list`). This will bring up the Operations and their documentation.
 
 **Which Terraform to resource type it should use?**
 
-We know `aws_instance` is the resource type for EC2 Instances.
+We know `aws_instance` is the resource type for EC2 Instances [from the Terraform AWS prodiver docs.](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance)
 
 Let's add this to our config:
 
@@ -99,14 +102,14 @@ to_resource_type: aws_instance
 
 The data returned by the AWS API Operation is usually a JSON. We need to filter this data to get the list of resources we want to generate Terraform code for.
 
-This is especially important because we are using balcony, which returns the collection of responses it got from the AWS API Operation. So we definitely need to filter the data using [JMESPath](https://jmespath.org/) data query selectors.
+This is especially important because we are using balcony, **which returns the collection of responses it got from the AWS API Operation**. So we definitely need to filter the data using [JMESPath](https://jmespath.org/) data query selectors.
 
 
 ```yaml
 jmespath_query: "[].Reservations[].Instances[]"
 ```
 
-Here we select from all of the responses, the `Reservations` key, and then the `Instances` key from each of the `Reservations`. This query will result in a concise list of EC2 Instances, allowing us to generate Terraform code for each of them in a loop.
+Here we select from all of the responses, the `Reservations` key, and then the `Instances` key from each of the `Reservations`. This query will result in a _concise list of EC2 Instances_, allowing us to generate Terraform code for each of them in a loop.
 
 
 
@@ -183,4 +186,4 @@ export BALCONY_TERRAFOM_IMPORT_CONFIG_DIR=$HOME/balcony-tf-yamls
 
 
 
-I encourage you to contribute and create PRs for your favorite AWS resources.
+I encourage you to contribute and create PRs for your favorite AWS resources. Peace!
