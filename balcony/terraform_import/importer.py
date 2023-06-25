@@ -121,7 +121,7 @@ def generate_import_block_for_resource(
     )
     if not config_for_resource_node:
         logger.debug(
-            f"No custom terraform import config found for {service}/{resource_node}."
+            f"[red bold]No custom terraform import config found for {service}.{resource_node}. Please check out docs https://oguzhan-yilmaz.github.io/balcony/ for more info on developing it your own."
         )
         return False
 

@@ -28,7 +28,7 @@ from terraform_import.importer import (
     generate_import_block_for_resource,
     get_importable_resources,
 )
-from rich.table import Table
+from rich.padding import Padding
 
 console = get_rich_console()
 logger = get_logger(__name__)
@@ -366,18 +366,22 @@ def aws_main_command(  # noqa
         raise typer.Exit()
 
 
-@app.command("tf-import")
-def terraform_import_command(  # noqa
+@app.command(
+    "terraform-import",
+    no_args_is_help=True,
+    help="Generate Terraform import blocks for a given AWS Service and Resource Node.",
+)
+def terraform_import_command(
     service: Optional[str] = typer.Argument(
         None,
         show_default=False,
-        help="Name of the AWS Service",
+        help="Name of the AWS Service (e.g. ec2, s3, rds)",
         autocompletion=_complete_service_name,
     ),
     resource_node: Optional[str] = typer.Argument(
         None,
         show_default=False,
-        help="Name of the AWS Resource Node",
+        help="Name of the AWS Resource Node. (e.g. Instances, Buckets, DBInstances)",
         autocompletion=_complete_resource_node_name,
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug messages."),
@@ -391,7 +395,7 @@ def terraform_import_command(  # noqa
         False,
         "--list",
         "-l",
-        help="Lists currently available resources for Terraform imports.",
+        help="Lists currently available resources for generating Terraform import blocks.",
     ),
     output_file: str = typer.Option(
         None,
@@ -415,17 +419,18 @@ def terraform_import_command(  # noqa
         service_resource_list = get_importable_resources()
 
         def render_importable_resources(service_and_resource_tuples: List[Tuple]):
+            header = f"[bold green]{'service':<15} {'resource_name':<45}[/]\n".format()
+            result = header
 
-            table = Table(
-                title="Balcony - Supported Service/Resources for Terraform Import"
-            )
+            for i, (service_name, resource_name) in enumerate(
+                service_and_resource_tuples
+            ):
 
-            table.add_column("service", style="bold magenta")
-            table.add_column("resource", style="bold green")
-
-            for service_name, resource_name in service_and_resource_tuples:
-                table.add_row(service_name, resource_name)
-            return table
+                cur_line = f"{service_name:<15} {resource_name:<45}"
+                if i % 2:
+                    cur_line = f"[bold]{cur_line}[/]"
+                result += cur_line + "\n"
+            return result
 
         rendered_service_resource_list = render_importable_resources(
             service_resource_list
@@ -433,12 +438,43 @@ def terraform_import_command(  # noqa
         console.print(rendered_service_resource_list)
         return  # list option is enabled, do not run the actual importing code.
 
+    if (not service) or (not resource_node):
+        screen = False
+        _list_service_or_resource(service, resource_node, screen_pager=screen)
+
+        console.print(f"{service=} {resource_node=}")
+        console.print(f"[red bold]Please pick a Service and Resource Node[/]")
+        return
+
     import_blocks = generate_import_block_for_resource(
         balcony_aws,
         service,
         resource_node,
         follow_pagination=follow_pagination,
     )
+
+    if not import_blocks:
+        logger.debug(f"No import blocks generated for {service}.{resource_node}")
+
+        fail_msg = textwrap.dedent(
+            f"""
+            No terraform import blocks generated for [bold]{service}.{resource_node}[/]. Some checks:
+                
+                - [underline]Run the balcony with [bold]--debug[/] flag to see more info.[/]
+                    Run     [bold]balcony terraform-import --debug {service} {resource_node}[/]
+                    
+                - [underline]Do you have the correct AWS credentials and Region?[/]
+                    Run     [bold]printenv | grep ^AWS_[/]
+                
+                - [underline]Is the resource node name correct?[/]
+                    Run     [bold]balcony aws {service}[/]      to see available resource nodes.
+                
+                - [underline]You may not have any resources in your AWS Account, check it first:[/]
+                    Run     [bold]balcony aws {service} {resource_node} -d[/] 
+            """
+        ).strip()
+        console.print(Padding(fail_msg, (1, 1)))
+        raise typer.Exit(-1)
 
     if output_file:
         output_filepath = Path(output_file).resolve()
