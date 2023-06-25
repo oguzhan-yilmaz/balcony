@@ -8,31 +8,27 @@ function debug_echo {
 
 debug_echo "Docker entrypoint script started to run"
 
-pip3 install --upgrade --no-input -q balcony
 
 if [[ $BALCONY_DEBUG -eq 1 ]]; then
   echo "Debugging mode is enabled."
 
-  echo "+ terraform version"
-  terraform version
-  echo ""
+  set -x
   tf_version_output=$(terraform version)
+  echo ""
 
 
   if [[ $tf_version_output == *"Your version of Terraform is out of date!"* ]]; then
       echo "TODO: Upgrade the terraform!" # TODO: maybe exit with 1?
   fi
 
-  echo "+ pip3 show balcony"
   pip3 show balcony
   echo ""
 
 
-
 fi
 
-
-
+debug_echo "Upgrading the balcony package to the latest version."
+pip3 install --upgrade --no-input -q balcony
 
 debug_echo "Using $GEN_TF_DIR directory to save generated terraform files."
 
@@ -121,8 +117,11 @@ echo "You may see stderr output of terraform above this. It is expected, as the 
 debug_echo "Terraform has finished generating the terraform code"
 echo "--------------------------"
 cat  tf_generated.tf
-echo "--------------------------"
-set +x
+cp tf_generated.tf /balcony-output 
 
-cp tf_generted.tf /balcony-output 
+if [[ $BALCONY_DEBUG -eq 1 ]]; then
+  # cleanup
+  set +x
+fi
+
 exit 0
