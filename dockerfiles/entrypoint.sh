@@ -7,9 +7,29 @@ function debug_echo {
 
 debug_echo "Docker entrypoint script started to run"
 
+# Create an empty string to store the filename
+gen_terraform_filename=""
+
+# Iterate over all arguments to generate the generated terraform filename
+for arg in "$@"
+do
+    # If the gen_terraform_filename is not empty, append a hyphen before adding the new argument
+    if [ ! -z "$gen_terraform_filename" ]; then
+        gen_terraform_filename+="-"
+    fi
+    # Append the argument to the gen_terraform_filename
+    gen_terraform_filename+="$arg"
+done
+
+# Append the .tf extension
+gen_terraform_filename+=".tf"
+
+# Print the gen_terraform_filename
+debug_echo "Generated gen_terraform_filename: $gen_terraform_filename"
+
 
 if [[ $# -ne 2 ]]; then
-    echo "This script requires exactly two arguments: service and resource_name"
+    echo "\n ERROR: This script requires exactly two arguments: service and resource_name"
     exit 1
 fi
 
@@ -112,14 +132,15 @@ fi
 
 pushd $GEN_TF_DIR/
 debug_echo "Generating terraform files for import blocks using terraform plan -generate-config-out= command."
-terraform plan -generate-config-out=tf_generated.tf
+terraform plan -generate-config-out=$gen_terraform_filename
 
+echo "^^^^^^^^^^^^^^^^^^^^^^^^^^"
 echo "You may see stderr output of terraform above this. It is expected, as the import feature under active development."
 
 debug_echo "Terraform has finished generating the terraform code"
 echo "--------------------------"
-cat tf_generated.tf
-cp tf_generated.tf /balcony-output 
+cat $gen_terraform_filename
+cp $gen_terraform_filename  /balcony-output 
 
 if [[ $BALCONY_DEBUG -eq 1 ]]; then
   # cleanup
