@@ -8,7 +8,7 @@ nav:
     - Cookbook: cookbook.md
     - 'Run on Docker': docker.md
     - 'As a Python library': as-a-python-library.md
-    - '`balcony terraform-import` command': 
+    - 'balcony terraform-import': 
       - 'Generating Terraform Import Blocks': terraform-import.md
       - 'Actually Generate TF code with Docker': terraform-import-docker.md
       - 'Developing Import Configurations': developing-terraform-import.md
