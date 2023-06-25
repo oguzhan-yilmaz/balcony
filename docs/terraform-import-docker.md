@@ -45,11 +45,24 @@ You'd also need to set the `AWS_PROFILE` and `AWS_DEFAULT_REGION` environment va
 
 **2. Directly giving the AWS Credentials in Env Vars**
 
-You can also directly give the AWS Credentials in environment variables.
+You can also directly provide the AWS Credentials in environment variables.
 
 ```bash title="AWS Credentials in Environment Variables"
   -e AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \
   -e AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" \
+  -e AWS_DEFAULT_REGION="eu-west-1" 
+```
+
+**3. Directly giving the Assumed Role AWS Credentials in Env Vars**
+
+You can also directly provide an Assumed Role AWS Credentials in environment variables.
+
+The difference is you also provide the `AWS_SESSION_TOKEN` environment variable.
+
+```bash title="AWS Credentials in Environment Variables"
+  -e AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \
+  -e AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" \
+  -e AWS_SESSION_TOKEN="wasfjoAfn21ALfj/bPxRfiCYEXAMPLE-SESSION-TOKEN" \
   -e AWS_DEFAULT_REGION="eu-west-1" 
 ```
 
