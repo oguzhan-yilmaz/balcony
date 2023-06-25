@@ -8,10 +8,14 @@ nav:
     - Cookbook: cookbook.md
     - 'Run on Docker': docker.md
     - 'As a Python library': as-a-python-library.md
+    - '`balcony terraform-import` command': 
+      - 'Generating Terraform Import Blocks': terraform-import.md
+      - 'Actually Generate TF code with Docker': terraform-import-docker.md
+      - 'Developing Import Configurations': developing-terraform-import.md
+    - 'Config Env Vars': environment-variables.md
     - 'How it Works?': 
       - 'About boto3': how-it-works/about-boto3.md
       - 'About balcony': how-it-works/about-balcony.md
-    - 'Config Env Vars': environment-variables.md
     - Development:
       - development/developing-custom-resource-nodes.md
       - development/about-relations.md
