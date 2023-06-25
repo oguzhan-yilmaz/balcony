@@ -1,5 +1,21 @@
 #!/bin/bash
 
+# info logs the given argument at info log level.
+info() {
+    echo "[INFO] " "$@"
+}
+
+# warn logs the given argument at warn log level.
+warn() {
+    echo "[WARN] " "$@" >&2
+}
+
+# fatal logs the given argument at fatal log level.
+fatal() {
+    echo "[ERROR] " "$@" >&2
+    exit 1
+}
+
 echo "Docker entrypoint script started to run"
 
 
@@ -20,7 +36,7 @@ pip3 show balcony
 echo "Using $GEN_TF_DIR directory to save generated terraform files."
 
 echo "Using Terraform AWS provider with profile: $AWS_PROFILE and region: $AWS_DEFAULT_REGION"
-cat << EOF >> $GEN_TF_DIR/provider.tf
+batcat -P -p  << EOF >> $GEN_TF_DIR/provider.tf
 
 provider "aws" {
     profile = "$AWS_PROFILE"
@@ -28,18 +44,18 @@ provider "aws" {
 }
 EOF
 echo "--------------------------"
-cat  $GEN_TF_DIR/provider.tf
+batcat -P -p   $GEN_TF_DIR/provider.tf
 echo "--------------------------"
 
 
 
-echo "Running balcony tf-import command to generate import blocks"
+echo "Running balcony terraform-import command to generate import blocks"
 # TODO change balcony command
-python3 balcony/cli.py tf-import "$@" -o $GEN_TF_DIR/generated_imports.tf
+python3 balcony/cli.py terraform-import "$@" -o $GEN_TF_DIR/generated_imports.tf
 
 echo "Balcony has generated the following import blocks:"
 echo "--------------------------"
-cat $GEN_TF_DIR/generated_imports.tf
+batcat -P -p  $GEN_TF_DIR/generated_imports.tf
 echo "--------------------------"
 
 
@@ -52,6 +68,6 @@ echo "You may see stderr output of terraform above this. It is expected, as the 
 
 echo "Terraform has finished generating the terraform code"
 echo "--------------------------"
-cat tf_generated.tf
+batcat -P -p  tf_generated.tf
 echo "--------------------------"
 exit 0
