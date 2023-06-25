@@ -2,38 +2,40 @@
 
 function debug_echo {
   if [[ $BALCONY_DEBUG -eq 1 ]]; then
-    if [[ -p /dev/stdin ]]; then
-      while IFS= read -r line
-      do
-        echo "$line"
-      done
-    else
-      echo "$@"
-    fi
+    echo "$@"
   fi
 }
 
 debug_echo "Docker entrypoint script started to run"
 
 
-debug_echo "Printing the terraform version"
-terraform version | debug_echo
-debug_echo ""
+if [[ $BALCONY_DEBUG -eq 1 ]]; then
+  echo "Debugging mode is enabled."
 
-tf_version_output=$(terraform version)
+  echo "+ terraform version"
+  terraform version
+  echo ""
+  tf_version_output=$(terraform version)
 
 
-# Check if the output contains the desired string
-if [[ $tf_version_output == *"Your version of Terraform is out of date!"* ]]; then
-    echo "TODO: Upgrade the terraform to new version!" # TODO: maybe exit with 1?
+  if [[ $tf_version_output == *"Your version of Terraform is out of date!"* ]]; then
+      echo "TODO: Upgrade the terraform!" # TODO: maybe exit with 1?
+  fi
+
+  echo "+ pip3 show balcony"
+  pip3 show balcony
+  echo ""
+
+
+
 fi
 
-debug_echo "Printing the balcony version"
-pip3 show balcony | debug_echo
-balcony info | debug_echo
+
+
 
 debug_echo "Using $GEN_TF_DIR directory to save generated terraform files."
 
+# ------ Generate provider "aws" block to provider.tf file
 
 debug_echo "Generating 'provider \"aws\" {}' block in $GEN_TF_DIR/provider.tf file"
 
@@ -76,22 +78,35 @@ else
   exit 1
 fi
 
-
+# ------ Generate provider "aws" block to provider.tf file
 
 echo "--------------------------"
-batcat  $GEN_TF_DIR/provider.tf
+batcat   $GEN_TF_DIR/provider.tf
 echo "--------------------------"
 
 
 
-debug_echo "Running balcony terraform-import command to generate import blocks"
+echo "Running balcony terraform-import command to generate import blocks"
 
 balcony terraform-import "$@" -o $GEN_TF_DIR/generated_imports.tf
 
-debug_echo "Balcony has generated the following import blocks:"
-echo "--------------------------"
-batcat  $GEN_TF_DIR/generated_imports.tf
-echo "--------------------------"
+# check if the file is generated or not
+if [[ -f $GEN_TF_DIR/generated_imports.tf ]]; then
+  echo "File $GEN_TF_DIR/generated_imports.tf exists."
+  echo "Balcony has generated the following import blocks:"
+  echo "--------------------------"
+  batcat  $GEN_TF_DIR/generated_imports.tf
+  echo "--------------------------"
+
+else
+  echo "Balcony failed to generate the import blocks. Running the same command in debug mode."
+  balcony terraform-import --debug "$@" 
+  echo "Please check the debug output above to see what went wrong."
+  echo "Exiting..."
+  exit 1
+fi
+
+
 
 
 
@@ -99,13 +114,10 @@ pushd $GEN_TF_DIR/
 debug_echo "Generating terraform files for import blocks using terraform plan -generate-config-out= command."
 terraform plan -generate-config-out=tf_generated.tf
 
-echo "--------------------------"
 echo "You may see stderr output of terraform above this. It is expected, as the import feature under active development."
 
 debug_echo "Terraform has finished generating the terraform code"
 echo "--------------------------"
 batcat  tf_generated.tf
 echo "--------------------------"
-debug_echo "Script has finished. Exiting successfully."
-
 exit 0
