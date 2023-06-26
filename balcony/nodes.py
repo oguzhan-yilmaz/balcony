@@ -13,6 +13,7 @@ from utils import (
 )
 from botocore_utils import (
     get_input_shape,
+    annotate_shape_and_its_members_with_target_path,
     get_max_results_value_from_shape,
     find_key_in_dict_keys,
     generate_rich_tree_from_shape,
@@ -492,7 +493,7 @@ class ResourceNode:
         operation_panel = self._rich_operation_details_panel(operation_name)
         console.print(operation_panel)
 
-    def _rich_operation_details_panel(self, operation_name: str) -> Panel:
+    def _rich_operation_details_panel(self, operation_name: str, remove_input_shape=False, remove_documentation=False) -> Panel:
 
         operation_model = self.get_operation_model(operation_name)
         input_shape = get_input_shape(operation_model)
@@ -500,11 +501,12 @@ class ResourceNode:
         input_shape_name = 'No Input Shape Found'
         input_shape_tree = Text("No Input Shape Found")
         if input_shape:
-            input_shape_tree = generate_rich_tree_from_shape(input_shape)
+            input_shape_tree = generate_rich_tree_from_shape(input_shape, remove_documentation=remove_documentation)
             input_shape_name = input_shape.name
-        output_shape_tree = generate_rich_tree_from_shape(output_shape)
+        output_shape_tree = generate_rich_tree_from_shape(output_shape, remove_documentation=remove_documentation)
 
         operation_docs = cleanhtml(operation_model.documentation)
+        
         panel_group = Group(
             Padding(f"[bold underline]Documentation:[/] {operation_docs}", (1, 2)),
             Panel(
@@ -520,6 +522,17 @@ class ResourceNode:
                 padding=(1, 1),
             ),
         )
+        
+        if remove_input_shape:
+            panel_group = Group(
+                Padding(f"[bold underline]Documentation:[/] {operation_docs}", (1, 2)),
+                Panel(
+                    output_shape_tree,
+                    title=f"Output: [yellow]{output_shape.name}",
+                    title_align="left",
+                    padding=(1, 1),
+                ),
+            )
 
         required_parameters = self.get_required_parameter_names_from_operation_name(
             operation_name
