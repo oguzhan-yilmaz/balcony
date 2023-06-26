@@ -28,9 +28,20 @@ It also copies over 2 files to image:
 Our Docker image has a lot of options, so it's handy to create an `alias` command for it.
 
 There're multiple ways of providing these options. First, let's walk through the options.
+
+## Docker run Options
+
+Following are docker run options for providing 
+- AWS Credentials to the container,
+- defining a directory to save the generated files,
+- and enabling container debug messages
+
+to the container.
+
 ### Option: AWS Credentials
 
-**1. Mounting your AWS Credentials**
+
+**1. Mounting your AWS Credential Folder `~/.aws/`**
 
 If you use `AWS CLI`, you can mount your `~/.aws/` folder to the container.
 
@@ -40,7 +51,7 @@ You'd also need to set the `AWS_PROFILE` and `AWS_DEFAULT_REGION` environment va
 ```bash title="Docker options for mounting ~/.aws/ folder to container"
   -v ~/.aws:/root/.aws \
   -e AWS_PROFILE="default" \
-  -e AWS_DEFAULT_REGION="eu-west-1"
+  -e AWS_DEFAULT_REGION="eu-west-1" \
 ```
 
 **2. Directly giving the AWS Credentials in Env Vars**
@@ -50,7 +61,7 @@ You can also directly provide the AWS Credentials in environment variables.
 ```bash title="AWS Credentials in Environment Variables"
   -e AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \
   -e AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" \
-  -e AWS_DEFAULT_REGION="eu-west-1" 
+  -e AWS_DEFAULT_REGION="eu-west-1" \
 ```
 
 **3. Directly giving the Assumed Role AWS Credentials in Env Vars**
@@ -63,16 +74,19 @@ The difference is you also provide the `AWS_SESSION_TOKEN` environment variable.
   -e AWS_ACCESS_KEY_ID="AKIAIOSFODNN7EXAMPLE" \
   -e AWS_SECRET_ACCESS_KEY="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" \
   -e AWS_SESSION_TOKEN="wasfjoAfn21ALfj/bPxRfiCYEXAMPLE-SESSION-TOKEN" \
-  -e AWS_DEFAULT_REGION="eu-west-1" 
+  -e AWS_DEFAULT_REGION="eu-west-1" \
 ```
 
 ### Option: Output Directory
 
-Docker image will use `/terraform_app` as the default output directory. 
+Docker image will use `/balcony-output` as the default output directory. 
 
 You can mount a folder you have as a volume to the container. This way you'll get the files in your local machine.
 
-We can achieve by providing the docker run with `-v <your-directory>:/terraform_app`
+```bash
+  -v $BALCONY_TF_GEN_OUTPUT_DIR:/balcony-output \
+```
+We can achieve by providing the docker run with `-v <your-directory>:/balcony-output`
 
 You can also copy the output from the terminal window if you don't use this option.
 

@@ -84,7 +84,7 @@ terraform plan -generate-config-out=generated-ec2-instances.tf
 !!! warning "Use Terraform v.1.5+" 
     Make sure to have [Terraform version 1.5+](https://github.com/hashicorp/terraform/releases) installed on your machine. Otherwise, you'll get an error.
 
-When terraform finishes executing, you could see the generated Terraform code in the `generated.tf` file.
+When terraform finishes executing, you could see the generated Terraform code in the `generated-ec2-instances.tf` file.
 
 ```bash title="Print out the Generated Terraform code"
 cat generated-ec2-instances.tf
