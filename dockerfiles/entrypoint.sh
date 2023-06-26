@@ -52,7 +52,9 @@ if [[ $BALCONY_DEBUG -eq 1 ]]; then
   echo ""
 fi
 
+
 debug_echo "Upgrading the balcony package to the latest version."
+PIP_DISABLE_PIP_VERSION_CHECK=1
 pip3 install --upgrade --no-python-version-warning --disable-pip-version-check --no-input -q balcony
 
 debug_echo "Using $GEN_TF_DIR directory to save generated terraform files."
@@ -134,7 +136,7 @@ fi
 
 
 
-pushd $GEN_TF_DIR/
+pushd $GEN_TF_DIR/ > /dev/null
 debug_echo "Generating terraform files for import blocks using terraform plan -generate-config-out= command."
 terraform plan -generate-config-out=$gen_terraform_filename
 
