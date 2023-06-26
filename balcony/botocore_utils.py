@@ -60,7 +60,7 @@ BLACKLISTED_SHAPE_NAMES = (
     "QueryStagePlanNode",
     "QueryStage",
     "ElicitSubSlot",
-    "DialogAction"
+    "DialogAction",
 )  # noqa
 # regex expr for removing html caret tags
 HTML_CLEANER_REGEX = re.compile("<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});")
@@ -175,7 +175,7 @@ def get_members_shapes(shape: Shape, _recursion_count=0) -> List[Shape]:
         only_member = shape.member
         found_members_shapes.append(only_member)
     elif shape.type_name == "map":
-        t = get_members_shapes(shape.value, _recursion_count+1)
+        t = get_members_shapes(shape.value, _recursion_count + 1)
         return t
     return found_members_shapes
 
@@ -193,6 +193,71 @@ def is_shape_non_collection_type(shape_and_target_path: ShapeAndTargetPath) -> b
     has_key_name = getattr(shape, "key_name", False)
     is_non_collection = shape.type_name not in SHAPE_COLLECTION_TYPES
     return has_key_name and is_non_collection
+
+
+def annotate_shape_and_its_members_with_target_path(
+    shape: Shape, target_str: str = ""
+) -> Shape:
+
+    if not shape or shape.name in BLACKLISTED_SHAPE_NAMES:
+        return False
+
+    if shape.type_name == "structure":
+        new_target_str = target_str
+        shape_key = getattr(shape, "key_name", "")
+        if shape_key and target_str == "":  # target_str is empty, first time
+            new_target_str = f"{shape_key}"
+        elif shape_key and target_str != "":  # target_str is already available
+            new_target_str = f"{target_str}[*].{shape_key}"
+        setattr(shape, "target_path", new_target_str)
+        
+        for member_key, member in shape.members.items():
+            setattr(member, "key_name", member_key)
+            setattr(member, "parent_name", shape.name)
+            annotate_shape_and_its_members_with_target_path(member, new_target_str)
+
+    elif shape.type_name == "list":
+        shape_key = getattr(shape, "key_name", "")
+        new_target_str = target_str
+        if shape_key and target_str == "":  # target_str is empty, first time
+            new_target_str = f"{shape_key}"
+        elif shape_key and target_str != "":  # target_str is already available
+            new_target_str = f"{target_str}[*].{shape_key}"
+        setattr(shape, "target_path", new_target_str)
+        
+        only_member = shape.member
+        annotate_shape_and_its_members_with_target_path(only_member, new_target_str)
+        # found_members_shapes.append(only_member)
+
+    elif shape.type_name != "map":
+        shape_name = getattr(shape, "key_name", shape.name)
+        new_target_str = target_str
+        if shape_name and target_str == "":  # target_str is empty, first time
+            new_target_str = f"{shape_name}"
+        elif shape_name and target_str != "":  # target_str is already available
+            new_target_str = f"{target_str}[*].{shape_name}"
+        setattr(shape, "target_path", new_target_str)
+
+    return shape
+
+    # members = get_members_shapes(shape)
+    # for member in members:
+    #     # create the target path for the member
+    #     member_key_name = getattr(member, "key_name", False)
+    #     new_target_str = target_str
+    #     if member_key_name:
+    #         if target_str == "":
+    #             new_target_str = f"{member_key_name}"
+    #         else:
+    #             new_target_str = f"{target_str}[*].{member_key_name}"
+    #     setattr(member, "target_path", new_target_str)
+    #     # if member.type_name in ("structure", "list"):
+    #     # if the member is a collection type, recurse into it
+    #     # inner_list = _flatten_shape_to_its_members_and_target_paths(
+    #     #     member, new_target_str
+    #     # )
+
+    # return shape
 
 
 def _flatten_shape_to_its_members_and_target_paths(
@@ -268,7 +333,7 @@ def cleanhtml(raw_html: str) -> str:
     return cleantext
 
 
-def rich_str_shape(shape: Shape) -> str:
+def rich_str_shape(shape: Shape, remove_documentation=False) -> str:
     """Transforms a Shape to rich supported string.
 
     Args:
@@ -279,10 +344,18 @@ def rich_str_shape(shape: Shape) -> str:
     """
     key_name = getattr(shape, "key_name", "")
     type_name = str(shape.type_name)
-    shape_documentation = cleanhtml(shape.documentation)
 
+    shape_documentation = cleanhtml(shape.documentation)
+    if remove_documentation:
+        shape_documentation = ""
+
+    target_path = getattr(shape, "target_path", "")
+    if target_path:
+        target_path = f"[].{target_path}[]"
+        target_path = f"[green]{target_path}[/]"
+    
     shape_str = (
-        f"[blue bold]{key_name}[/] [white]({type_name})[/]: {shape_documentation}"
+        f"[blue bold]{key_name}[/] — ({type_name}) — {target_path}: {shape_documentation}"
     )
     if key_name == "":
         lead = ""
@@ -290,27 +363,29 @@ def rich_str_shape(shape: Shape) -> str:
             lead = "["
         elif type_name == "structure":
             lead = "{"
-        shape_str = f"[red]{escape(lead)}[/] — [white](({type_name}))[/]: [gray]{shape_documentation}[/]"
+        shape_str = f"[red]{escape(lead)}[/] — ({type_name}) — {target_path} [gray]{shape_documentation}[/]"
 
     return shape_str
 
 
-def generate_rich_tree_from_shape(shape: Shape) -> Tree:
+def generate_rich_tree_from_shape(shape: Shape, remove_documentation=False) -> Tree:
     """Genereate a rich Tree containing `shape` and it's members."""
     tree = Tree(rich_str_shape(shape), guide_style="red")
 
-    def _recursive_stringify_shape(shape, node: Tree):
+    shape = annotate_shape_and_its_members_with_target_path(shape)
+    
+    def _recursive_stringify_shape(shape, node: Tree, remove_documentation=False):
 
         members = get_members_shapes(shape)
         for member in members:
-            member_str = rich_str_shape(member)
+            member_str = rich_str_shape(member, remove_documentation=remove_documentation)
             if member.type_name in SHAPE_COLLECTION_TYPES:
                 new_node = node.add(member_str)
-                _recursive_stringify_shape(member, new_node)
+                _recursive_stringify_shape(member, new_node, remove_documentation=remove_documentation)
             else:
                 node.add(member_str)
 
-    _recursive_stringify_shape(shape, tree)
+    _recursive_stringify_shape(shape, tree, remove_documentation=remove_documentation)
     return tree
 
 
