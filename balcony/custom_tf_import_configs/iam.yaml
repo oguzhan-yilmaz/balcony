@@ -1,0 +1,10 @@
+import_configurations:
+- id_generator_jinja2_template: '{{ UserName }}'
+  jmespath_query: '[].Users[]'
+  operation_name: ListUsers
+  resource_node: User
+  service: iam
+  to_resource_name_jinja2_template: '{{ UserName }}'
+  to_resource_type: aws_iam_user
+maintainers:
+- name: Oguzhan Yilmaz
