@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 def extract_resource_tags_as_kwargs(data: dict) -> dict:
     tags_as_kwargs = {}
     tag_list = data.get("Tags", [])
-    if not tag_list:
+    if not tag_list or not isinstance(tag_list, list):
         return tags_as_kwargs
 
     for tag in tag_list:
@@ -79,11 +79,11 @@ def gen_resource_name_and_import_id_from_op_data_(
 
 
 def generate_terraform_import_block(to_resource_type, to_resource_name, import_id):
-    jinja_tmpl = textwrap.dedent("""import {
+    jinja_tmpl = textwrap.dedent("""
+    import {
         to = {{ to_resource_type }}.{{ to_resource_name }}
         id = "{{ import_id }}"
     }
-    
     """)
 
     jinja_env = Environment()

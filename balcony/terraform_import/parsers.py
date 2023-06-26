@@ -15,6 +15,16 @@ from collections import defaultdict
 logger = get_logger(__name__)
 
 
+def parse_json_to_tf_import_config(
+    input_configuration_dict: str,
+) -> Union[bool, CustomTerraformImportConfigFile]:
+    try:
+        return CustomTerraformImportConfigFile(**input_configuration_dict)
+    except Exception as e:
+        logger.debug(f"Error while parsing user defined tf import config: {str(e)}")
+    return False
+
+
 def parse_yaml_file_to_tf_import_config(
     yaml_file_path: str,
 ) -> Tuple[CustomTerraformImportConfigFile, Union[Exception, None]]:
