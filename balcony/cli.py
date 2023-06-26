@@ -28,6 +28,9 @@ from terraform_import.importer import (
     generate_import_block_for_resource,
     get_importable_resources,
 )
+from terraform_import.helper import (
+    interactive_help,
+)
 from rich.padding import Padding
 
 console = get_rich_console()
@@ -268,7 +271,6 @@ def aws_main_command(  # noqa
             "[underline][yellow bold][WARNING][/] [bold][--paginate, -p][/] option [bold red]is NOT set[/]. You're likely to get incomplete data.[/]"
         )
     service_markup = f"[green]{service}[/]"
-    resource_node_markup = f"[green]{service}[/].[blue]{resource_node}[/]"
 
     if not service and not resource_node:
         # print out resource nodes of this service.
@@ -441,8 +443,6 @@ def terraform_import_command(
     if (not service) or (not resource_node):
         screen = False
         _list_service_or_resource(service, resource_node, screen_pager=screen)
-
-        console.print(f"{service=} {resource_node=}")
         console.print(f"[red bold]Please pick a Service and Resource Node[/]")
         return
 
@@ -486,6 +486,57 @@ def terraform_import_command(
         console.print("\n".join(import_blocks))
 
     return import_blocks
+
+
+@app.command(
+    "terraform-wizard",
+    no_args_is_help=True,
+    help="Helps you generate the correct configuration for the terraform import command.",
+)
+def wizard_the_terraform_import_configurer(
+    service: Optional[str] = typer.Argument(
+        None,
+        show_default=False,
+        help="Name of the AWS Service (e.g. ec2, s3, rds)",
+        autocompletion=_complete_service_name,
+    ),
+    resource_node: Optional[str] = typer.Argument(
+        None,
+        show_default=False,
+        help="Name of the AWS Resource Node. (e.g. Instances, Buckets, DBInstances)",
+        autocompletion=_complete_resource_node_name,
+    ),
+    debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug messages."),
+    list_contents: bool = typer.Option(
+        False,
+        "--list",
+        "-l",
+        help="Show documentation about the currently selected Service and ResourceNode. Does not make requests.",
+    ),
+    screen: bool = typer.Option(
+        False, "--screen", "-s", help="Open the data on a separate paginator on shell."
+    ),
+):
+    # set debug level if enabled
+    if debug:
+        set_log_level_at_runtime(logging.DEBUG)
+
+    if list_contents:
+        _list_service_or_resource(service, resource_node, screen_pager=screen)
+        raise typer.Exit()
+
+    if (not service) or (not resource_node):
+        _list_service_or_resource(service, resource_node, screen_pager=screen)
+
+        console.print(f"[red bold]Please pick a Service and Resource Node[/]")
+        return
+    
+    
+    # if we got here, we have both service and resource node
+    
+    # call a function 
+    interactive_help(balcony_aws, service, resource_node)
+    print
 
 
 @app.command("clear-cache", help="Clear relations json cache")
