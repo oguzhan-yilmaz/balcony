@@ -26,7 +26,7 @@ balcony uses _read-only_ operations, it does not take any action on the used AWS
 pip3 install balcony
 ```
 
-Visit [**Installation & QuickStart Page**](quickstart.md) to get started using _balcony_
+Visit [**Installation & QuickStart Page**](https://oguzhan-yilmaz.github.io/balcony/quickstart/) to get started using _balcony_
 
 ```bash  title="Basic usage"
 # see options
