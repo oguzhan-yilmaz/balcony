@@ -412,6 +412,9 @@ def terraform_import_command(
         show_default=False,
         help="Output file name. If not provided, will print to console.",
     ),
+    screen: bool = typer.Option(
+        False, "--screen", "-s", help="Open the data on a separate paginator on shell."
+    ),
 ):
     # set debug level if enabled
     if debug:
@@ -447,7 +450,6 @@ def terraform_import_command(
         return  # list option is enabled, do not run the actual importing code.
 
     if (not service) or (not resource_node):
-        screen = False
         _list_service_or_resource(service, resource_node, screen_pager=screen)
         console.print(f"[red bold]Please pick a Service and Resource Node[/]")
         return
@@ -489,7 +491,11 @@ def terraform_import_command(
         raise typer.Exit()
 
     else:
-        console.print("\n".join(import_blocks))
+        if screen:
+            with console.pager(styles=True):
+                console.print("\n".join(import_blocks))
+        else:            
+            console.print("\n".join(import_blocks))
 
     return import_blocks
 
