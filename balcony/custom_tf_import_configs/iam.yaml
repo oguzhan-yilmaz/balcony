@@ -6,5 +6,30 @@ import_configurations:
   service: iam
   to_resource_name_jinja2_template: '{{ UserName }}'
   to_resource_type: aws_iam_user
+
+- id_generator_jinja2_template: '{{ item }}'
+  jmespath_query: '[].PolicyNames[]'
+  operation_name: ListRolePolicies
+  resource_node: RolePolicy
+  service: iam
+  to_resource_name_jinja2_template: '{{ item }}'
+  to_resource_type: aws_iam_role_policy
+
+- service: iam
+  resource_node: GroupPolicy
+  operation_name: GetGroupPolicy
+  jmespath_query: '[]'
+  to_resource_type: aws_iam_group_policy
+  to_resource_name_jinja2_template: '{{ GroupName ~ '':'' ~ PolicyName }}'
+  id_generator_jinja2_template: '{{ GroupName ~ '':'' ~ PolicyName }}'
+
+- id_generator_jinja2_template: '{{ Arn }}'
+  jmespath_query: '[].Policies[]'
+  operation_name: ListPolicies
+  resource_node: Policy
+  service: iam
+  to_resource_name_jinja2_template: '{{ PolicyName or PolicyId }}'
+  to_resource_type: aws_iam_policy
+
 maintainers:
 - name: Oguzhan Yilmaz

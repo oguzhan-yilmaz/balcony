@@ -1,0 +1,10 @@
+import_configurations:
+- id_generator_jinja2_template: '{{ clusterName }}'
+  jmespath_query: '[].clusters[]'
+  operation_name: DescribeClusters
+  resource_node: Clusters
+  service: ecs
+  to_resource_name_jinja2_template: '{{ clusterName }}'
+  to_resource_type: aws_ecs_cluster
+maintainers:
+- name: Oguzhan Yilmaz
