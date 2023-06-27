@@ -25,3 +25,35 @@ import_configurations:
     service: ec2
     to_resource_name_jinja2_template: '{{ tag_Name or VpcId }}'
     to_resource_type: aws_vpc
+
+  - id_generator_jinja2_template: '{{ ImageId }}'
+    jmespath_query: '[].Images[]'
+    operation_name: DescribeImages
+    resource_node: Images
+    service: ec2
+    to_resource_name_jinja2_template: '{{ ImageId ~ ''-'' ~ Name }}'
+    to_resource_type: aws_ami
+
+  - id_generator_jinja2_template: '{{ AllocationId }}'
+    jmespath_query: '[].Addresses[]'
+    operation_name: DescribeAddresses
+    resource_node: Addresses
+    service: ec2
+    to_resource_name_jinja2_template: '{{ AllocationId }}'
+    to_resource_type: aws_eip
+
+  - id_generator_jinja2_template: '{{ LaunchTemplateId }}'
+    jmespath_query: '[].LaunchTemplates[]'
+    operation_name: DescribeLaunchTemplates
+    resource_node: LaunchTemplates
+    service: ec2
+    to_resource_name_jinja2_template: '{{ LaunchTemplateId }}'
+    to_resource_type: aws_launch_template
+
+  - id_generator_jinja2_template: '{{ GroupId }}'
+    jmespath_query: '[].SecurityGroups[]'
+    operation_name: DescribeSecurityGroups
+    resource_node: SecurityGroups
+    service: ec2
+    to_resource_name_jinja2_template: '{{ GroupName ~ ''-'' ~ VpcId }}'
+    to_resource_type: aws_security_group

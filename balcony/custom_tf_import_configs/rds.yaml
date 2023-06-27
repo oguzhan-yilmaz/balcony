@@ -1,0 +1,51 @@
+maintainers:
+- name: Oguzhan Yilmaz
+import_configurations:
+- id_generator_jinja2_template: '{{ DBClusterEndpointIdentifier }}'
+  jmespath_query: '[].DBClusterEndpoints[]'
+  operation_name: DescribeDBClusterEndpoints
+  resource_node: DBClusterEndpoints
+  service: rds
+  to_resource_name_jinja2_template: '{{ DBClusterIdentifier ~ ''-'' ~ Endpoint }}'
+  to_resource_type: aws_rds_cluster_endpoint
+
+- id_generator_jinja2_template: '{{ ParameterName }}'
+  jmespath_query: '[].Parameters[]'
+  operation_name: DescribeDBClusterParameters
+  resource_node: DBClusterParameters
+  service: rds
+  to_resource_name_jinja2_template: '{{ ParameterName }}'
+  to_resource_type: aws_db_parameter_group
+
+- id_generator_jinja2_template: '{{ DBClusterIdentifier }}'
+  jmespath_query: '[].DBClusters[]'
+  operation_name: DescribeDBClusters
+  resource_node: DBClusters
+  service: rds
+  to_resource_name_jinja2_template: '{{ DBClusterIdentifier ~ ''-'' ~ DatabaseName
+    }}'
+  to_resource_type: aws_rds_cluster
+
+- id_generator_jinja2_template: '{{ DBInstanceIdentifier }}'
+  jmespath_query: '[].DBInstances[]'
+  operation_name: DescribeDBInstances
+  resource_node: DBInstances
+  service: rds
+  to_resource_name_jinja2_template: '{{ DBName ~ ''-'' ~ Engine }}'
+  to_resource_type: aws_db_instance
+
+- id_generator_jinja2_template: '{{ DBSubnetGroupName }}'
+  jmespath_query: '[].DBSubnetGroups[]'
+  operation_name: DescribeDBSubnetGroups
+  resource_node: DBSubnetGroups
+  service: rds
+  to_resource_name_jinja2_template: '{{ DBSubnetGroupName }}'
+  to_resource_type: aws_db_subnet_group
+
+- id_generator_jinja2_template: '{{ OptionGroupName }}'
+  jmespath_query: '[].OptionGroupsList[]'
+  operation_name: DescribeOptionGroups
+  resource_node: OptionGroups
+  service: rds
+  to_resource_name_jinja2_template: '{{ OptionGroupName }}'
+  to_resource_type: aws_db_option_group
