@@ -9,9 +9,6 @@
 </div>
 
 
-
-# balcony
-
 balcony is a modern CLI tool that with some killer features:
 
 - Auto-fill the required parameters for AWS API calls 
