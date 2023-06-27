@@ -4,8 +4,9 @@ repo_name: oguzhan-yilmaz/balcony
 
 nav:
     - Home: index.md
-    - QuickStart: quickstart.md
+    - Installation & QuickStart: quickstart.md
     - Cookbook: cookbook.md
+    - Feature Gallery: feature-gifs.md
     - 'Run on Docker': docker.md
     - 'As a Python library': as-a-python-library.md
     - 'balcony terraform-import': 

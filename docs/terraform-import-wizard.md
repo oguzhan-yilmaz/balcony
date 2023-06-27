@@ -47,59 +47,18 @@ This makes it very easy to try and find out the correct configuration for your r
 
 
 
-### Get started
+## Get started
 
 
-```bash title="List command options"
+```bash title="Show help page"
 balcony terraform-wizard
 ```
 
----
-
-## Example: EC2 SecurityGroups
-
-This
-
-
-### Operation Selection
-
-```bash title="List command options"
-Select which operation [DescribeSecurityGroups] (DescribeSecurityGroups):
+```bash title="Show documentation for a specific resource"
+balcony terraform-wizard iam Role -ls
 ```
 
 
-### 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```bash title="Start the wizard for a specific resource"
+balcony terraform-wizard iam Role 
+```
