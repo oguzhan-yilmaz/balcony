@@ -13,7 +13,6 @@ nav:
       - 'Generating Terraform Import Blocks': terraform-import.md
       - 'Actually Generate TF code with Docker': terraform-import-docker.md
       - 'Terraform Import Wizard': terraform-import-wizard.md
-
     - 'Config Env Vars': environment-variables.md
     - 'How it Works?': 
       - 'About boto3': how-it-works/about-boto3.md
