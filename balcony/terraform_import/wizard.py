@@ -308,7 +308,6 @@ def interactive_help(balcony_aws: BalconyAWS, service: str, resource_name: str):
         # render the jinja2 template with the filtered data
         to_resource_name_list = []
         for filtered_datum in jmespath_filtered_data:
-            console.log(filtered_datum)
             _rendered_data_list = render_jinja2_template_with_data(
                 filtered_datum, j2_tpl_resource_name
             )

@@ -1,3 +1,11 @@
+tf_gen_outputs
+_test_files
+todo.md
+
+balcony/custom_tf_import_configs/*wizard.yaml
+*.cast
+*.asc
+*.gif
 relations/
 .vscode/
 .ipynb_checkpoints

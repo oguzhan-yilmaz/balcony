@@ -1,7 +1,8 @@
 # Terraform Import Wizard
 
-todo: gif here
-
+Interactive tool to generate balcony terraform `import-configurations`.
+## Example Recording: ec2 SecurityGroups 
+![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-wizard-security-groups-example.gif)
 ## About balcony terraform import-configurations
 
 
@@ -54,10 +55,19 @@ balcony terraform-wizard
 
 ---
 
-## Example: Importing an EC2 Instance
+## Example: EC2 SecurityGroups
 
 This
 
+
+### Operation Selection
+
+```bash title="List command options"
+Select which operation [DescribeSecurityGroups] (DescribeSecurityGroups):
+```
+
+
+### 
 
 
 

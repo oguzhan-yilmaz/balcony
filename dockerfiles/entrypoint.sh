@@ -103,16 +103,7 @@ else
 fi
 echo "The AWS_DEFAULT_REGION environment variable is set to '${AWS_DEFAULT_REGION}'."
 
-# ------ Generate provider "aws" block to provider.tf file
-
-echo "--------provider.tf-------"
-cat   $GEN_TF_DIR/provider.tf
-echo "--------------------------"
-
-
-
 echo "Running balcony terraform-import command to generate import blocks"
-
 balcony terraform-import "$@" --paginate -o $GEN_TF_DIR/$gen_terraform_import_blocks_filename
 
 # check if the file is generated or not
