@@ -10,13 +10,13 @@ from config import (
     get_rich_console,
     set_log_level_at_runtime,
     clear_relations_cache,
-    USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY
+    BALCONY_RELATIONS_DIR
 )
 
 # required for loading custom resource nodes into registry
 from custom_nodes import *  # noqa
 from aws import BalconyAWS
-
+from rich.text import Text
 import typer
 import jmespath
 from typing import Optional, List, Dict, Generator
@@ -194,7 +194,10 @@ def _list_service_or_resource(
         return
 
 
-@app.command("aws")
+@app.command(
+    "aws",
+    help="Read your AWS Resource Nodes as JSON. Use --debug option if you're stuck!",
+)
 def aws_main_command(  # noqa
     service: Optional[str] = typer.Argument(
         None,
@@ -371,7 +374,10 @@ def aws_main_command(  # noqa
 @app.command(
     "terraform-import",
     no_args_is_help=True,
-    help="Generate Terraform import blocks for a given AWS Service and Resource Node.",
+    short_help="Generate Terraform import blocks for a given AWS Service and Resource Node.",
+    help="""
+    Visit Balcony Terraform Import Documentation: https://oguzhan-yilmaz.github.io/balcony/terraform-import/ to learn more.\n
+    """,
 )
 def terraform_import_command(
     service: Optional[str] = typer.Argument(
@@ -491,7 +497,13 @@ def terraform_import_command(
 @app.command(
     "terraform-wizard",
     no_args_is_help=True,
-    help="Helps you generate the correct configuration for the terraform import command.",
+    short_help="Wizard that helps you to create the correct import-configuration interactively for the 'terraform-import' command.",
+    help="""
+    Visit Balcony Terraform Wizard Documentation: https://oguzhan-yilmaz.github.io/balcony/terraform-import-wizard/ to learn more.\n
+    Hey, there! If you want to auto-save what you genereate, set the environment variable: BALCONY_TERRAFOM_IMPORT_CONFIG_DIR\n
+    > $ export BALCONY_TERRAFOM_IMPORT_CONFIG_DIR=$HOME/balcony-tf-yamls\n
+    And please create PRs and share your terraform import-configurations and help balcony to grow! Peace!\n
+    """,
 )
 def wizard_the_terraform_import_configurer(
     service: Optional[str] = typer.Argument(
@@ -530,13 +542,13 @@ def wizard_the_terraform_import_configurer(
 
         console.print(f"[red bold]Please pick a Service and Resource Node[/]")
         return
-    
+
     # if we got here, we have both service and resource node
     interactive_help(balcony_aws, service, resource_node)
     return
 
 
-@app.command("clear-cache", help="Clear relations json cache")
+@app.command("clear-cache", help=f"Clear relations json cache, located at: {BALCONY_RELATIONS_DIR}")
 def clear_cache_command(
     # service: Optional[str] = typer.Argument(None, show_default='all',
     # help='Name of the Service to clear relation caches of', autocompletion=_complete_service_name),
