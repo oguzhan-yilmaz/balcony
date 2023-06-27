@@ -23,20 +23,34 @@ def extract_resource_tags_as_kwargs(data: dict) -> dict:
     return tags_as_kwargs
 
 
-def render_jinja2_template_with_data(data, jinja2_template_str):
+def render_jinja2_template_with_data(data, jinja2_template_str) -> List[str]:
     template = Environment().from_string(jinja2_template_str)
-
-    kwargs = {"data": data}
+    result = []
     # if the data is a dict, add the key-value pairs as kwargs
     if isinstance(data, dict):
-        kwargs.update(data)
+        kwargs = data.copy()
         kwargs["data"] = data
         # if there's add it as tag_Name variable
         tags_as_kwargs = extract_resource_tags_as_kwargs(data)
         kwargs.update(tags_as_kwargs)
-
-    rendered_output = template.render(**kwargs).strip()
-    return rendered_output
+        rendered_output = template.render(**kwargs).strip()
+        result.append(rendered_output)
+    elif isinstance(data, list):
+        # if the data is a list, render the template for each item
+        kwargs = data.copy()
+        for an_item in data:
+            kwargs["item"] = an_item
+            kwargs["data"] = an_item
+            rendered_output = template.render(**kwargs).strip()
+            result.append(rendered_output)
+    elif isinstance(data, str):
+        kwargs = {
+            "item": data,
+            "data": data,
+        }
+        rendered_output = template.render(**kwargs).strip()
+        result.append(rendered_output)
+    return result
 
 
 def gen_resource_name_and_import_id_from_op_data_(
@@ -48,27 +62,27 @@ def gen_resource_name_and_import_id_from_op_data_(
         # and render them one by one
         list_of_resource_data = jmespath.search(jmespath_query, operation_data)
         logger.debug(f"Filtered data using jmespath query: {jmespath_query}")
-        
-        
+
         for a_resource_data in list_of_resource_data:
-            resource_name = render_jinja2_template_with_data(
+            resource_name_list = render_jinja2_template_with_data(
                 a_resource_data, to_resource_name_tpl
             )
-            import_id = render_jinja2_template_with_data(
+            import_id_list = render_jinja2_template_with_data(
                 a_resource_data, id_generator_tpl
             )
-            result.append((resource_name, import_id))
+            result.extend(list(zip(resource_name_list, import_id_list)))
+
         return result
     else:
         # no jmespath query given, use the whole operation data
-        # assumes there's multiple lines of output from the template 
+        # assumes there's multiple lines of output from the template
 
         resource_name_multiline = render_jinja2_template_with_data(
             a_resource_data, to_resource_name_tpl
-        )
+        )[0]  # FIXME: later
         import_id_multiline = render_jinja2_template_with_data(
             a_resource_data, id_generator_tpl
-        )
+        )[0]  # FIXME: later
         # split them on newlines
         resource_name_list = [ro for ro in resource_name_multiline.split("\n") if ro]
         import_id_list = [ro for ro in import_id_multiline.split("\n") if ro]
@@ -79,12 +93,14 @@ def gen_resource_name_and_import_id_from_op_data_(
 
 
 def generate_terraform_import_block(to_resource_type, to_resource_name, import_id):
-    jinja_tmpl = textwrap.dedent("""
+    jinja_tmpl = textwrap.dedent(
+        """
     import {
         to = {{ to_resource_type }}.{{ to_resource_name }}
         id = "{{ import_id }}"
     }
-    """)
+    """
+    )
 
     jinja_env = Environment()
     template = jinja_env.from_string(jinja_tmpl)
@@ -95,6 +111,7 @@ def generate_terraform_import_block(to_resource_type, to_resource_name, import_i
     ).strip()
     return rendered_output
 
+
 def get_importable_resources():
     custom_tf_config_dict = parse_custom_tf_import_config()
 
@@ -103,6 +120,7 @@ def get_importable_resources():
         for resource_node_name, resource_config in resource_config_dict.items():
             importable_services_and_resources.append((service_name, resource_node_name))
     return importable_services_and_resources
+
 
 def generate_import_block_for_resource(
     balcony_client: BalconyAWS,
@@ -135,7 +153,7 @@ def generate_import_block_for_resource(
     )
 
     if not operation_data:
-        logger.debug("No data found for {service}/{resource_node}/{operation_name}.")
+        logger.debug(f"No data found for {service}/{resource_node}/{operation_name}.")
         return False
 
     resource_name_and_import_ids = gen_resource_name_and_import_id_from_op_data_(
@@ -155,7 +173,7 @@ def generate_import_block_for_resource(
                 result.append((sanitized_resource_name, import_id))
         return result
 
-    # Replace unsupported chars from the to-resource-name with underscore 
+    # Replace unsupported chars from the to-resource-name with underscore
     sanitized_resource_name_and_import_ids = sanitize_resource_name_and_import_ids(
         resource_name_and_import_ids
     )

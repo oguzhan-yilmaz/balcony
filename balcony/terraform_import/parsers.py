@@ -59,7 +59,7 @@ def parse_custom_tf_import_config():
     for yaml_directory in parse_directories:
         config_filenames = find_all_yaml_files(yaml_directory)
         logger.debug(
-            f"Found {len(config_filenames)} yaml files in {yaml_directory}. Starting to parse & validate them."
+            f"Terraform Import Configuration Registry: Found {len(config_filenames)} yaml files in {yaml_directory}. Starting to parse & validate them."
         )
         # parse them
         for conf_filename in config_filenames:

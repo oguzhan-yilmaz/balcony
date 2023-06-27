@@ -355,7 +355,7 @@ def rich_str_shape(shape: Shape, remove_documentation=False) -> str:
         target_path = f"[green]{target_path}[/]"
     
     shape_str = (
-        f"[blue bold]{key_name}[/] — ({type_name}) — {target_path}: {shape_documentation}"
+        f"[blue bold]{key_name}[/] — ({type_name}) — {target_path}  {shape_documentation}"
     )
     if key_name == "":
         lead = ""
@@ -363,7 +363,7 @@ def rich_str_shape(shape: Shape, remove_documentation=False) -> str:
             lead = "["
         elif type_name == "structure":
             lead = "{"
-        shape_str = f"[red]{escape(lead)}[/] — ({type_name}) — {target_path} [gray]{shape_documentation}[/]"
+        shape_str = f"[red]{escape(lead)}[/] — ({type_name}) — {target_path}  [gray]{shape_documentation}[/]"
 
     return shape_str
 

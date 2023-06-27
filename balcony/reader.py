@@ -111,7 +111,7 @@ class ServiceReader:
         if not resource_node_exists:
             return False
         resource_data: Dict = self.search_resource_node_data(resource_node_name)  # type: ignore
-        result = resource_data.get(operation_name, False)
+        result = resource_data.get(operation_name, [])
         return result
 
     def search_resource_node_data(self, resource_node_name: str) -> Union[dict, bool]:
@@ -320,12 +320,20 @@ class ServiceReader:
         ) = resource_node.generate_api_parameters_from_operation_data(
             operation_name, relations_of_operation, all_related_operations_data
         )
-
-        if generation_error is not None or generated_api_parameters == []:
+        
+        if generated_api_parameters == [] and generation_error is None:
+            # no errors, just no data available to generate api parameters
+            logger.debug(
+                f"[bold yellow]WARNING: There's no related resource data in your account to generate the api params for: {operation_markup}."
+            )
+        
+        if generation_error is not None:
             logger.debug(
                 f"Failed to generate api parameters for {operation_markup}: {generation_error}"
             )
             inform_about_develeoping_custom_resource_nodes()
+
+            return False
         elif isinstance(generated_api_parameters, Iterable):
             logger.debug(
                 f"Successfuly generated api parameters for [bold blue]{operation_name}[/], count: {len(generated_api_parameters)}"

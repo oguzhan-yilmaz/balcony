@@ -10,6 +10,7 @@ from config import (
     get_rich_console,
     set_log_level_at_runtime,
     clear_relations_cache,
+    USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY
 )
 
 # required for loading custom resource nodes into registry
@@ -22,13 +23,12 @@ from typing import Optional, List, Dict, Generator
 from rich.columns import Columns
 from rich.panel import Panel
 import logging
-import boto3
 from pathlib import Path
 from terraform_import.importer import (
     generate_import_block_for_resource,
     get_importable_resources,
 )
-from terraform_import.helper import (
+from terraform_import.wizard import (
     interactive_help,
 )
 from rich.padding import Padding
@@ -531,12 +531,9 @@ def wizard_the_terraform_import_configurer(
         console.print(f"[red bold]Please pick a Service and Resource Node[/]")
         return
     
-    
     # if we got here, we have both service and resource node
-    
-    # call a function 
     interactive_help(balcony_aws, service, resource_node)
-    print
+    return
 
 
 @app.command("clear-cache", help="Clear relations json cache")

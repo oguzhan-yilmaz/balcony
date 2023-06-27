@@ -1,3 +1,4 @@
+import os
 import random
 import string
 import textwrap
@@ -6,7 +7,11 @@ import jmespath
 import yaml
 from terraform_import.importer import render_jinja2_template_with_data
 from terraform_import.parsers import parse_json_to_tf_import_config
-from config import get_logger, get_rich_console
+from config import (
+    get_logger,
+    get_rich_console,
+    USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY,
+)
 from aws import BalconyAWS
 from rich.prompt import Prompt, Confirm
 import typer
@@ -42,7 +47,9 @@ def get_documentation_panel_for_operation(
     resource_node = service_node.get_resource_node_by_name(resource_name)
     if not resource_node:
         return False
-    operation_docs_panel = resource_node._rich_operation_details_panel(operation_name, remove_input_shape=True, remove_documentation=True)
+    operation_docs_panel = resource_node._rich_operation_details_panel(
+        operation_name, remove_input_shape=True, remove_documentation=True
+    )
     return operation_docs_panel
 
 
@@ -89,24 +96,36 @@ def generate_google_search_uri(keywords):
     search_terms = "+".join(keywords)
     return f"https://www.google.com/search?q={search_terms}"
 
+
+def save_tf_input_config_to_user_defined_yaml_dir(filename: str, yaml_content: str):
+    if not USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY:
+        return False
+
+    filepath = os.path.join(USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY, filename)
+
+    with open(filepath, "w") as f:
+        f.write(yaml_content)
+
+    return filepath
+
+
 def interactive_help(balcony_aws: BalconyAWS, service: str, resource_name: str):
-
-
-
     console.print(
         Padding(
             Panel(  # noqa
-                textwrap.dedent(f"""
+                textwrap.dedent(
+                    f"""
                 Welcome to the Balcony interactive help for generating Terraform import configurations for AWS Services.
                 
                 You'll be asked a series of questions to help you generate the configuration.                        
-                """),  # noqa
+                """
+                ),  # noqa
                 title="[bold blue]Balcony Interactive Help - Generate Terraform Import Configurations",
             ),
             (1, 2),
         ),
     )
-    
+
     operation_names = get_operation_names_of_a_resource(
         balcony_aws, service, resource_name
     )
@@ -120,8 +139,12 @@ def interactive_help(balcony_aws: BalconyAWS, service: str, resource_name: str):
     console.rule("[bold cyan underline]Operation Selection")
     console.print()
     console.print("balcony may have multiple Operations for a Resource.")
-    console.print("Select which operation to use for generating the import configuration.")
-    console.print("Run the same command with '-ls, --list --screen' option added to see all operations of a Resource.")
+    console.print(
+        "Select which operation to use for generating the import configuration."
+    )
+    console.print(
+        "Run the same command with '-ls, --list --screen' option added to see all operations of a Resource."
+    )
     console.print()
     selected_operation_name = Prompt.ask(
         "[green bold] Select which operation",
@@ -137,26 +160,30 @@ def interactive_help(balcony_aws: BalconyAWS, service: str, resource_name: str):
     #     console.print(operation_doc_panel)
     console.print(operation_doc_panel)
     console.print()
-    
-    boto3_google_search_uri = generate_google_search_uri(["terraform", "provider", "aws", service, resource_name])
-    terraform_aws_docs_google_search_uri = generate_google_search_uri(["boto3", service, resource_name, selected_operation_name])
-    
+
+    boto3_google_search_uri = generate_google_search_uri(
+        ["terraform", "provider", "aws", service, resource_name]
+    )
+    terraform_aws_docs_google_search_uri = generate_google_search_uri(
+        ["boto3", service, resource_name, selected_operation_name]
+    )
+
     console.print(
-       Padding(
+        Padding(
             Panel(  # noqa
-                textwrap.dedent(f"""
+                textwrap.dedent(
+                    f"""
                 Google — boto3 docs: [bold cyan]{terraform_aws_docs_google_search_uri}[/]
                 
                 Google — Terraform docs: [bold cyan]{boto3_google_search_uri}[/]                     
                 """,
-            ),  # noqa
-            title="[bold blue]Google Search Links",
+                ),  # noqa
+                title="[bold blue]Google Search Links",
             ),
             (0, 2),
         ),
     )
     console.print()
-
 
     # behave like balcony does, as it reads lists of pages, so has a list of (responses,)
     mock_output_data_list = [
@@ -200,16 +227,16 @@ def interactive_help(balcony_aws: BalconyAWS, service: str, resource_name: str):
             )
             continue  # loop again
 
-        
         def _easy_on_the_eyes_dict(list_of_dicts):
             for _dict in list_of_dicts:
-                for key, value in _dict.items():
-                    if isinstance(value, dict):
-                        _dict[key] = "{...omitted...}"
-                    elif isinstance(value, list):
-                        _dict[key] = "[...omitted...]"
+                if isinstance(_dict, dict):
+                    for key, value in _dict.items():
+                        if isinstance(value, dict):
+                            _dict[key] = "{...omitted...}"
+                        elif isinstance(value, list):
+                            _dict[key] = "[...omitted...]"
             return list_of_dicts
-        
+
         console.print_json(data=_easy_on_the_eyes_dict(_filtered_data), default=str)
 
         confirm_jmespath_selector = Confirm.ask(
@@ -223,18 +250,52 @@ def interactive_help(balcony_aws: BalconyAWS, service: str, resource_name: str):
             jmespath_filtered_data = _filtered_data
             # break out of the loop
             do_ask_for_jmespath_selector = False
+
+            filtered_data_type_is_dict = isinstance(jmespath_filtered_data[0], dict)
+            if not filtered_data_type_is_dict:
+                # warn about the usage
+                console.print(
+                    Padding(
+                        Panel(
+                            f"[blue bold] Note:[/][blue] You've selected a non-dict data. You can access the elements with 'item' keyword.",
+                            expand=False
+                        ),
+                        (1, 1),
+                    )
+                )
             continue
 
     # randomize the data ids, etc
     for filtered_mock_data in jmespath_filtered_data:
         random_string = "".join(random.choices(string.ascii_letters, k=4))
-        for key, value in filtered_mock_data.items():
-            if isinstance(value, str):
-                filtered_mock_data[key] = f"{value}-{random_string}"
-
+        if isinstance(filtered_mock_data, dict):
+            for key, value in filtered_mock_data.items():
+                if isinstance(value, str):
+                    filtered_mock_data[key] = f"{value}-{random_string}"
+        if isinstance(filtered_mock_data, list):
+            filtered_mock_data = [
+                f"{_m_data}-{random_string}" if isinstance(_m_data, str) else _m_data
+                for _m_data in filtered_mock_data
+            ]
+        if isinstance(filtered_mock_data, str):
+            filtered_mock_data = f"{filtered_mock_data}-{random_string}"
     console.print()
     console.rule("[cyan underline]Jinja2 Template for [bold]Terraform to Resource Name")
     console.print()
+    console.print(
+        "[yellow bold] The j2 template you provide must select unique values, or terraform will fail.[/]"
+    )
+    console.print(
+        "You can directly access the attrs. by their name (e.g. PolicyId, RoleArn, ClusterName etc.)"
+    )
+    console.print(
+        "You can also access the resource tags by their key prefixed with `tag_` (e.g. `tag_Name`, `tag_Environment` etc.)"
+    )
+    console.print(
+        "Use `or` keyword to select the first non-empty value (e.g. `tag_Name or tag_Billing or InstanceId or PolicyId`)"
+    )
+    console.print()
+
     do_ask_for_j2_tpl_resource_name = True
     while do_ask_for_j2_tpl_resource_name:
         input_j2_tpl_resource_name = Prompt.ask(
@@ -247,10 +308,11 @@ def interactive_help(balcony_aws: BalconyAWS, service: str, resource_name: str):
         # render the jinja2 template with the filtered data
         to_resource_name_list = []
         for filtered_datum in jmespath_filtered_data:
-            _rendered_data = render_jinja2_template_with_data(
+            console.log(filtered_datum)
+            _rendered_data_list = render_jinja2_template_with_data(
                 filtered_datum, j2_tpl_resource_name
             )
-            to_resource_name_list.append(_rendered_data)
+            to_resource_name_list.extend(_rendered_data_list)
 
         console.print(
             Panel(
@@ -262,7 +324,6 @@ def interactive_help(balcony_aws: BalconyAWS, service: str, resource_name: str):
         confirm_j2_tpl_resource_name = Confirm.ask(
             f"[yellow bold]Are you sure to use [bold blue]{j2_tpl_resource_name}[/] ?[/]",
             console=console,
-            
         )
 
         if confirm_j2_tpl_resource_name and to_resource_name_list:
@@ -285,10 +346,10 @@ def interactive_help(balcony_aws: BalconyAWS, service: str, resource_name: str):
         # render the jinja2 template with the filtered data
         import_id_list = []
         for filtered_datum in jmespath_filtered_data:
-            _rendered_data = render_jinja2_template_with_data(
+            _rendered_data_list = render_jinja2_template_with_data(
                 filtered_datum, j2_tpl_import_id
             )
-            import_id_list.append(_rendered_data)
+            import_id_list.extend(_rendered_data_list)
 
         console.print(
             Panel(
@@ -351,17 +412,40 @@ def interactive_help(balcony_aws: BalconyAWS, service: str, resource_name: str):
         )
         return False
 
-
     console.print("Your import-configuration yaml output:")
     console.print()
-    console.print(Syntax(yaml_output, "yaml", theme="monokai", line_numbers=False)) # noqa 
+    console.print(
+        Syntax(yaml_output, "yaml", theme="monokai", line_numbers=False)
+    )  # noqa
 
+    gen_filename = f"{service}-{resource_name}-wizard.yaml"
+    saved_filepath = save_tf_input_config_to_user_defined_yaml_dir(
+        gen_filename, yaml_output
+    )
 
-    
-    
-    
-    
-    
-    
+    if not saved_filepath:
+        console.print(
+            f"[yellow bold]Warning:[/] You can set a custom directory for your import configurations with [bold]BALCONY_TERRAFOM_IMPORT_CONFIG_DIR[/] environment variable."
+        )
+        console.print(
+            f"If you set this, balcony will read your import configurations from that directory. And terraform-wizard will auto-save your generated import configuration to that directory."
+        )
+        console.print(
+            Syntax(
+                f"export BALCONY_TERRAFOM_IMPORT_CONFIG_DIR=~/balcony-tf-import-configs",
+                "bash",
+                theme="monokai",
+                line_numbers=False,
+            )
+        )
+
+    elif saved_filepath:
+        console.print(
+            f"[bold]Since you've set the env. var. 'BALCONY_TERRAFOM_IMPORT_CONFIG_DIR', auto save is enabled.[/]"
+        )
+
+        console.print(
+            f"[green bold]SUCCESS: Your import-configuration yaml output saved to {saved_filepath}[/]"
+        )
+
     return True
-    # title=f"Your import-configuration yaml output for {service} {resource_name}",

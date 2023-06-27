@@ -40,7 +40,7 @@ def find_and_parse_yaml_services() -> List[YamlService]:
     found_yaml_services = []
     yaml_files = find_all_yaml_files(YAML_SERVICES_DIRECTORY)
     logger.debug(
-        f"Found {len(yaml_files)} yaml files in {YAML_SERVICES_DIRECTORY}. Starting to parse & validate them."
+        f"Terraform Import Configuration Registry: Found {len(yaml_files)} yaml files in {YAML_SERVICES_DIRECTORY}. Starting to parse & validate them."
     )
     for yaml_file in yaml_files:
         yaml_service, error = parse_yaml_file_to_service(yaml_file)
