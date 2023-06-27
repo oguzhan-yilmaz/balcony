@@ -39,6 +39,7 @@ import {
      
 
 This means that in order to generate Terraform code for a resource, you'll need to have:
+
 - `terraform type` and `name` of the resource that'll be used to generate the Terraform code for
 - the resource ID that'll be used to import the resource (which is different for each resource type)
 
@@ -54,6 +55,7 @@ With [balcony](https://github.com/oguzhan-yilmaz/balcony), we already have the c
 
 
 Using this data, we'd need to figure out how to generate:
+
 - `import ID format` for this type of resource
 - how to name it, so it's unique in the generated Terraform code 
 
@@ -160,7 +162,7 @@ import_configurations:
     to_resource_name_jinja2_template: "{{ tag_Name or InstanceId }}"
     id_generator_jinja2_template: "{{ InstanceId }}"
 
-- service: ec2
+  - service: ec2
     resource_node: Volumes
     operation_name: DescribeVolumes
     to_resource_type: aws_ebs_volume

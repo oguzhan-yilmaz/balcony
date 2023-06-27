@@ -61,26 +61,29 @@ First, `cd` into your initialized defined Terraform repo. You should define the 
 ```bash title="Terraform repo structure"
 cd your-terraform-repo/
 
-tree .  # it should look like this:
+# it should look like this:
 # .
 # ├── .terraform/
 # ├── .terraform.lock.hcl
 # └── provider.tf 
 ```
 
-After that generate the import blocks for the resource type you want to import. In this case, it's EC2 Instances.
+After that, we can generate the import blocks for the resource type you want to import. In this case, it's EC2 Instances.
 
 ```bash title="Generate Terraform import blocks with balcony"
 balcony terraform-import ec2 Instances --paginate -o ec2-instances-import-blocks.tf
 ```
 
+```bash title="See the generated import blocks"
+cat ec2-instances-import-blocks.tf
+```
 
-After defining the import block, you can generate your Terraform code using the `-generate-config-out` option.
+Having the import blocks in our terreform repo, we can generate Terraform code using the `-generate-config-out` option.
 
 ```bash title="Generating terraform code using import blocks"
 terraform plan -generate-config-out=generated-ec2-instances.tf
 ```
-
+  
 !!! warning "Use Terraform v.1.5+" 
     Make sure to have [Terraform version 1.5+](https://github.com/hashicorp/terraform/releases) installed on your machine. Otherwise, you'll get an error.
 

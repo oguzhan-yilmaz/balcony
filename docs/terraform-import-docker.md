@@ -32,9 +32,10 @@ There're multiple ways of providing these options. First, let's walk through the
 ## Docker run Options
 
 Following are docker run options for providing 
+
 - AWS Credentials to the container,
-- defining a directory to save the generated files,
-- and enabling container debug messages
+- (optional) defining a directory to save the generated files,
+- (optional) and enabling container debug messages
 
 to the container.
 
@@ -124,15 +125,15 @@ Brief explanation of the alias command:
 
 ```bash title="Running the 'balcony-tf-import' alias"
 
-balcony-tf-import ec2 Instances --paginate
+balcony-tf-import ec2 Instances
 
 
-balcony-tf-import ec2 Instances --list
+balcony-tf-import iam Users
 ```
 
 
 !!! Warning
-    You can't use `--output, -o` option with the docker image. 
+    You can't use `--output, -o` or **any other option** with the docker image. 
 
-    That's because we have a staticly defined output directory in the image, so don't use it.
+    Docker image only accepts 2 arguments: `service` and `resource-name`.
 
