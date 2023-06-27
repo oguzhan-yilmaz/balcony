@@ -2,7 +2,7 @@
 
 ## balcony `terraform-import` Features
 
-todo gif
+![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-import-blocks-example.gif)
 
 ## balcony `terraform-import` on Docker Features
 
