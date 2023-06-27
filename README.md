@@ -18,6 +18,8 @@ balcony is a modern CLI tool that with some killer features:
 
 balcony uses _read-only_ operations, it does not take any action on the used AWS account.
 
+
+### [Visit the Documentation Website](https://oguzhan-yilmaz.github.io/balcony/quickstart/)
 <!-- ### [**Go to QuickStart Page to get started using _balcony_**](quickstart.md) -->
 
 ### Installation
@@ -49,8 +51,7 @@ balcony terraform-import s3 Buckets
 Related Docs: [QuickStart](https://oguzhan-yilmaz.github.io/balcony/quickstart/)
 
 
-!!! tip ""
-    ![](visuals/reading-a-resource-node.gif)
+![](visuals/reading-a-resource-node.gif)
 
 ---
 
@@ -64,8 +65,7 @@ Terraform v1.5 introduced [import blocks](https://developer.hashicorp.com/terraf
 
 Related Docs: [Generate Terraform Import Blocks](https://oguzhan-yilmaz.github.io/balcony/terraform-import/)
 
-!!! warning ""
-    ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-import-blocks-example.gif)
+![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-import-blocks-example.gif)
 
 
 ---
@@ -83,8 +83,7 @@ This feature is achieved with a Docker image.
 
 Related Docs: [Generate Terraform Code with Docker Image](https://oguzhan-yilmaz.github.io/balcony/terraform-import-docker/)
 
-!!! info ""
-    ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/docker-gen-tf-code-ec2-insances-example.gif)
+![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/docker-gen-tf-code-ec2-insances-example.gif)
 
 
 ---
@@ -99,6 +98,4 @@ Interactive Wizards asks you required questions to automatically create the `imp
 
 Related Docs: [Terraform Import Configuration Wizard](https://oguzhan-yilmaz.github.io/balcony/terraform-import-wizard/)
 
-!!! danger ""
-
-    ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-wizard-security-groups-example.gif)
+![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-wizard-security-groups-example.gif)
