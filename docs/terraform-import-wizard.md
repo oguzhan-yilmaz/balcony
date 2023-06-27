@@ -3,6 +3,7 @@
 Interactive tool to generate balcony terraform `import-configurations`.
 ## Example Recording: ec2 SecurityGroups 
 ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-wizard-security-groups-example.gif)
+
 ## About balcony terraform import-configurations
 
 

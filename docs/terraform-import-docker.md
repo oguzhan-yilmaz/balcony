@@ -5,6 +5,9 @@
 
 But it's still not generating the actual Terraform code for us. Let's fix that.
 
+## Example Recording: ec2 Insances
+![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/docker-gen-tf-code-ec2-insances-example.gif)
+
 ## Docker Image
 
 - Github Container Registry: [balcony-terraform-import](https://github.com/oguzhan-yilmaz/balcony/pkgs/container/balcony-terraform-import)
