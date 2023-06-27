@@ -1,5 +1,9 @@
 # Generate Terraform import blocks with balcony
 
+## Example Recording: ec2 SecurityGroups
+
+![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-import-blocks-example.gif)
+
 ## Introduction
 
 Terraform has released version 1.5, and it includes the [import blocks feature](https://developer.hashicorp.com/terraform/language/import) that allows users to define their imports as code. 

@@ -10,39 +10,98 @@
 
 
 
-balcony dynamically parses AWS SDK(`boto3` library) and analyzes required parameters for each operation. 
+# balcony
 
-By **establishing relations between operations over required parameters**, it's **able to auto-fill** them by reading the related operation beforehand.
+balcony is a modern CLI tool that with some killer features:
 
-By simply entering their name, balcony enables developers to easily list their AWS resources.
+- Auto-fill the required parameters for AWS API calls 
+- Read the JSON data of any AWS resource in your account
+- Generate [Terraform Import Blocks](https://developer.hashicorp.com/terraform/language/import)
+- Generate actual `.tf` Terraform Resource code
+
+balcony uses _read-only_ operations, it does not take any action on the used AWS account.
+
+<!-- ### [**Go to QuickStart Page to get started using _balcony_**](quickstart.md) -->
+
+### Installation
+
+```bash
+pip3 install balcony
+```
+
+Visit [**Installation & QuickStart Page**](quickstart.md) to get started using _balcony_
+
+```bash  title="Basic usage"
+# see options
+balcony
+
+# list available resources of ec2
+balcony aws ec2 
+
+# read a resource
+balcony aws s3 Buckets
+
+# generate terraform import blocks for a resource
+balcony terraform-import s3 Buckets
+```
 
 
-## Installation & Documentation 
+## Features
 
-**[https://oguzhan-yilmaz.github.io/balcony/](https://oguzhan-yilmaz.github.io/balcony/quickstart)**
-
-Balcony's documentation website contains quickstart guide, usage cookbook and more.
-
+### Read any AWS Resource
+Related Docs: [QuickStart](https://oguzhan-yilmaz.github.io/balcony/quickstart/)
 
 
+!!! tip ""
+    ![](visuals/reading-a-resource-node.gif)
+
+---
+
+### Generate Terraform Import Blocks
+
+Terraform v1.5 introduced [import blocks](https://developer.hashicorp.com/terraform/language/import) that allows users to define their imports as code.
+
+`balcony terraform-import <service> <resource-name>` command generates these import blocks for you.
+
+`balcony terraform-import --list` to see the list of supported resources.
+
+Related Docs: [Generate Terraform Import Blocks](https://oguzhan-yilmaz.github.io/balcony/terraform-import/)
+
+!!! warning ""
+    ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-import-blocks-example.gif)
 
 
-## Features & GIFs
-> click to play the videos
-### List Resource Nodes of an AWS Service 
-`balcony aws <service-name>` to see every Resource Node of a service.
+---
 
-![](https://github.com/oguzhan-yilmaz/balcony/blob/main/docs/visuals/resource-node-list.gif)
+### Generate actual Terraform Resource Code 
+
+If you have:
+
+- initialized terraform project
+- `import_blocks.tf` file that's generated with `balcony terraform-import` command
+
+you can run `terraform plan -generate-config-out=generated.tf` to generate actual `.tf` resource code.
+
+This feature is achieved with a Docker image.
+
+Related Docs: [Generate Terraform Code with Docker Image](https://oguzhan-yilmaz.github.io/balcony/terraform-import-docker/)
+
+!!! info ""
+    ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/docker-gen-tf-code-ec2-insances-example.gif)
 
 
-### Reading a Resource Node 
-`balcony aws <service-name> <resource-node>` to read operations of a Resource Node.
+---
 
-![](https://github.com/oguzhan-yilmaz/balcony/blob/main/docs/visuals/reading-a-resource-node.gif)
+### Interactive Wizard to create balcony import configurations 
 
+Balcony doesn't know how to create terraform `import blocks` for all of the AWS resources.
 
-### Documentation and Input & Output of Operations
-Use the `--list`, `-l` flag to print the given AWS API Operations documentation, input & output structure. 
- 
+It can be taught how to do it by creating `import-configurations` yaml files, but it's a manual process. This is where the interactive wizard comes in.
 
-![](https://github.com/oguzhan-yilmaz/balcony/blob/main/docs/visuals/list-option.gif)
+Interactive Wizards asks you required questions to automatically create the `import-configurations` yaml files.
+
+Related Docs: [Terraform Import Configuration Wizard](https://oguzhan-yilmaz.github.io/balcony/terraform-import-wizard/)
+
+!!! danger ""
+
+    ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-wizard-security-groups-example.gif)

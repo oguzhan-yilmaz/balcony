@@ -1,13 +1,95 @@
 # balcony
 
-balcony is a Python based CLI tool that simplifies the process of enumerating AWS resources.
+balcony is a modern CLI tool that with some killer features:
 
-balcony dynamically parses `boto3` library and analyzes required parameters for each operation.
+- Auto-fill the required parameters for AWS API calls 
+- Read the JSON data of any AWS resource in your account
+- Generate [Terraform Import Blocks](https://developer.hashicorp.com/terraform/language/import)
+- Generate actual `.tf` Terraform Resource code
 
-By establishing relations between operations over required parameters, it's able to auto-fill them by reading the related operation beforehand.
+balcony uses _read-only_ operations, it does not take any action on the used AWS account.
 
-By simply entering their name, balcony enables developers to easily list their AWS resources.
+<!-- ### [**Go to QuickStart Page to get started using _balcony_**](quickstart.md) -->
 
-It uses _read-only_ operations, it does not take any action on the used AWS account.
+### Installation
 
-### [**Go to QuickStart Page to get started using _balcony_**](quickstart.md)
+```bash
+pip3 install balcony
+```
+
+Visit [**Installation & QuickStart Page**](quickstart.md) to get started using _balcony_
+
+```bash  title="Basic usage"
+# see options
+balcony
+
+# list available resources of ec2
+balcony aws ec2 
+
+# read a resource
+balcony aws s3 Buckets
+
+# generate terraform import blocks for a resource
+balcony terraform-import s3 Buckets
+```
+
+
+## Features
+
+### Read any AWS Resource
+Related Docs: [QuickStart](quickstart.md)
+
+
+!!! tip ""
+    ![](visuals/reading-a-resource-node.gif)
+
+---
+
+### Generate Terraform Import Blocks
+
+Terraform v1.5 introduced [import blocks](https://developer.hashicorp.com/terraform/language/import) that allows users to define their imports as code.
+
+`balcony terraform-import <service> <resource-name>` command generates these import blocks for you.
+
+`balcony terraform-import --list` to see the list of supported resources.
+
+Related Docs: [Generate Terraform Import Blocks](terraform-import.md)
+
+!!! warning ""
+    ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-import-blocks-example.gif)
+
+
+---
+
+### Generate actual Terraform Resource Code 
+
+If you have:
+
+- initialized terraform project
+- `import_blocks.tf` file that's generated with `balcony terraform-import` command
+
+you can run `terraform plan -generate-config-out=generated.tf` to generate actual `.tf` resource code.
+
+This feature is achieved with a Docker image.
+
+Related Docs: [Generate Terraform Code with Docker Image](terraform-import-docker.md)
+
+!!! info ""
+    ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/docker-gen-tf-code-ec2-insances-example.gif)
+
+
+---
+
+### Interactive Wizard to create balcony import configurations 
+
+Balcony doesn't know how to create terraform `import blocks` for all of the AWS resources.
+
+It can be taught how to do it by creating `import-configurations` yaml files, but it's a manual process. This is where the interactive wizard comes in.
+
+Interactive Wizards asks you required questions to automatically create the `import-configurations` yaml files.
+
+Related Docs: [Terraform Import Configuration Wizard](terraform-import-wizard.md)
+
+!!! danger ""
+
+    ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-wizard-security-groups-example.gif)
