@@ -7,6 +7,7 @@ nav:
     - Installation & QuickStart: quickstart.md
     - Cookbook: cookbook.md
     - Feature Gallery: feature-gifs.md
+    - 'Comparing boto3 and balcony': comparing-boto3-and-balcony.md
     - 'Run on Docker': docker.md
     - 'As a Python library': as-a-python-library.md
     - 'balcony terraform-import': 
