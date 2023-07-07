@@ -1,5 +1,5 @@
 from collections import Counter
-from re import finditer, compile
+from re import finditer, compile, match
 import textwrap
 from typing import List
 import inflect
@@ -16,6 +16,19 @@ logger = get_logger(__name__)
 _camel_case_regex_compiled = compile(
     r".+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)"
 )
+_terraform_aws_resource_type_pattern_compiled = compile(r"^aws_[a-zA-Z0-9_-]+$")
+
+
+def is_terraform_aws_resource_type(resource_type: str) -> bool:
+    """Check for terraform aws resource type being valid
+
+    Args:
+        resource_type (str): Check for terraform aws resource type being valid
+
+    Returns:
+        bool: is resource type valid
+    """
+    return bool(match(_terraform_aws_resource_type_pattern_compiled, resource_type))
 
 
 def find_all_yaml_files(directory: str) -> List[str]:

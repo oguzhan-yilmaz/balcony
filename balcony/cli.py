@@ -4,6 +4,7 @@ from utils import (
     get_all_available_services,
     ifind_similar_names_in_list,
     _create_boto_session,
+    is_terraform_aws_resource_type
 )
 from config import (
     get_logger,
@@ -32,12 +33,14 @@ from terraform_import.wizard import (
     interactive_help,
 )
 from rich.padding import Padding
+import re
 
 console = get_rich_console()
 logger = get_logger(__name__)
 session = _create_boto_session()
 balcony_aws = BalconyAWS(session)
 app = typer.Typer(no_args_is_help=True, pretty_exceptions_enable=False)
+
 
 
 @app.callback()
@@ -380,10 +383,10 @@ def aws_main_command(  # noqa
     """,
 )
 def terraform_import_command(
-    service: Optional[str] = typer.Argument(
+    service_or_tf_resource_type: Optional[str] = typer.Argument(
         None,
         show_default=False,
-        help="Name of the AWS Service (e.g. ec2, s3, rds)",
+        help="Name of the AWS Service or Terraform (e.g. ec2)",
         autocompletion=_complete_service_name,
     ),
     resource_node: Optional[str] = typer.Argument(
@@ -449,36 +452,48 @@ def terraform_import_command(
         console.print(rendered_service_resource_list)
         return  # list option is enabled, do not run the actual importing code.
 
-    if (not service) or (not resource_node):
-        _list_service_or_resource(service, resource_node, screen_pager=screen)
+    is_terraform_r_type_given = is_terraform_aws_resource_type(service_or_tf_resource_type) and resource_node is None
+    if is_terraform_r_type_given:
+        console.print(f"YEAH HELL YEAH {is_terraform_r_type_given}")
+
+    elif (not service_or_tf_resource_type) or (not resource_node):
+        _list_service_or_resource(service_or_tf_resource_type, resource_node, screen_pager=screen)
         console.print(f"[red bold]Please pick a Service and Resource Node[/]")
         return
 
-    import_blocks = generate_import_block_for_resource(
-        balcony_aws,
-        service,
-        resource_node,
-        follow_pagination=follow_pagination,
-    )
+    import_blocks = None
+    if is_terraform_aws_resource_type:
+        import_blocks = generate_import_block_for_resource(
+            balcony_aws,
+            terraform_resource_type=service_or_tf_resource_type,
+            follow_pagination=follow_pagination
+        )
+    else:
+        import_blocks = generate_import_block_for_resource(
+            balcony_aws,
+            service_or_tf_resource_type,
+            resource_node,
+            follow_pagination=follow_pagination,
+        )
 
     if not import_blocks:
-        logger.debug(f"No import blocks generated for {service}.{resource_node}")
+        logger.debug(f"No import blocks generated for {service_or_tf_resource_type}.{resource_node}")
 
         fail_msg = textwrap.dedent(
             f"""
-            No terraform import blocks generated for [bold]{service}.{resource_node}[/]. Some checks:
+            No terraform import blocks generated for [bold]{service_or_tf_resource_type}.{resource_node}[/]. Some checks:
                 
                 - [underline]Run the balcony with [bold]--debug[/] flag to see more info.[/]
-                    Run     [bold]balcony terraform-import --debug {service} {resource_node}[/]
+                    Run     [bold]balcony terraform-import --debug {service_or_tf_resource_type} {resource_node}[/]
                     
                 - [underline]Do you have the correct AWS credentials and Region?[/]
                     Run     [bold]printenv | grep ^AWS_[/]
                 
                 - [underline]Is the resource node name correct?[/]
-                    Run     [bold]balcony aws {service}[/]      to see available resource nodes.
+                    Run     [bold]balcony aws {service_or_tf_resource_type}[/]      to see available resource nodes.
                 
                 - [underline]You may not have any resources in your AWS Account, check it first:[/]
-                    Run     [bold]balcony aws {service} {resource_node} -d[/] 
+                    Run     [bold]balcony aws {service_or_tf_resource_type} {resource_node} -d[/] 
             """
         ).strip()
         console.print(Padding(fail_msg, (1, 1)))
@@ -535,6 +550,8 @@ def wizard_the_terraform_import_configurer(
         False, "--screen", "-s", help="Open the data on a separate paginator on shell."
     ),
 ):
+    
+    # TODO: same kind of terraform-resource-type as cli command 
     # set debug level if enabled
     if debug:
         set_log_level_at_runtime(logging.DEBUG)

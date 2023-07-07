@@ -122,56 +122,75 @@ def get_importable_resources():
     return importable_services_and_resources
 
 
+def sanitize_resource_name_and_import_ids(list_of_tuples):
+    result = []
+    for resource_name, import_id in list_of_tuples:
+        # change anything that's not a letter, number, dash or underscore to underscore
+        sanitized_resource_name = re.sub(r"[^A-Za-z0-9\-_]", "_", resource_name)
+
+        if sanitized_resource_name and import_id:
+            result.append((sanitized_resource_name, import_id))
+    return result
+
+
+def get_import_config_for(
+    service: str = None,
+    resource_node: str = None,
+    terraform_resource_type: str = None,
+):
+    custom_tf_config_dict = parse_custom_tf_import_config()
+
+    if service and resource_node:
+        config_for_resource_node = custom_tf_config_dict.get(service, {}).get(
+            resource_node, False
+        )
+        return config_for_resource_node
+    elif terraform_resource_type:
+        for service_name, service_config_dict in custom_tf_config_dict.items():
+            for resource_node_name, resource_config in service_config_dict.items():
+                if resource_config.to_resource_type == terraform_resource_type:
+                    return resource_config
+    return False
+    
+
 def generate_import_block_for_resource(
     balcony_client: BalconyAWS,
-    service: str,
-    resource_node: str,
+    service: str = None,
+    resource_node: str = None,
+    terraform_resource_type: str = None,
     follow_pagination: bool = False,
 ):
 
     tf_import_blocks: List[str] = []
-    custom_tf_config_dict = parse_custom_tf_import_config()
-    config_for_resource_node = custom_tf_config_dict.get(service, {}).get(
-        resource_node, False
-    )
-    if not config_for_resource_node:
+    cur_import_config = get_import_config_for(service, resource_node, terraform_resource_type)
+    if not cur_import_config:
         logger.debug(
             f"[red bold]No custom terraform import config found for {service}.{resource_node}. Please check out docs https://oguzhan-yilmaz.github.io/balcony/ for more info on developing it your own."
         )
         return False
 
     # read the data
-    operation_name = config_for_resource_node.operation_name
+    operation_name = cur_import_config.operation_name
 
-    jmespath_query = config_for_resource_node.jmespath_query
+    jmespath_query = cur_import_config.jmespath_query
 
     operation_data = balcony_client.read_operation(
-        service_name=service,
-        resource_node_name=resource_node,
+        service_name=cur_import_config.service,
+        resource_node_name=cur_import_config.resource_node,
         operation_name=operation_name,
         follow_pagination=follow_pagination,  # TODO: remove the comment after
     )
 
     if not operation_data:
-        logger.debug(f"No data found for {service}/{resource_node}/{operation_name}.")
+        logger.debug(f"No data found for {service}.{resource_node}.{operation_name}.")
         return False
 
     resource_name_and_import_ids = gen_resource_name_and_import_id_from_op_data_(
         operation_data,
         jmespath_query,
-        config_for_resource_node.to_resource_name_jinja2_template,
-        config_for_resource_node.id_generator_jinja2_template,
+        cur_import_config.to_resource_name_jinja2_template,
+        cur_import_config.id_generator_jinja2_template,
     )
-
-    def sanitize_resource_name_and_import_ids(list_of_tuples):
-        result = []
-        for resource_name, import_id in list_of_tuples:
-            # change anything that's not a letter, number, dash or underscore to underscore
-            sanitized_resource_name = re.sub(r"[^A-Za-z0-9\-_]", "_", resource_name)
-
-            if sanitized_resource_name and import_id:
-                result.append((sanitized_resource_name, import_id))
-        return result
 
     # Replace unsupported chars from the to-resource-name with underscore
     sanitized_resource_name_and_import_ids = sanitize_resource_name_and_import_ids(
@@ -184,7 +203,7 @@ def generate_import_block_for_resource(
     for a_tuple in sanitized_resource_name_and_import_ids:
         to_resource_name, import_id = a_tuple
         tf_import_block = generate_terraform_import_block(
-            config_for_resource_node.to_resource_type, to_resource_name, import_id
+            cur_import_config.to_resource_type, to_resource_name, import_id
         )
         tf_import_blocks.append(tf_import_block)
     return tf_import_blocks

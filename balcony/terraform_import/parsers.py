@@ -13,6 +13,7 @@ import yaml
 from collections import defaultdict
 
 logger = get_logger(__name__)
+terraform_import_configs = []
 
 
 def parse_json_to_tf_import_config(
@@ -46,6 +47,8 @@ def parse_yaml_file_to_tf_import_config(
 
 
 def parse_custom_tf_import_config():
+    # if terraform_import_configs:
+    #     return terraform_import_configs
 
     custom_terraform_config_dict = defaultdict(lambda: defaultdict(dict))
 
@@ -72,4 +75,6 @@ def parse_custom_tf_import_config():
                 custom_terraform_config_dict[tf_config.service][
                     tf_config.resource_node
                 ] = tf_config
+    # terraform_import_configs = custom_terraform_config_dict
+    # return terraform_import_configs
     return custom_terraform_config_dict
