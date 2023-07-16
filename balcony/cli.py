@@ -386,13 +386,13 @@ def terraform_import_command(
     service_or_tf_resource_type: Optional[str] = typer.Argument(
         None,
         show_default=False,
-        help="Name of the AWS Service or Terraform (e.g. ec2)",
+        help="Name of the AWS Service (ec2, iam) or Terraform Type (aws_iam_user)",
         autocompletion=_complete_service_name,
     ),
     resource_node: Optional[str] = typer.Argument(
         None,
         show_default=False,
-        help="Name of the AWS Resource Node. (e.g. Instances, Buckets, DBInstances)",
+        help="Name of the AWS Resource Node (Instances, Buckets, DBInstances)",
         autocompletion=_complete_resource_node_name,
     ),
     debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug messages."),
@@ -433,14 +433,13 @@ def terraform_import_command(
         service_resource_list = get_importable_resources()
 
         def render_importable_resources(service_and_resource_tuples: List[Tuple]):
-            header = f"[bold green]{'service':<15} {'resource_name':<45}[/]\n".format()
+            header = f"[bold green]{'TerraformResourceType':<30} {'Service':>15} {'Resource':45}[/]\n".format()
             result = header
 
-            for i, (service_name, resource_name) in enumerate(
+            for i, (terraform_type, service_name, resource_name) in enumerate(
                 service_and_resource_tuples
             ):
-
-                cur_line = f"{service_name:<15} {resource_name:<45}"
+                cur_line = f"{terraform_type:<30} {service_name:>15} {resource_name:45}"
                 if i % 2:
                     cur_line = f"[bold]{cur_line}[/]"
                 result += cur_line + "\n"
@@ -513,7 +512,7 @@ def terraform_import_command(
         else:            
             console.print("\n".join(import_blocks))
 
-    return import_blocks
+    return  # import_blocks
 
 
 @app.command(
