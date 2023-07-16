@@ -12,3 +12,13 @@ resource_nodes:
         target_shape_name: GroupId
         target_shape_type: string
         target_path: SecurityGroups[*].GroupId
+- resource_node_name: Images
+  operations:
+    - operation_name: DescribeImages
+      override_api_parameters:
+        # override the default {} parameters to only return
+        # the images in own account. If this is not set, it takes
+        # minutes to read all images in the AWS
+        - Owners: 
+          - "self"
+
