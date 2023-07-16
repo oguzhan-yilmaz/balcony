@@ -48,12 +48,12 @@ def render_jinja2_template_with_data(data, jinja2_template_str) -> List[str]:
         result.append(rendered_output)
     elif isinstance(data, list):
         # if the data is a list, render the template for each item
-        kwargs = data.copy()
+        kwargs = {"data": data}
         for an_item in data:
             kwargs["item"] = an_item
-            kwargs["data"] = an_item
             rendered_output = template.render(**kwargs).strip()
-            result.append(rendered_output)
+            rendered_list = [_.strip() for _ in rendered_output.split(' ') if _]
+            result.extend(rendered_list)
     elif isinstance(data, str):
         kwargs = {
             "item": data,
@@ -68,7 +68,8 @@ def gen_resource_name_and_import_id_from_op_data_(
     operation_data, jmespath_query, to_resource_name_tpl, id_generator_tpl
 ):
     result = []
-    if jmespath_query:
+    is_basic_j2_template = to_resource_name_tpl.lstrip().startswith("{{")
+    if jmespath_query and is_basic_j2_template:
         # filter the operation data if jmespath_query is given
         # and render them one by one
         list_of_resource_data = jmespath.search(jmespath_query, operation_data)
@@ -88,19 +89,17 @@ def gen_resource_name_and_import_id_from_op_data_(
         # no jmespath query given, use the whole operation data
         # assumes there's multiple lines of output from the template
 
-        resource_name_multiline = render_jinja2_template_with_data(
-            a_resource_data, to_resource_name_tpl
-        )[0]  # FIXME: later
-        import_id_multiline = render_jinja2_template_with_data(
-            a_resource_data, id_generator_tpl
-        )[0]  # FIXME: later
+        multiline_resource_name_list = render_jinja2_template_with_data(
+            operation_data, to_resource_name_tpl
+        )
+        multiline_import_id_list = render_jinja2_template_with_data(
+            operation_data, id_generator_tpl
+        )
         # split them on newlines
-        resource_name_list = [ro for ro in resource_name_multiline.split("\n") if ro]
-        import_id_list = [ro for ro in import_id_multiline.split("\n") if ro]
 
-        logger.debug(f"{resource_name_list=}    {import_id_list=}")
-        assert len(resource_name_list) == len(import_id_list)
-        return list(zip(resource_name_list, import_id_list))
+        assert len(multiline_resource_name_list) == len(multiline_import_id_list)
+        r = list(zip(multiline_resource_name_list, multiline_import_id_list))
+        return r
 
 
 def generate_terraform_import_block(to_resource_type, to_resource_name, import_id):
@@ -142,7 +141,8 @@ def sanitize_resource_name_and_import_ids(list_of_tuples):
     for resource_name, import_id in list_of_tuples:
         # change anything that's not a letter, number, dash or underscore to underscore
         sanitized_resource_name = re.sub(r"[^A-Za-z0-9\-_]", "_", resource_name)
-
+        # allow / in the import id
+        # sanitized_import_id = re.sub(r"[^A-Za-z0-9\-_/]", "_", import_id)
         if sanitized_resource_name and import_id:
             result.append((sanitized_resource_name, import_id))
     return result
@@ -161,14 +161,14 @@ def get_import_config_for(
         )
         return config_for_resource_node
     elif terraform_resource_type:
-        config_for_tf_type = custom_tf_config_dict.get(_TERRAFORM_TYPES_KEY, {}).get(
+        config_list_for_tf_type = custom_tf_config_dict.get(_TERRAFORM_TYPES_KEY, {}).get(
             terraform_resource_type, False
         )
-        if not config_for_tf_type:
+        if not config_list_for_tf_type:
             return False
-        return [config_for_tf_type]
+        return config_list_for_tf_type
     return False
-    
+
 
 def generate_import_block_from_import_config(
     balcony_client: BalconyAWS,

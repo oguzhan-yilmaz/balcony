@@ -454,7 +454,6 @@ def terraform_import_command(
     is_terraform_r_type_given = is_terraform_aws_resource_type(service_or_tf_resource_type) and resource_node is None
     if is_terraform_r_type_given:
         logger.debug(f"Terraform resource type is given: {service_or_tf_resource_type} instead of service and resource node.")
-        console.print(f"YEAH HELL YEAH {is_terraform_r_type_given}")
         pass
     elif (not service_or_tf_resource_type) or (not resource_node):
         _list_service_or_resource(service_or_tf_resource_type, resource_node, screen_pager=screen)

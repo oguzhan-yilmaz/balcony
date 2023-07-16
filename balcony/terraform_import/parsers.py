@@ -78,5 +78,9 @@ def parse_custom_terraform_import_configs_from_files():
                         tf_config.resource_node
                     ].append(tf_config)
                 # add it to _TERRAFORM_TYPES_KEY
-                terraform_configurations_dict[_TERRAFORM_TYPES_KEY][tf_config.to_resource_type] = tf_config
+                tf_conf_list = terraform_configurations_dict[_TERRAFORM_TYPES_KEY].get(tf_config.to_resource_type, [])
+                if not tf_conf_list:
+                    terraform_configurations_dict[_TERRAFORM_TYPES_KEY][tf_config.to_resource_type] = [tf_config]
+                else:
+                    terraform_configurations_dict[_TERRAFORM_TYPES_KEY][tf_config.to_resource_type].append(tf_config)
     return terraform_configurations_dict
