@@ -1,6 +1,6 @@
 import re
 import textwrap
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 import jmespath
 from terraform_import.models import TerraformImportConfig
 from terraform_import.parsers import parse_custom_terraform_import_configs_from_files, _TERRAFORM_TYPES_KEY
@@ -123,14 +123,18 @@ def generate_terraform_import_block(to_resource_type, to_resource_name, import_i
     return rendered_output
 
 
-def get_importable_resources():
+def get_importable_resources() -> List[Tuple[str, str]]:
     custom_tf_config_dict = get_custom_terraform_import_config_dict()
 
     importable_services_and_resources = []
     for service_name, resource_config_dict in custom_tf_config_dict.items():
-        for resource_node_name, resource_config in resource_config_dict.items():
-            importable_services_and_resources.append((service_name, resource_node_name))
-    return importable_services_and_resources
+        if service_name == _TERRAFORM_TYPES_KEY:
+            continue  # skip the _terraform_types cache key
+        for resource_node_name, resource_config_list in resource_config_dict.items():
+            for resource_config in resource_config_list:
+                terraform_resource_type = resource_config.to_resource_type
+                importable_services_and_resources.append((terraform_resource_type, service_name, resource_node_name))
+    return list(sorted(importable_services_and_resources, key=lambda x: x[1]+x[2]))
 
 
 def sanitize_resource_name_and_import_ids(list_of_tuples):

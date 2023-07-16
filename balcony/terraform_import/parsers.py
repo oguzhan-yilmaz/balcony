@@ -50,7 +50,8 @@ def parse_custom_terraform_import_configs_from_files():
     terraform_configurations_dict = defaultdict(lambda: defaultdict(dict))
 
     parse_directories = [YAML_TF_IMPORT_CONFIGS_DIRECTORY,] # noqa
-    if USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY:
+    _are_same_directories = USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY == YAML_TF_IMPORT_CONFIGS_DIRECTORY.as_posix()
+    if USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY and not _are_same_directories:
         # might not be defined
         parse_directories.append(USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY)
 
