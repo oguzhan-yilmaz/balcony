@@ -77,3 +77,11 @@ import_configurations:
       {% endfor %}
       '
     to_resource_type: aws_route_table_association
+
+  - id_generator_jinja2_template: '{{ NatGatewayId }}'
+    jmespath_query: '[].NatGateways[]'
+    operation_name: DescribeNatGateways
+    resource_node: NatGateways
+    service: ec2
+    to_resource_name_jinja2_template: 'nat_gw_{{ NatGatewayId }}'
+    to_resource_type: aws_route_table
