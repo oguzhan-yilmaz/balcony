@@ -14,7 +14,7 @@ COPY --chmod=0755 dockerfiles/entrypoint.sh entrypoint.sh
 RUN apt update -y \
     && apt install -y curl unzip bat \ 
     && apt autoremove -y \
-    && curl -q https://releases.hashicorp.com/terraform/1.5.1/terraform_1.5.1_linux_amd64.zip -o terraform.zip \
+    && curl -q $(curl -sL https://releases.hashicorp.com/terraform/index.json | jq -r '.versions[].builds[].url' | sort -t. -k 1,1n -k 2,2n -k 3,3n -k 4,4n | egrep -v 'rc|beta' | egrep 'linux.*amd64' |tail -1) -o terraform.zip \
     && unzip -q terraform.zip \
     && mv terraform /usr/local/bin/ \
     && rm -rf terraform.zip \
