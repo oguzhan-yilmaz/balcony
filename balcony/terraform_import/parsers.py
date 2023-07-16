@@ -13,7 +13,7 @@ import yaml
 from collections import defaultdict
 
 logger = get_logger(__name__)
-terraform_import_configs = []
+_TERRAFORM_TYPES_KEY='_terraform_types'
 
 
 def parse_json_to_tf_import_config(
@@ -46,15 +46,10 @@ def parse_yaml_file_to_tf_import_config(
         return False, e
 
 
-def parse_custom_tf_import_config():
-    # if terraform_import_configs:
-    #     return terraform_import_configs
+def parse_custom_terraform_import_configs_from_files():
+    terraform_configurations_dict = defaultdict(lambda: defaultdict(dict))
 
-    custom_terraform_config_dict = defaultdict(lambda: defaultdict(dict))
-
-    parse_directories = [
-        YAML_TF_IMPORT_CONFIGS_DIRECTORY,
-    ]
+    parse_directories = [YAML_TF_IMPORT_CONFIGS_DIRECTORY,] # noqa
     if USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY:
         # might not be defined
         parse_directories.append(USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY)
@@ -72,9 +67,15 @@ def parse_custom_tf_import_config():
                 continue
             for tf_config in conf.import_configurations:
                 # doing it this way allows overrides from the user defined configs
-                custom_terraform_config_dict[tf_config.service][
-                    tf_config.resource_node
-                ] = tf_config
-    # terraform_import_configs = custom_terraform_config_dict
-    # return terraform_import_configs
-    return custom_terraform_config_dict
+                r_node = terraform_configurations_dict.get(tf_config.service, {}).get(tf_config.resource_node, False)
+                if r_node is False:
+                    terraform_configurations_dict[tf_config.service][
+                        tf_config.resource_node
+                    ] = [tf_config]
+                else:
+                    terraform_configurations_dict[tf_config.service][
+                        tf_config.resource_node
+                    ].append(tf_config)
+                # add it to _TERRAFORM_TYPES_KEY
+                terraform_configurations_dict[_TERRAFORM_TYPES_KEY][tf_config.to_resource_type] = tf_config
+    return terraform_configurations_dict

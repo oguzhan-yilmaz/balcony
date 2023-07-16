@@ -1,13 +1,24 @@
 import re
 import textwrap
-from typing import List, Union
+from typing import Dict, List, Union
 import jmespath
-from terraform_import.parsers import parse_custom_tf_import_config
+from terraform_import.models import TerraformImportConfig
+from terraform_import.parsers import parse_custom_terraform_import_configs_from_files, _TERRAFORM_TYPES_KEY
 from config import get_logger
 from aws import BalconyAWS
 from jinja2 import Environment
 
 logger = get_logger(__name__)
+_terraform_import_configurations = None
+
+
+def get_custom_terraform_import_config_dict() -> Dict:
+    global _terraform_import_configurations
+    if _terraform_import_configurations:
+        return _terraform_import_configurations
+
+    _terraform_import_configurations = parse_custom_terraform_import_configs_from_files()
+    return _terraform_import_configurations
 
 
 def extract_resource_tags_as_kwargs(data: dict) -> dict:
@@ -113,7 +124,7 @@ def generate_terraform_import_block(to_resource_type, to_resource_name, import_i
 
 
 def get_importable_resources():
-    custom_tf_config_dict = parse_custom_tf_import_config()
+    custom_tf_config_dict = get_custom_terraform_import_config_dict()
 
     importable_services_and_resources = []
     for service_name, resource_config_dict in custom_tf_config_dict.items():
@@ -137,48 +148,48 @@ def get_import_config_for(
     service: str = None,
     resource_node: str = None,
     terraform_resource_type: str = None,
-):
-    custom_tf_config_dict = parse_custom_tf_import_config()
+) -> List[TerraformImportConfig]:
+    custom_tf_config_dict = get_custom_terraform_import_config_dict()
 
     if service and resource_node:
         config_for_resource_node = custom_tf_config_dict.get(service, {}).get(
-            resource_node, False
+            resource_node, []
         )
         return config_for_resource_node
     elif terraform_resource_type:
-        for service_name, service_config_dict in custom_tf_config_dict.items():
-            for resource_node_name, resource_config in service_config_dict.items():
-                if resource_config.to_resource_type == terraform_resource_type:
-                    return resource_config
+        config_for_tf_type = custom_tf_config_dict.get(_TERRAFORM_TYPES_KEY, {}).get(
+            terraform_resource_type, False
+        )
+        if not config_for_tf_type:
+            return False
+        return [config_for_tf_type]
     return False
     
 
-def generate_import_block_for_resource(
+def generate_import_block_from_import_config(
     balcony_client: BalconyAWS,
-    service: str = None,
-    resource_node: str = None,
-    terraform_resource_type: str = None,
-    follow_pagination: bool = False,
-):
-
+    tf_import_config: TerraformImportConfig,
+    follow_pagination: bool = False
+) -> List[str]:
     tf_import_blocks: List[str] = []
-    cur_import_config = get_import_config_for(service, resource_node, terraform_resource_type)
-    if not cur_import_config:
+
+    operation_name = tf_import_config.operation_name
+    service = tf_import_config.service
+    resource_node = tf_import_config.resource_node
+    jmespath_query = tf_import_config.jmespath_query
+
+    if not tf_import_config:
         logger.debug(
             f"[red bold]No custom terraform import config found for {service}.{resource_node}. Please check out docs https://oguzhan-yilmaz.github.io/balcony/ for more info on developing it your own."
         )
         return False
 
-    # read the data
-    operation_name = cur_import_config.operation_name
-
-    jmespath_query = cur_import_config.jmespath_query
-
+    # read the operation
     operation_data = balcony_client.read_operation(
-        service_name=cur_import_config.service,
-        resource_node_name=cur_import_config.resource_node,
+        service_name=service,
+        resource_node_name=resource_node,
         operation_name=operation_name,
-        follow_pagination=follow_pagination,  # TODO: remove the comment after
+        follow_pagination=follow_pagination,
     )
 
     if not operation_data:
@@ -188,8 +199,8 @@ def generate_import_block_for_resource(
     resource_name_and_import_ids = gen_resource_name_and_import_id_from_op_data_(
         operation_data,
         jmespath_query,
-        cur_import_config.to_resource_name_jinja2_template,
-        cur_import_config.id_generator_jinja2_template,
+        tf_import_config.to_resource_name_jinja2_template,
+        tf_import_config.id_generator_jinja2_template,
     )
 
     # Replace unsupported chars from the to-resource-name with underscore
@@ -203,7 +214,35 @@ def generate_import_block_for_resource(
     for a_tuple in sanitized_resource_name_and_import_ids:
         to_resource_name, import_id = a_tuple
         tf_import_block = generate_terraform_import_block(
-            cur_import_config.to_resource_type, to_resource_name, import_id
+            tf_import_config.to_resource_type, to_resource_name, import_id
         )
         tf_import_blocks.append(tf_import_block)
     return tf_import_blocks
+
+
+
+def generate_import_block_for_resource(
+    balcony_client: BalconyAWS,
+    service: str = None,
+    resource_node: str = None,
+    terraform_resource_type: str = None,
+    follow_pagination: bool = False,
+):
+    resulting_tf_import_blocks = []
+    tf_import_configs = get_import_config_for(service, resource_node, terraform_resource_type)
+    if not tf_import_configs:
+        logger.debug(
+            f"[red bold]No custom terraform import config found for {service}.{resource_node}. Please check out docs https://oguzhan-yilmaz.github.io/balcony/ for more info on developing it your own."
+        )
+        return False
+
+    for tf_import_config in tf_import_configs:
+        tf_import_blocks = generate_import_block_from_import_config(balcony_client, tf_import_config, follow_pagination)
+        if not tf_import_blocks:
+            logger.debug(
+                f"[red bold]No data found for {tf_import_config.to_resource_type} — {tf_import_config.resource_node}.{tf_import_config.operation_name}."
+            )
+            return False
+        resulting_tf_import_blocks.extend(tf_import_blocks)
+        
+    return resulting_tf_import_blocks

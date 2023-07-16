@@ -454,15 +454,16 @@ def terraform_import_command(
 
     is_terraform_r_type_given = is_terraform_aws_resource_type(service_or_tf_resource_type) and resource_node is None
     if is_terraform_r_type_given:
+        logger.debug(f"Terraform resource type is given: {service_or_tf_resource_type} instead of service and resource node.")
         console.print(f"YEAH HELL YEAH {is_terraform_r_type_given}")
-
+        pass
     elif (not service_or_tf_resource_type) or (not resource_node):
         _list_service_or_resource(service_or_tf_resource_type, resource_node, screen_pager=screen)
         console.print(f"[red bold]Please pick a Service and Resource Node[/]")
         return
 
     import_blocks = None
-    if is_terraform_aws_resource_type:
+    if is_terraform_r_type_given:
         import_blocks = generate_import_block_for_resource(
             balcony_aws,
             terraform_resource_type=service_or_tf_resource_type,
@@ -471,8 +472,8 @@ def terraform_import_command(
     else:
         import_blocks = generate_import_block_for_resource(
             balcony_aws,
-            service_or_tf_resource_type,
-            resource_node,
+            service=service_or_tf_resource_type,
+            resource_node=resource_node,
             follow_pagination=follow_pagination,
         )
 
@@ -550,8 +551,6 @@ def wizard_the_terraform_import_configurer(
         False, "--screen", "-s", help="Open the data on a separate paginator on shell."
     ),
 ):
-    
-    # TODO: same kind of terraform-resource-type as cli command 
     # set debug level if enabled
     if debug:
         set_log_level_at_runtime(logging.DEBUG)
