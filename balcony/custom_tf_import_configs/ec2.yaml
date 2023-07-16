@@ -57,3 +57,11 @@ import_configurations:
     service: ec2
     to_resource_name_jinja2_template: '{{ GroupName ~ ''-'' ~ VpcId }}'
     to_resource_type: aws_security_group
+
+  - id_generator_jinja2_template: '{{ AssociationId }}'
+    jmespath_query: '[].Addresses[]'
+    operation_name: DescribeAddresses
+    resource_node: Addresses
+    service: ec2
+    to_resource_name_jinja2_template: '{{ AssociationId }}'
+    to_resource_type: aws_eip_association

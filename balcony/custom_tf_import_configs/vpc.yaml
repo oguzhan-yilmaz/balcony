@@ -1,0 +1,79 @@
+maintainers:
+  - name: "Oguzhan Yilmaz"
+    github: "oguzhan_yilmaz"
+import_configurations:
+  - id_generator_jinja2_template: '{{ SubnetId }}'
+    jmespath_query: '[].Subnets[]'
+    operation_name: DescribeSubnets
+    resource_node: Subnets
+    service: ec2
+    to_resource_name_jinja2_template: '{{ SubnetId ~ ''-'' ~ tag_Name}}'
+    to_resource_type: aws_subnet
+
+  - id_generator_jinja2_template: '{{ RouteTableId }}'
+    jmespath_query: '[].RouteTables[]'
+    operation_name: DescribeRouteTables
+    resource_node: RouteTables
+    service: ec2
+    to_resource_name_jinja2_template: '{{ RouteTableId }}'
+    to_resource_type: aws_route_table
+
+  - id_generator_jinja2_template: '
+      {% for route_table in item.RouteTables %}
+        {% for route in route_table.Routes %}
+          {% if route.DestinationPrefixListId is defined %}
+            {{ route_table.RouteTableId }}_{{ route.DestinationPrefixListId }} 
+          {% elif route.DestinationIpv6CidrBlock is defined %}
+            {{ route_table.RouteTableId }}_{{ route.DestinationIpv6CidrBlock }}
+          {% elif route.DestinationCidrBlock is defined %}
+            {{ route_table.RouteTableId }}_{{ route.DestinationCidrBlock }}
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+      '
+    jmespath_query: '[].RouteTables[]'
+    operation_name: DescribeRouteTables
+    resource_node: RouteTables
+    service: ec2
+    to_resource_name_jinja2_template: '
+      {% for route_table in item.RouteTables %}
+        {% for route in route_table.Routes %}
+          {% if route.DestinationPrefixListId is defined %}
+            {{ route_table.RouteTableId }}_{{ route.DestinationPrefixListId }} 
+          {% elif route.DestinationIpv6CidrBlock is defined %}
+            {{ route_table.RouteTableId }}_{{ route.DestinationIpv6CidrBlock }}
+          {% elif route.DestinationCidrBlock is defined %}
+            {{ route_table.RouteTableId }}_{{ route.DestinationCidrBlock }}
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+      '
+    to_resource_type: aws_route
+
+  - id_generator_jinja2_template: '
+      {% for route_table in item.RouteTables %}
+        {% for assoc in route_table.Associations %}
+          {% if assoc.SubnetId is defined %}
+            {{ assoc.SubnetId }}/{{ route_table.RouteTableId }}
+          {% elif assoc.GatewayId is defined %}
+            {{ assoc.GatewayId }}/{{ route_table.RouteTableId }}
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+      '
+    jmespath_query: '[].RouteTables[]'
+    operation_name: DescribeRouteTables
+    resource_node: RouteTables
+    service: ec2
+    to_resource_name_jinja2_template: '
+      {% for route_table in item.RouteTables %}
+        {% for assoc in route_table.Associations %}
+          {% if assoc.SubnetId is defined %}
+            rtb_assoc_{{ assoc.SubnetId }}/{{ route_table.RouteTableId }}
+          {% elif assoc.GatewayId is defined %}
+            rtb_assoc_{{ assoc.GatewayId }}/{{ route_table.RouteTableId }}
+          {% endif %}
+        {% endfor %}
+      {% endfor %}
+      '
+    to_resource_type: aws_route_table_association
