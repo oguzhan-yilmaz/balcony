@@ -31,10 +31,13 @@ gen_terraform_import_blocks_filename="import-blocks-${gen_terraform_filename}"
 debug_echo "Generated gen_terraform_filename: $gen_terraform_filename"
 
 
-if [[ $# -ne 2 ]]; then
-    echo "\n ERROR: This script requires exactly two arguments: service and resource_name"
+if [[ $# -lt 1 ]] || [[ $# -gt 2 ]]; then
+    echo "\n ERROR: This script has two arguments types:"
+    echo "\t Option 1. [service, resource_name](e.g. ec2 Instances, iam Users)": 
+    echo "\t Option 2. [terraform_resource_type](e.g. aws_instance, aws_iam_user)"
     exit 1
 fi
+
 
 if [[ $BALCONY_DEBUG -eq 1 ]]; then
   echo "Debugging mode is enabled."
