@@ -68,7 +68,7 @@ def gen_resource_name_and_import_id_from_op_data_(
     operation_data, jmespath_query, to_resource_name_tpl, id_generator_tpl
 ):
     result = []
-    is_basic_j2_template = to_resource_name_tpl.lstrip().startswith("{{")
+    is_basic_j2_template = '{%' not in to_resource_name_tpl.lstrip()
     if jmespath_query and is_basic_j2_template:
         # filter the operation data if jmespath_query is given
         # and render them one by one
