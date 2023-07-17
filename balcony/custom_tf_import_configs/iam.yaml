@@ -42,14 +42,6 @@ import_configurations:
   to_resource_name_jinja2_template: '{{ ''role-'' ~ RoleName }}'
   to_resource_type: aws_iam_role
 
-- id_generator_jinja2_template: '{{ GroupName ~ '':'' ~ PolicyName }}'
-  jmespath_query: '[]'
-  operation_name: GetGroupPolicy
-  resource_node: GroupPolicy
-  service: iam
-  to_resource_name_jinja2_template: '{{ GroupName ~ ''-'' ~ PolicyName }}'
-  to_resource_type: aws_iam_group_policy
-
 - id_generator_jinja2_template: '{{ UserName ~ '':''  ~ PolicyName }}'
   jmespath_query: '[]'
   operation_name: GetUserPolicy
@@ -57,4 +49,5 @@ import_configurations:
   service: iam
   to_resource_name_jinja2_template: '{{ UserName ~ ''-'' ~ PolicyName }}'
   to_resource_type: aws_iam_user_policy
+
 

@@ -17,18 +17,17 @@ import_configurations:
     service: ec2
     to_resource_name_jinja2_template: '{{ RouteTableId }}'
     to_resource_type: aws_route_table
+    
 
   - id_generator_jinja2_template: '
-      {% for route_table in item.RouteTables %}
-        {% for route in route_table.Routes %}
-          {% if route.DestinationPrefixListId is defined %}
-            {{ route_table.RouteTableId }}_{{ route.DestinationPrefixListId }} 
-          {% elif route.DestinationIpv6CidrBlock is defined %}
-            {{ route_table.RouteTableId }}_{{ route.DestinationIpv6CidrBlock }}
-          {% elif route.DestinationCidrBlock is defined %}
-            {{ route_table.RouteTableId }}_{{ route.DestinationCidrBlock }}
-          {% endif %}
-        {% endfor %}
+      {% for route in data.Routes %}
+        {% if route.DestinationPrefixListId is defined %}
+          {{ data.RouteTableId }}_{{ route.DestinationPrefixListId }} 
+        {% elif route.DestinationIpv6CidrBlock is defined %}
+          {{ data.RouteTableId }}_{{ route.DestinationIpv6CidrBlock }}
+        {% elif route.DestinationCidrBlock is defined %}
+          {{ data.RouteTableId }}_{{ route.DestinationCidrBlock }}
+        {% endif %}
       {% endfor %}
       '
     jmespath_query: '[].RouteTables[]'
@@ -36,29 +35,27 @@ import_configurations:
     resource_node: RouteTables
     service: ec2
     to_resource_name_jinja2_template: '
-      {% for route_table in item.RouteTables %}
-        {% for route in route_table.Routes %}
-          {% if route.DestinationPrefixListId is defined %}
-            {{ route_table.RouteTableId }}_{{ route.DestinationPrefixListId }} 
-          {% elif route.DestinationIpv6CidrBlock is defined %}
-            {{ route_table.RouteTableId }}_{{ route.DestinationIpv6CidrBlock }}
-          {% elif route.DestinationCidrBlock is defined %}
-            {{ route_table.RouteTableId }}_{{ route.DestinationCidrBlock }}
-          {% endif %}
-        {% endfor %}
+      {% for route in data.Routes %}
+        {% if route.DestinationPrefixListId is defined %}
+          {{ data.RouteTableId }}_{{ route.DestinationPrefixListId }} 
+        {% elif route.DestinationIpv6CidrBlock is defined %}
+          {{ data.RouteTableId }}_{{ route.DestinationIpv6CidrBlock }}
+        {% elif route.DestinationCidrBlock is defined %}
+          {{ data.RouteTableId }}_{{ route.DestinationCidrBlock }}
+        {% endif %}
       {% endfor %}
       '
     to_resource_type: aws_route
+    multiline_output: true
+
 
   - id_generator_jinja2_template: '
-      {% for route_table in item.RouteTables %}
-        {% for assoc in route_table.Associations %}
-          {% if assoc.SubnetId is defined %}
-            {{ assoc.SubnetId }}/{{ route_table.RouteTableId }}
-          {% elif assoc.GatewayId is defined %}
-            {{ assoc.GatewayId }}/{{ route_table.RouteTableId }}
-          {% endif %}
-        {% endfor %}
+      {% for assoc in data.Associations %}
+        {% if assoc.SubnetId is defined %}
+          {{ assoc.SubnetId }}/{{ data.RouteTableId }}
+        {% elif assoc.GatewayId is defined %}
+          {{ assoc.GatewayId }}/{{ data.RouteTableId }}
+        {% endif %}
       {% endfor %}
       '
     jmespath_query: '[].RouteTables[]'
@@ -66,22 +63,52 @@ import_configurations:
     resource_node: RouteTables
     service: ec2
     to_resource_name_jinja2_template: '
-      {% for route_table in item.RouteTables %}
-        {% for assoc in route_table.Associations %}
-          {% if assoc.SubnetId is defined %}
-            rtb_assoc_{{ assoc.SubnetId }}/{{ route_table.RouteTableId }}
-          {% elif assoc.GatewayId is defined %}
-            rtb_assoc_{{ assoc.GatewayId }}/{{ route_table.RouteTableId }}
-          {% endif %}
-        {% endfor %}
+      {% for assoc in data.Associations %}
+        {% if assoc.SubnetId is defined %}
+          rtb_assoc_{{ assoc.SubnetId }}/{{ data.RouteTableId }}
+        {% elif assoc.GatewayId is defined %}
+          rtb_assoc_{{ assoc.GatewayId }}/{{ data.RouteTableId }}
+        {% endif %}
       {% endfor %}
       '
     to_resource_type: aws_route_table_association
-
+    multiline_output: true
   - id_generator_jinja2_template: '{{ NatGatewayId }}'
     jmespath_query: '[].NatGateways[]'
     operation_name: DescribeNatGateways
     resource_node: NatGateways
     service: ec2
     to_resource_name_jinja2_template: 'nat_gw_{{ NatGatewayId }}'
-    to_resource_type: aws_route_table
+    to_resource_type: aws_nat_gateway
+
+  - id_generator_jinja2_template: '{{ InternetGatewayId }}'
+    jmespath_query: '[].InternetGateways[]'
+    operation_name: DescribeInternetGateways
+    resource_node: InternetGateways
+    service: ec2
+    to_resource_name_jinja2_template: 'internet_gateway_{{ InternetGatewayId }}'
+    to_resource_type: aws_internet_gateway
+
+
+  - service: ec2
+    resource_node: InternetGateways
+    operation_name: DescribeInternetGateways
+    jmespath_query: '[].InternetGateways[]'
+    to_resource_type: aws_internet_gateway_attachment
+    multiline_output: true
+    id_generator_jinja2_template: '
+      {% for attachment in data.Attachments %}
+        {% if attachment.VpcId is defined %}
+          {{ data.InternetGatewayId }}:{{ attachment.VpcId }}
+        {% elif attachment.GatewayId is defined %}
+          {{ attachment.GatewayId }}:{{ data.RouteTableId }}
+        {% endif %}
+      {% endfor %}'
+    to_resource_name_jinja2_template: '
+      {% for attachment in data.Attachments %}
+        {% if attachment.VpcId is defined %}
+          {{ data.InternetGatewayId }}:{{ attachment.VpcId }}
+        {% elif attachment.GatewayId is defined %}
+          {{ attachment.GatewayId }}:{{ data.RouteTableId }}
+        {% endif %}
+      {% endfor %}'
