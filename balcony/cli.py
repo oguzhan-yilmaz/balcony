@@ -433,13 +433,13 @@ def terraform_import_command(
         service_resource_list = get_importable_resources()
 
         def render_importable_resources(service_and_resource_tuples: List[Tuple]):
-            header = f"[bold green]{'TerraformResourceType':<30} {'Service':>15} {'Resource':45}[/]\n".format()
+            header = f"[bold green]{'TerraformResourceType':<50} {'Service':>15} {'Resource':45}[/]\n".format()
             result = header
 
             for i, (terraform_type, service_name, resource_name) in enumerate(
                 service_and_resource_tuples
             ):
-                cur_line = f"{terraform_type:<30} {service_name:>15} {resource_name:45}"
+                cur_line = f"{terraform_type:<50} {service_name:>15} {resource_name:45}"
                 if i % 2:
                     cur_line = f"[bold]{cur_line}[/]"
                 result += cur_line + "\n"
