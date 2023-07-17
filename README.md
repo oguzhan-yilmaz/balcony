@@ -40,6 +40,9 @@ balcony aws ec2
 # read a resource
 balcony aws s3 Buckets
 
+# show documentation
+balcony aws iam Policy --list
+
 # generate terraform import blocks for a resource
 balcony terraform-import s3 Buckets
 ```
@@ -48,10 +51,13 @@ balcony terraform-import s3 Buckets
 ## Features
 
 ### Read any AWS Resource
+
+`balcony aws <service> <resource-name> --paginate` command reads all resources of a given type in your AWS account.
+
 Related Docs: [QuickStart](https://oguzhan-yilmaz.github.io/balcony/quickstart/)
 
+![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/aws-read-resource.gif)
 
-![](visuals/reading-a-resource-node.gif)
 
 ---
 
