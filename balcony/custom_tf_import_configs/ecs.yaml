@@ -1,3 +1,5 @@
+maintainers:
+- name: Oguzhan Yilmaz
 import_configurations:
 - id_generator_jinja2_template: '{{ clusterName }}'
   jmespath_query: '[].clusters[]'
@@ -6,5 +8,20 @@ import_configurations:
   service: ecs
   to_resource_name_jinja2_template: '{{ clusterName }}'
   to_resource_type: aws_ecs_cluster
-maintainers:
-- name: Oguzhan Yilmaz
+
+- id_generator_jinja2_template: '{{ clusterArn.split("/")[-1]  ~ ''/'' ~ serviceName}}'
+  jmespath_query: '[].services[]'
+  operation_name: DescribeServices
+  resource_node: Services
+  service: ecs
+  to_resource_name_jinja2_template: '{{  clusterArn.split("/")[-1] ~ ''/'' ~ serviceName }}'
+  to_resource_type: aws_ecs_service
+
+
+- id_generator_jinja2_template: '{{ taskDefinitionArn }}'
+  jmespath_query: '[].taskDefinition[]'
+  operation_name: DescribeTaskDefinition
+  resource_node: TaskDefinition
+  service: ecs
+  to_resource_name_jinja2_template: '{{ taskDefinitionArn }}'
+  to_resource_type: aws_ecs_task_definition
