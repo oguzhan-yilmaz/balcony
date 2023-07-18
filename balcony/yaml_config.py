@@ -26,9 +26,8 @@ def parse_yaml_file_to_service(
             input_data = yaml.load(f, Loader=yaml.FullLoader)
         return YamlService(**input_data), None
     except Exception as e:
+        logger.debug(f"Failed to parse yaml file {yaml_file_path}. Error: {str(e)}")
         return False, e
-
-
 
 
 def find_and_parse_yaml_services() -> List[YamlService]:
@@ -45,6 +44,7 @@ def find_and_parse_yaml_services() -> List[YamlService]:
     for yaml_file in yaml_files:
         yaml_service, error = parse_yaml_file_to_service(yaml_file)
         if error is None and yaml_service:
+            logger.debug(f"Succesfully parsed [bold]{yaml_file}[/] to Yaml ResourceNode")
             found_yaml_services.append(yaml_service)
         else:
             logger.debug(

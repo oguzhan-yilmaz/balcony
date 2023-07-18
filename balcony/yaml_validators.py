@@ -7,9 +7,9 @@ class YamlRelation(BaseModel):
     resource_node_name: str
     operation_name: str
     required_shape_name: str
-    target_shape_name: str
-    target_shape_type: str
-    target_path: str
+    target_shape_name: Optional[str]
+    target_shape_type: Optional[str]
+    target_path: Optional[str]
 
 
 class YamlComplementApiParameterAction(BaseModel):
@@ -36,6 +36,7 @@ class YamlResourceNodeOperation(BaseModel):
     explicit_relations: Optional[List[YamlRelation]]
     override_api_parameters: Optional[List[Dict[str, Any]]]
     pagination_token_mapping: Optional[Dict[str, str]]
+    required_parameters: Optional[List[str]]
 
 
 class YamlServiceResourceNode(BaseModel):

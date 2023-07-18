@@ -9,7 +9,7 @@ from utils import (
     compare_two_camel_case_words,
     str_relations,
     is_word_in_a_list_of_words,
-    inform_about_develeoping_custom_resource_nodes
+    inform_about_develeoping_custom_resource_nodes,
 )
 from botocore_utils import (
     get_input_shape,
@@ -50,9 +50,6 @@ PAGINATION_TOKEN_KEYS = (
     "marker",
     "nextcontinuationtoken",
 )
-
-
-
 
 
 class ResourceNode:
@@ -493,20 +490,26 @@ class ResourceNode:
         operation_panel = self._rich_operation_details_panel(operation_name)
         console.print(operation_panel)
 
-    def _rich_operation_details_panel(self, operation_name: str, remove_input_shape=False, remove_documentation=False) -> Panel:
+    def _rich_operation_details_panel(
+        self, operation_name: str, remove_input_shape=False, remove_documentation=False
+    ) -> Panel:
 
         operation_model = self.get_operation_model(operation_name)
         input_shape = get_input_shape(operation_model)
         output_shape = operation_model.output_shape
-        input_shape_name = 'No Input Shape Found'
+        input_shape_name = "No Input Shape Found"
         input_shape_tree = Text("No Input Shape Found")
         if input_shape:
-            input_shape_tree = generate_rich_tree_from_shape(input_shape, remove_documentation=remove_documentation)
+            input_shape_tree = generate_rich_tree_from_shape(
+                input_shape, remove_documentation=remove_documentation
+            )
             input_shape_name = input_shape.name
-        output_shape_tree = generate_rich_tree_from_shape(output_shape, remove_documentation=remove_documentation)
+        output_shape_tree = generate_rich_tree_from_shape(
+            output_shape, remove_documentation=remove_documentation
+        )
 
         operation_docs = cleanhtml(operation_model.documentation)
-        
+
         panel_group = Group(
             Padding(f"[bold underline]Documentation:[/] {operation_docs}", (1, 2)),
             Panel(
@@ -522,7 +525,7 @@ class ResourceNode:
                 padding=(1, 1),
             ),
         )
-        
+
         if remove_input_shape:
             panel_group = Group(
                 Padding(f"[bold underline]Documentation:[/] {operation_docs}", (1, 2)),
@@ -818,6 +821,18 @@ class YamlResourceNode(ResourceNode):
                     return explicit_relations, None
         # if no explicit relations are defined, then call the ResourceNode method and return it
         return super().get_operations_relations(operation_name)
+
+    def get_required_parameter_names_from_operation_name(
+        self, operation_name: str
+    ) -> List[str]:
+        operations = self.yaml_config.operations
+        for operation in operations:
+            if operation_name == operation.operation_name:
+                if operation.required_parameters:
+                    required_parameters = operation.required_parameters
+                    return required_parameters
+
+        return super().get_required_parameter_names_from_operation_name(operation_name)
 
     # NOTE: +overrideable
     def generate_jmespath_selector_from_relations(

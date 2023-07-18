@@ -22,6 +22,10 @@ resource_nodes:
       pagination_token_mapping:
         output_key: NextContinuationToken # from output, get this key and
         parameter_name: ContinuationToken # pass it to this parameter
+      # override required-parameters of an operation
+      required_parameters:
+        - ParamName1
+        - ParamName2
       # This option overrides the `complement_api_parameters_list` function.
       complement_api_parameters:
         # This option will be evoked after api parameter generation is 
