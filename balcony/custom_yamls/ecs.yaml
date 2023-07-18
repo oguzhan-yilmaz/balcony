@@ -1,0 +1,83 @@
+service_name: ecs
+resource_nodes:
+- resource_node_name: Clusters
+  operations:
+    - operation_name: DescribeClusters
+      required_parameters: ["clusters"]
+      jmespath_selector: "[*].{clusters:clusterArns}[]"
+      explicit_relations:
+        - service_name: ecs
+          resource_node_name: Clusters 
+          operation_name: ListClusters
+          required_shape_name: ---
+          target_shape_name: ---
+          target_shape_type: ---
+          target_path: ---
+
+- resource_node_name: Services
+  operations:
+    - operation_name: ListServices
+      required_parameters: ["cluster"]
+      jmespath_selector: "[*].clusterArns[*].{cluster: @}[][]"
+      explicit_relations:
+        - service_name: ecs
+          resource_node_name: Clusters 
+          operation_name: ListClusters
+          required_shape_name: ---
+          target_shape_name: ---
+          target_shape_type: ---
+          target_path: ---
+
+    - operation_name: DescribeServices
+      required_parameters: ["cluster", "services"]
+      jmespath_selector: "[*].{cluster:__args__.cluster, services:serviceArns }[]"
+      explicit_relations:
+        - service_name: ecs
+          resource_node_name: Services 
+          operation_name: ListServices
+          required_shape_name: ---
+          target_shape_name: ---
+          target_shape_type: ---
+          target_path: ---
+
+
+
+- resource_node_name: TaskDefinition
+  operations:
+    - operation_name: DescribeTaskDefinition
+      required_parameters: ["taskDefinition"]
+      jmespath_selector: "[*].taskDefinitionArns[*].{taskDefinition: @}[][]"
+      explicit_relations:
+        - service_name: ecs
+          resource_node_name: TaskDefinition 
+          operation_name: ListTaskDefinitions
+          required_shape_name: ---
+          target_shape_name: ---
+          target_shape_type: ---
+          target_path: ---
+
+- resource_node_name: Tasks
+  operations:
+    - operation_name: ListTasks
+      required_parameters: ["cluster"]
+      jmespath_selector: "[*].clusterArns[*].{cluster: @}[][]"
+      explicit_relations:
+        - service_name: ecs
+          resource_node_name: Clusters 
+          operation_name: ListClusters
+          required_shape_name: ---
+          target_shape_name: ---
+          target_shape_type: ---
+          target_path: ---
+
+    - operation_name: DescribeTasks
+      required_parameters: ["cluster", "tasks"]
+      jmespath_selector: "[*].{cluster:__args__.cluster, tasks:taskArns }[]"
+      explicit_relations:
+        - service_name: ecs
+          resource_node_name: Tasks 
+          operation_name: ListTasks
+          required_shape_name: ---
+          target_shape_name: ---
+          target_shape_type: ---
+          target_path: ---
