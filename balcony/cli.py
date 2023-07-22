@@ -375,6 +375,41 @@ def aws_main_command(  # noqa
 
 
 @app.command(
+    "terraform-import-support-matrix",
+    # no_args_is_help=True,
+    short_help="Show Terraform Import Support Matrix for AWS Services.",
+    help="""Show Terraform Import Support Matrix for AWS Services.""",
+)
+def terraform_import_support_matrix(
+    no_markdown_render: bool = typer.Option(
+        False,
+        "--no-md-render",
+        help="Doesn't renders the markdown table, instead prints the raw data.",
+    ),
+):
+    service_resource_list = get_importable_resources()
+
+    header = f"# Balcony Terraform Import Support Matrix\n".format()
+    header += f"| {'TerraformResourceType':<50} | {'Service':>15} | {'Resource':45} |\n".format()
+    header += f"| {'---':50} | {'---':15} | {'---':45} |\n".format()
+    result = header
+
+    for i, (terraform_type, service_name, resource_name) in enumerate(
+        service_resource_list
+    ):
+        cur_line = f"| {terraform_type:<50} | {service_name:>15} | {resource_name:45} |"
+        result += cur_line + "\n"
+
+    if no_markdown_render:
+        console.print(result)
+    else:
+        from rich.markdown import Markdown
+        console.print(Markdown(result))
+
+
+
+
+@app.command(
     "terraform-import",
     no_args_is_help=True,
     short_help="Generate Terraform import blocks for a given AWS Service and Resource Node.",

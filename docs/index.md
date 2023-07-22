@@ -54,6 +54,7 @@ Terraform v1.5 introduced [import blocks](https://developer.hashicorp.com/terraf
 `balcony terraform-import --list` to see the list of supported resources.
 
 Related Docs: [Generate Terraform Import Blocks](terraform-import.md)
+Related Docs: [Balcony Terraform Import Support Matrix](https://oguzhan-yilmaz.github.io/balcony/terraform-import-support-matrix/)
 
 !!! warning ""
     ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-import-blocks-example.gif)

@@ -21,6 +21,7 @@ docker pull ghcr.io/oguzhan-yilmaz/balcony-terraform-import:main
 This Docker image installs `balcony` and `terraform v.1.5+` on top of the base image.
 
 It also copies over 2 files to image:
+
 - `provider.tf`: Used for `terraform init`ialization on image build-time.
 - `entrypoint.sh`: Bash script for running `balcony terraform-import` and `terraform plan -gen-generate-config-out=`.
 
