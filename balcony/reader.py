@@ -41,7 +41,7 @@ class ServiceReader:
         Saves the response data on `self.response_data` and returns it.
 
         Args:
-            resource_node(ResourceNode): Operations Resource Node
+            resource_node: Operations Resource Node
             operation_name (str): Name of the operation
             api_parameter (dict): dictionary to call the operation with
             follow_pagination (Optional[bool]): If the operations output is truncated follow the pagination tokens.

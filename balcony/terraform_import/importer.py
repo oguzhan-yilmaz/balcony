@@ -284,7 +284,8 @@ def generate_import_block_for_resource(
             logger.debug(
                 f"[red bold]No data found for {tf_import_config.to_resource_type} — {tf_import_config.resource_node}.{tf_import_config.operation_name}."
             )
-        resulting_tf_import_blocks.extend(tf_import_blocks)
-    
+
+        if tf_import_blocks and isinstance(tf_import_blocks, list):
+            resulting_tf_import_blocks.extend(tf_import_blocks)
     logger.debug(f"[underline bold][green]Done Generating[/] Terraform import blocks for[/] {operation_markup}.")
     return resulting_tf_import_blocks

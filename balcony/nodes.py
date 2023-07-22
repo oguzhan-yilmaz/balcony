@@ -623,7 +623,6 @@ class ResourceNode:
         """Some Operations paginate their output using Pagination Token Parameters defined in `PAGINATION_TOKEN_KEYS`.
 
         Args:
-            resource_node (ResourceNode): _description_
             operation_name (str): Name of the operation in the resource_node.
 
         Returns:
