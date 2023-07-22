@@ -9,3 +9,189 @@ import_configurations:
     jmespath_query: "[].Buckets[]"
     to_resource_name_jinja2_template: "{{ Name }}"
     id_generator_jinja2_template: "{{ Name }}"
+
+  - service: s3
+    resource_node: BucketAccelerateConfiguration
+    operation_name: GetBucketAccelerateConfiguration
+    to_resource_type: aws_s3_bucket_accelerate_configuration
+    multiline_output: true
+    to_resource_name_jinja2_template: '
+      {% if "Enabled" == data.Status %}
+      {{ data.__args__.Bucket }}
+      {% endif %}
+      '
+    id_generator_jinja2_template: '
+      {% if "Enabled" == data.Status %}
+      {{ data.__args__.Bucket }}
+      {% endif %}
+      '
+
+  - service: s3
+    resource_node: BucketAcl
+    operation_name: GetBucketAcl
+    to_resource_type: aws_s3_bucket_acl
+    jmespath_query: "[]"
+    to_resource_name_jinja2_template: "{{ __args__.Bucket }}"
+    id_generator_jinja2_template: "{{ __args__.Bucket  }}"
+
+  - service: s3
+    resource_node: BucketAnalyticsConfiguration
+    operation_name: ListBucketAnalyticsConfigurations
+    to_resource_type: aws_s3_bucket_analytics_configuration
+    jmespath_query: "[]"
+    multiline_output: true
+    to_resource_name_jinja2_template: "
+      {% if data.AnalyticsConfigurationList is defined %}
+        {% for aconfig in data.AnalyticsConfigurationList %}
+          {{ data.__args__.Bucket }}:{{ aconfig.Id }}
+        {% endfor %}
+      {% endif %}
+      "
+    id_generator_jinja2_template: "
+      {% if data.AnalyticsConfigurationList is defined %}
+        {% for aconfig in data.AnalyticsConfigurationList %}
+          {{ data.__args__.Bucket }}:{{ aconfig.Id }}
+        {% endfor %}
+      {% endif %}
+      "
+
+  - service: s3
+    resource_node: BucketCors
+    operation_name: GetBucketCors
+    to_resource_type: aws_s3_bucket_cors_configuration
+    jmespath_query: "[]"
+    to_resource_name_jinja2_template: "{{ __args__.Bucket }}"
+    id_generator_jinja2_template: "{{ __args__.Bucket }}"
+
+
+
+
+  - service: s3
+    resource_node: BucketIntelligentTieringConfiguration
+    operation_name: ListBucketIntelligentTieringConfigurations
+    to_resource_type: aws_s3_bucket_intelligent_tiering_configuration
+    jmespath_query: "[]"
+    multiline_output: true
+    to_resource_name_jinja2_template: "
+      {% if data.IntelligentTieringConfigurationList is defined %}
+        {% for aconfig in data.IntelligentTieringConfigurationList %}
+          {{ data.__args__.Bucket }}:{{ aconfig.Id }}
+        {% endfor %}
+      {% endif %}
+      "
+    id_generator_jinja2_template: "
+      {% if data.IntelligentTieringConfigurationList is defined %}
+        {% for aconfig in data.IntelligentTieringConfigurationList %}
+          {{ data.__args__.Bucket }}:{{ aconfig.Id }}
+        {% endfor %}
+      {% endif %}
+      "
+
+
+
+  - service: s3
+    resource_node: BucketLifecycleConfiguration
+    operation_name: GetBucketLifecycleConfiguration
+    to_resource_type: aws_s3_bucket_lifecycle_configuration
+    jmespath_query: "[]"
+    multiline_output: true
+    to_resource_name_jinja2_template: "
+      {% if data.Rules is defined %}
+        {{ data.__args__.Bucket }}
+      {% endif %}
+      "
+    id_generator_jinja2_template: "
+      {% if data.Rules is defined %}
+        {{ data.__args__.Bucket }}
+      {% endif %}
+      "
+
+
+  - service: s3
+    resource_node: BucketLogging
+    operation_name: GetBucketLogging
+    to_resource_type: aws_s3_bucket_logging
+    jmespath_query: "[]"
+    multiline_output: true
+    to_resource_name_jinja2_template: "
+      {% if data.LoggingEnabled is defined %}
+        {{ data.__args__.Bucket }}
+      {% endif %}
+      "
+    id_generator_jinja2_template: "
+      {% if data.LoggingEnabled is defined %}
+        {{ data.__args__.Bucket }}
+      {% endif %}
+      "
+
+  - service: s3
+    resource_node: BucketMetricsConfiguration
+    operation_name: ListBucketMetricsConfigurations
+    to_resource_type: aws_s3_bucket_metric
+    jmespath_query: "[]"
+    multiline_output: true
+    to_resource_name_jinja2_template: "
+      {% if data.MetricsConfigurationList is defined %}
+        {% for metric in data.MetricsConfigurationList %}
+          {{ data.__args__.Bucket }}:{{ metric.Id }}
+        {% endfor %}
+      {% endif %}
+      "
+    id_generator_jinja2_template: "
+      {% if data.MetricsConfigurationList is defined %}
+        {% for metric in data.MetricsConfigurationList %}
+          {{ data.__args__.Bucket }}:{{ metric.Id }}
+        {% endfor %}
+      {% endif %}
+      "
+
+  - service: s3
+    resource_node: ObjectLockConfiguration
+    operation_name: GetObjectLockConfiguration
+    to_resource_type: aws_s3_bucket_object_lock_configuration
+    jmespath_query: "[]"
+    multiline_output: true
+    to_resource_name_jinja2_template: "
+      {% if data.ObjectLockConfiguration is defined %}
+        {{ data.__args__.Bucket }}
+      {% endif %}
+      "
+    id_generator_jinja2_template: "
+      {% if data.ObjectLockConfiguration is defined %}
+        {{ data.__args__.Bucket }}
+      {% endif %}
+      "
+
+  - service: s3
+    resource_node: BucketPolicy
+    operation_name: GetBucketPolicy
+    to_resource_type: aws_s3_bucket_policy
+    jmespath_query: "[]"
+    to_resource_name_jinja2_template: "{{ __args__.Bucket }}"
+    id_generator_jinja2_template: "{{ __args__.Bucket }}"
+
+
+  - service: s3
+    resource_node: BucketEncryption
+    operation_name: GetBucketEncryption
+    to_resource_type: aws_s3_bucket_server_side_encryption_configuration
+    jmespath_query: "[]"
+    to_resource_name_jinja2_template: "{{ __args__.Bucket }}"
+    id_generator_jinja2_template: "{{ __args__.Bucket }}"
+  
+  
+  - service: s3
+    resource_node: BucketVersioning
+    operation_name: GetBucketVersioning
+    to_resource_type: aws_s3_bucket_versioning
+    multiline_output: true
+    to_resource_name_jinja2_template: '
+      {% if "Enabled" == data.Status %}
+      {{ data.__args__.Bucket }}
+      {% endif %}
+      '
+    id_generator_jinja2_template: '
+      {% if "Enabled" == data.Status %}
+      {{ data.__args__.Bucket }}
+      {% endif %}
+      '
