@@ -1,0 +1,64 @@
+maintainers:
+- name: Oguzhan Yilmaz
+
+import_configurations:
+- service: lambda
+  resource_node: Function
+  operation_name: ListFunctions
+  jmespath_query: '[].Functions[]'
+  to_resource_type: aws_lambda_function
+  to_resource_name_jinja2_template: '{{ FunctionName }}'
+  id_generator_jinja2_template: '{{ FunctionName }}'
+
+- service: lambda
+  resource_node: FunctionEventInvokeConfig
+  operation_name: ListFunctionEventInvokeConfigs
+  jmespath_query: '[].FunctionEventInvokeConfigs[]'
+  to_resource_type: aws_lambda_function_event_invoke_config
+  to_resource_name_jinja2_template: '{{FunctionArn}}'
+  id_generator_jinja2_template: '{{FunctionArn}}'
+
+
+- service: lambda
+  resource_node: FunctionUrlConfig
+  operation_name: ListFunctionUrlConfigs
+  jmespath_query: '[].FunctionUrlConfigs[]'
+  to_resource_type: aws_lambda_function_url
+  to_resource_name_jinja2_template: 'lambda_url_{{ FunctionArn }}'
+  id_generator_jinja2_template: '{{ FunctionArn }}'
+
+- service: lambda
+  resource_node: Alias
+  operation_name: ListAliases
+  jmespath_query: '[]'
+  multiline_output: true
+  to_resource_type: aws_lambda_alias
+  to_resource_name_jinja2_template: '
+    {% for alias in data.Aliases %}
+      lambda-alias--{{ data.__args__.FunctionName }}-{{ alias.Name }} 
+    {% endfor %}
+    '
+  id_generator_jinja2_template: '
+    {% for alias in data.Aliases %}
+      {{ data.__args__.FunctionName }}/{{ alias.Name }} 
+    {% endfor %}
+    '
+
+- service: lambda
+  resource_node: EventSourceMapping
+  operation_name: ListEventSourceMappings
+  jmespath_query: '[].EventSourceMappings[]'
+  to_resource_type: aws_lambda_event_source_mapping
+  to_resource_name_jinja2_template: 'evt-source--{{ UUID }}'
+  id_generator_jinja2_template: '{{ UUID }}'
+
+- service: lambda
+  resource_node: LayerVersion
+  operation_name: ListLayerVersions
+  jmespath_query: '[].LayerVersions[]'
+  to_resource_type: aws_lambda_layer_version
+  to_resource_name_jinja2_template: '{{ LayerVersionArn }}'
+  id_generator_jinja2_template: '{{ LayerVersionArn }}'
+
+
+  
