@@ -10,6 +10,14 @@ import_configurations:
   to_resource_name_jinja2_template: '{{ UserName }}'
   to_resource_type: aws_iam_user
 
+- id_generator_jinja2_template: '{{ GroupName }}'
+  jmespath_query: '[].Groups[]'
+  operation_name: ListGroups
+  resource_node: Group
+  service: iam
+  to_resource_name_jinja2_template: 'iam_group-{{ GroupName }}'
+  to_resource_type: aws_iam_group
+
 - id_generator_jinja2_template: '{{ item }}'
   jmespath_query: '[].PolicyNames[]'
   operation_name: ListRolePolicies
@@ -25,6 +33,100 @@ import_configurations:
   to_resource_type: aws_iam_group_policy
   to_resource_name_jinja2_template: '{{ GroupName ~ '':'' ~ PolicyName }}'
   id_generator_jinja2_template: '{{ GroupName ~ '':'' ~ PolicyName }}'
+
+
+- service: iam
+  resource_node: AttachedGroupPolicies
+  operation_name: ListAttachedGroupPolicies
+  jmespath_query: '[]'
+  multiline_output: true
+  to_resource_type: aws_iam_group_policy_attachment
+  to_resource_name_jinja2_template: '
+    {% for ap in data.AttachedPolicies %}
+      group-pa--{{ data.__args__.GroupName }}-{{ ap.PolicyName }} 
+    {% endfor %}
+    '
+  id_generator_jinja2_template: '
+    {% for ap in data.AttachedPolicies %}
+      {{ data.__args__.GroupName }}/{{ ap.PolicyArn }} 
+    {% endfor %}
+    '
+
+- service: iam
+  resource_node: AttachedRolePolicies
+  operation_name: ListAttachedRolePolicies
+  jmespath_query: '[]'
+  multiline_output: true
+  to_resource_type: aws_iam_role_policy_attachment
+  to_resource_name_jinja2_template: '
+    {% for ap in data.AttachedPolicies %}
+      role-pa--{{ data.__args__.RoleName }}-{{ ap.PolicyName }} 
+    {% endfor %}
+    '
+  id_generator_jinja2_template: '
+    {% for ap in data.AttachedPolicies %}
+      {{ data.__args__.RoleName }}/{{ ap.PolicyArn }} 
+    {% endfor %}
+    '  
+- service: iam
+  resource_node: RolePolicy
+  operation_name: ListRolePolicies
+  jmespath_query: '[]'
+  multiline_output: true
+  to_resource_type: aws_iam_role_policy
+  to_resource_name_jinja2_template: '
+    {% for policy_name in data.PolicyNames %}
+      inline-policy-{{ data.__args__.RoleName }}-{{ policy_name }} 
+    {% endfor %}
+    '
+  id_generator_jinja2_template: '
+    {% for policy_name in data.PolicyNames %}
+      {{ data.__args__.RoleName }}:{{ policy_name }} 
+    {% endfor %}
+    '
+
+
+- service: iam
+  resource_node: UserPolicy
+  operation_name: ListUserPolicies
+  jmespath_query: '[]'
+  multiline_output: true
+  to_resource_type: aws_iam_user_policy
+  to_resource_name_jinja2_template: '
+    {% for policy_name in data.PolicyNames %}
+      inline-policy-{{ data.__args__.UserName }}-{{ policy_name }} 
+    {% endfor %}
+    '
+  id_generator_jinja2_template: '
+    {% for policy_name in data.PolicyNames %}
+      {{ data.__args__.UserName }}:{{ policy_name }} 
+    {% endfor %}
+    '
+
+- service: iam
+  resource_node: AttachedUserPolicies
+  operation_name: ListAttachedUserPolicies
+  jmespath_query: '[]'
+  multiline_output: true
+  to_resource_type: aws_iam_user_policy_attachment
+  to_resource_name_jinja2_template: '
+    {% for ap in data.AttachedPolicies %}
+      user-pa--{{ data.__args__.UserName }}-{{ ap.PolicyName }} 
+    {% endfor %}
+    '
+  id_generator_jinja2_template: '
+    {% for ap in data.AttachedPolicies %}
+      {{ data.__args__.UserName }}/{{ ap.PolicyArn }} 
+    {% endfor %}
+    '
+
+- service: iam
+  resource_node: InstanceProfile
+  operation_name: GetInstanceProfile
+  jmespath_query: '[].InstanceProfile[]'
+  to_resource_type: aws_iam_instance_profile
+  to_resource_name_jinja2_template: 'instance-profile-{{InstanceProfileName}}'
+  id_generator_jinja2_template: '{{InstanceProfileName}}'
 
 - id_generator_jinja2_template: '{{ Arn }}'
   jmespath_query: '[].Policies[]'
