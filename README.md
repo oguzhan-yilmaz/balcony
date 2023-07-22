@@ -78,6 +78,7 @@ Related Docs: [Generate Terraform Import Blocks](https://oguzhan-yilmaz.github.i
 
 ### Generate actual Terraform Resource Code 
 
+
 If you have:
 
 - initialized terraform project
@@ -85,7 +86,8 @@ If you have:
 
 you can run `terraform plan -generate-config-out=generated.tf` to generate actual `.tf` resource code.
 
-This feature is achieved with a Docker image.
+This feature is achieved with the [balcony-terraform-import Docker Image](https://github.com/oguzhan-yilmaz/balcony/pkgs/container/balcony-terraform-import).
+
 
 Related Docs: [Generate Terraform Code with Docker Image](https://oguzhan-yilmaz.github.io/balcony/terraform-import-docker/)
 

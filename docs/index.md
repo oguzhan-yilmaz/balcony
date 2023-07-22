@@ -70,7 +70,7 @@ If you have:
 
 you can run `terraform plan -generate-config-out=generated.tf` to generate actual `.tf` resource code.
 
-This feature is achieved with a Docker image.
+This feature is achieved with the [balcony-terraform-import Docker Image](https://github.com/oguzhan-yilmaz/balcony/pkgs/container/balcony-terraform-import).
 
 Related Docs: [Generate Terraform Code with Docker Image](terraform-import-docker.md)
 

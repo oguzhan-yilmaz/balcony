@@ -42,7 +42,7 @@ balcony terraform-import --list
 ```
 
 !!! Note
-    If the resource type you're looking for is not available, you can develop it yourself, locally. Check out the related docs: [Developing Terraform Import Configurations](developing-terraform-import.md). And if you do, please consider contributing it to the project via a PR.
+    If the resource type you're looking for is not available, you can develop it yourself, locally. Check out the related docs: [Developing Terraform Import Configurations](about-terraform-import.md). And if you do, please consider contributing it to the project via a PR.
 
 
 ```bash title="Generate import blocks for a resource type in your AWS account"
@@ -76,6 +76,9 @@ After that, we can generate the import blocks for the resource type you want to 
 
 ```bash title="Generate Terraform import blocks with balcony"
 balcony terraform-import ec2 Instances --paginate -o ec2-instances-import-blocks.tf
+
+# or you can use the terraform resource type
+balcony terraform-import aws_instance --paginate -o ec2-instances-import-blocks.tf
 ```
 
 ```bash title="See the generated import blocks"
@@ -116,5 +119,5 @@ You can use balcony terraform-import feature with Docker and generate the Terraf
 
 - All kinds of resources must have it's own import configuration. This is because each resource has it's own unique import identifier, and it must know which AWS API call to make. 
   You can develop your own import configuration that balcony can understand and serve you with.
-  Please check out [Developing Terraform Import Configurations](developing-terraform-import.md)
+  Please check out [Developing Terraform Import Configurations](about-terraform-import.md)
 
