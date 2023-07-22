@@ -1,0 +1,64 @@
+maintainers:
+- name: Oguzhan Yilmaz
+import_configurations:
+  # - service: elbv2
+  #   resource_node: 
+  #   operation_name: 
+  #   to_resource_type: 
+  #   jmespath_query: '.clusters[]'
+  #   to_resource_name_jinja2_template: '{{ }}'
+  #   id_generator_jinja2_template: '{{ }}'
+
+  - service: elbv2
+    resource_node: LoadBalancers
+    operation_name: DescribeLoadBalancers
+    to_resource_type: aws_lb
+    jmespath_query: '[].LoadBalancers[]'
+    to_resource_name_jinja2_template: '{{ LoadBalancerArn }}'
+    id_generator_jinja2_template: '{{ LoadBalancerArn }}'
+
+  - service: elbv2
+    resource_node: Listeners
+    operation_name: DescribeListeners
+    to_resource_type: aws_lb_listener
+    jmespath_query: '[].Listeners[]'
+    to_resource_name_jinja2_template: '{{ ListenerArn }}'
+    id_generator_jinja2_template: '{{ ListenerArn }}'
+
+  - service: elbv2
+    resource_node: Rules
+    operation_name: DescribeRules
+    to_resource_type: aws_lb_listener_rule
+    jmespath_query: '[].Rules[]'
+    to_resource_name_jinja2_template: '{{ RuleArn }}'
+    id_generator_jinja2_template: '{{ RuleArn }}'
+
+  - service: elbv2
+    resource_node: ListenerCertificates
+    operation_name: DescribeListenerCertificates
+    to_resource_type: aws_lb_listener_certificate
+    jmespath_query: '[]'
+    multiline_output: true
+    to_resource_name_jinja2_template: "
+      {% if data.Certificates is defined %}
+        {% for cert in data.Certificates %}
+          {{ data.__args__.ListenerArn }}
+        {% endfor %}
+      {% endif %}
+      "
+    id_generator_jinja2_template: "
+      {% if data.Certificates is defined %}
+        {% for cert in data.Certificates %}
+          {{ data.__args__.ListenerArn }}_{{ cert.CertificateArn }}
+        {% endfor %}
+      {% endif %}
+      "
+    
+
+  - service: elbv2
+    resource_node: TargetGroups
+    operation_name: DescribeTargetGroups
+    to_resource_type: aws_lb_target_group
+    jmespath_query: '[].TargetGroups[]'
+    to_resource_name_jinja2_template: '{{ TargetGroupArn }}'
+    id_generator_jinja2_template: '{{ TargetGroupArn }}'

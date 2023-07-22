@@ -1,0 +1,31 @@
+service_name: elbv2
+resource_nodes:
+  - resource_node_name: Listeners
+    operations:
+      - operation_name: DescribeListeners
+        required_parameters: ["LoadBalancerArn",]
+        jmespath_selector: "[].LoadBalancers[*].{LoadBalancerArn:LoadBalancerArn}[]"
+        explicit_relations:
+          - service_name: elbv2
+            resource_node_name: LoadBalancers 
+            operation_name: DescribeLoadBalancers
+            required_shape_name: ---
+            target_shape_name: ---
+            target_shape_type: ---
+            target_path: ---
+
+
+  - resource_node_name: Rules
+    operations:
+      - operation_name: DescribeRules
+        required_parameters: ["ListenerArn",]
+        jmespath_selector: "[].Listeners[*].{ListenerArn:ListenerArn}[]"
+        explicit_relations:
+          - service_name: elbv2
+            resource_node_name: Listeners 
+            operation_name: DescribeListeners
+            required_shape_name: ---
+            target_shape_name: ---
+            target_shape_type: ---
+            target_path: ---
+
