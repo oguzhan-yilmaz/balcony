@@ -46,26 +46,27 @@ theme:
   features:
     - navigation.tracking
     - navigation.expand
-  icon:
-    repo: fontawesome/brands/github
-
+    - content.code.copy
+    - content.tabs.link
+    - search.suggest
+    - search.highlight
   palette: 
     # Palette toggle for light mode
     - scheme: default
       media: "(prefers-color-scheme: light)"
-      primary: deep orange
+      primary: black
       accent: green
       toggle:
-        icon: material/weather-sunny
+        icon: material/weather-night
         name: Switch to dark mode
 
     # Palette toggle for dark mode
     - scheme: slate
       media: "(prefers-color-scheme: dark)"
-      primary: deep orange
+      primary: black
       accent: green
       toggle:
-        icon: material/weather-night
+        icon: material/weather-sunny
         name: Switch to light mode
 
 extra:
