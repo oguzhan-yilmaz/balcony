@@ -1,0 +1,42 @@
+maintainers:
+- name: Oguzhan Yilmaz
+import_configurations:
+  - service: sns
+    resource_node: Topics
+    operation_name: ListTopics
+    to_resource_type: aws_sns_topic
+    jmespath_query: '[].Topics[]'
+    to_resource_name_jinja2_template: '{{ TopicArn }}'
+    id_generator_jinja2_template: '{{ TopicArn }}'
+
+  - service: sns
+    resource_node: Topics
+    operation_name: ListTopics
+    to_resource_type: aws_sns_topic_policy
+    jmespath_query: '[].Topics[]'
+    to_resource_name_jinja2_template: '{{ TopicArn }}'
+    id_generator_jinja2_template: '{{ TopicArn }}'
+
+  - service: sns
+    resource_node: Topics
+    operation_name: ListTopics
+    to_resource_type: aws_sns_topic_data_protection_policy
+    jmespath_query: '[].Topics[]'
+    to_resource_name_jinja2_template: '{{ TopicArn }}'
+    id_generator_jinja2_template: '{{ TopicArn }}'
+
+  - service: sns
+    resource_node: Subscriptions
+    operation_name: ListSubscriptions
+    to_resource_type: aws_sns_topic_subscription
+    jmespath_query: '[].Subscriptions[]'
+    to_resource_name_jinja2_template: '{{ SubscriptionArn }}'
+    id_generator_jinja2_template: '{{ SubscriptionArn }}'
+
+  - service: sns
+    resource_node: PlatformApplications
+    operation_name: ListPlatformApplications
+    to_resource_type: aws_sns_platform_application
+    jmespath_query: '[].PlatformApplications[]'
+    to_resource_name_jinja2_template: '{{PlatformApplicationArn}}'
+    id_generator_jinja2_template: '{{PlatformApplicationArn}}'

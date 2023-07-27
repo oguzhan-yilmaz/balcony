@@ -1,0 +1,10 @@
+maintainers:
+- name: Oguzhan Yilmaz
+import_configurations:
+  - service: dynamodb
+    resource_node: Table
+    operation_name: ListTables
+    to_resource_type: aws_dynamodb_table
+    jmespath_query: '[].TableNames[]'
+    to_resource_name_jinja2_template: '{{ item }}'
+    id_generator_jinja2_template: '{{ item }}'

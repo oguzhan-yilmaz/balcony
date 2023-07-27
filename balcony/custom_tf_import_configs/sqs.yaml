@@ -1,0 +1,17 @@
+maintainers:
+- name: Oguzhan Yilmaz
+import_configurations:
+  - service: sqs
+    resource_node: Queues
+    operation_name: ListQueues
+    to_resource_type: aws_sqs_queue
+    jmespath_query: '[].QueueUrls[]'
+    to_resource_name_jinja2_template: '{{ item }}'
+    id_generator_jinja2_template: '{{ item }}'
+  - service: sqs
+    resource_node: Queues
+    operation_name: ListQueues
+    to_resource_type: aws_sqs_queue_policy
+    jmespath_query: '[].QueueUrls[]'
+    to_resource_name_jinja2_template: '{{ item }}'
+    id_generator_jinja2_template: '{{ item }}'
