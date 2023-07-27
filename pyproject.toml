@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "balcony"
-version = "0.1.11"
+version = "0.2.0"
 description = "Read any resource in your AWS Account. You can generate terraform code for them, too."
 authors = ["Oguzhan Yilmaz <oguzhanylmz271@gmail.com>"]
 license = "Apache-2.0"
