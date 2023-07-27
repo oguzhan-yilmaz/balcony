@@ -17,3 +17,4 @@ from .ssm import *
 from .ses import *
 from .iam import *
 from .s3 import *
+from .sqs import *

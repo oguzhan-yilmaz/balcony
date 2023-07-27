@@ -146,7 +146,7 @@ def _list_service_or_resource(
                 return
             else:
                 raise typer.Exit(
-                    f"Invalid service name: {service}. Please pick a proper one."
+                    f"Invalid service name: {service}. Please pick a proper one.", code=-1
                 )
 
         service_node = balcony_aws.get_service_node(service)
@@ -184,7 +184,8 @@ def _list_service_or_resource(
                 return
             else:
                 raise typer.Exit(
-                    f"Invalid Resource Node name: [bold]{resource_node}[/] for Service: [bold]{service}[/]."
+                    f"Invalid Resource Node name: [bold]{resource_node}[/] for Service: [bold]{service}[/].",
+                    code=-1
                 )
         operations_panel = service_node._get_operation_details_panel(
             resource_node_obj.name
@@ -269,7 +270,7 @@ def aws_main_command(  # noqa
 
     if list_contents:
         _list_service_or_resource(service, resource_node, screen_pager=screen)
-        raise typer.Exit()
+        raise typer.Exit(code=0)
 
     # warn user if pagination is not set
     if not follow_pagination:
@@ -284,7 +285,7 @@ def aws_main_command(  # noqa
         console.print(
             Panel("[bold]Please pick one of the AWS Services", title="[red][bold]ERROR")
         )
-        raise typer.Exit()
+        raise typer.Exit(code=-1)
 
     if service and not resource_node:
         _list_service_or_resource(service, resource_node, screen_pager=screen)
@@ -294,7 +295,7 @@ def aws_main_command(  # noqa
                 title="[red][bold]ERROR",
             )
         )
-        raise typer.Exit()
+        raise typer.Exit(code=-1)
 
     elif service and resource_node:
         service_node = balcony_aws.get_service_node(service)
@@ -352,11 +353,11 @@ def aws_main_command(  # noqa
                     output_filepath = Path(output_file).resolve()
                     logger.info(f"Saving output to: {output_filepath}")
                     save_str_list_to_output_file(output_filepath, formatted_output_list)
-                    raise typer.Exit()
+                    raise typer.Exit(code=0)
                 else:
                     # print to console
                     console.print("\n".join(formatted_output_list), overflow="ignore")
-                    raise typer.Exit()
+                    raise typer.Exit(code=0)
             else:
                 logger.debug(
                     f"[red]No data found.[/] Failed to use --format: '{formatter}'"
@@ -371,7 +372,7 @@ def aws_main_command(  # noqa
             save_dict_to_output_file(output_filepath, read_data)
         else:
             console.print_json(data=read_data, default=str)
-        raise typer.Exit()
+        raise typer.Exit(code=0)
 
 
 @app.command(
@@ -531,13 +532,13 @@ def terraform_import_command(
             """
         ).strip()
         console.print(Padding(fail_msg, (1, 1)))
-        raise typer.Exit(-1)
+        raise typer.Exit(code=-1)
 
     if output_file:
         output_filepath = Path(output_file).resolve()
         logger.info(f"Saving output to: {output_filepath}")
         save_str_list_to_output_file(output_filepath, import_blocks)
-        raise typer.Exit()
+        raise typer.Exit(code=0)
 
     else:
         if screen:
@@ -590,7 +591,7 @@ def wizard_the_terraform_import_configurer(
 
     if list_contents:
         _list_service_or_resource(service, resource_node, screen_pager=screen)
-        raise typer.Exit()
+        raise typer.Exit(code=0)
 
     if (not service) or (not resource_node):
         _list_service_or_resource(service, resource_node, screen_pager=screen)

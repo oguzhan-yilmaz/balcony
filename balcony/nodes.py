@@ -1151,40 +1151,41 @@ class ServiceNode:
         if len(generated_resouce_nodes) <= 1:
             return generated_resouce_nodes
 
-        # TODO: decide if this should be kept
-        # concat same names
-        combined_resource_nodes = []
-        _used_for_combining_resource_nodes = []
+        # # TODO: decide if this should be kept
+        # # concat same names
+        # combined_resource_nodes = []
+        # _used_for_combining_resource_nodes = []
 
-        for i, gen_resource_node in enumerate(generated_resouce_nodes[:-1]):
-            if gen_resource_node in _used_for_combining_resource_nodes:
-                continue
-            for other_resource_node in generated_resouce_nodes[i + 1 :]:
-                # FIXME: IMPORTANT
-                if compare_two_camel_case_words(
-                    gen_resource_node.name, other_resource_node.name
-                ):
-                    # select the shortest name, meaning singular
-                    singular_named_resource_node = gen_resource_node
-                    plural_named_resource_node = other_resource_node
-                    if len(singular_named_resource_node.name) > len(
-                        plural_named_resource_node.name
-                    ):
-                        singular_named_resource_node, plural_named_resource_node = (
-                            plural_named_resource_node,
-                            singular_named_resource_node,
-                        )
-                    _used_for_combining_resource_nodes.append(
-                        plural_named_resource_node
-                    )
-                    singular_named_resource_node.operation_names.extend(
-                        plural_named_resource_node.operation_names
-                    )
+        # for i, gen_resource_node in enumerate(generated_resouce_nodes[:-1]):
+        #     if gen_resource_node in _used_for_combining_resource_nodes:
+        #         continue
+        #     for other_resource_node in generated_resouce_nodes[i + 1 :]:
+        #         # FIXME: IMPORTANT
+        #         if compare_two_camel_case_words(
+        #             gen_resource_node.name, other_resource_node.name
+        #         ):
+        #             # select the shortest name, meaning singular
+        #             singular_named_resource_node = gen_resource_node
+        #             plural_named_resource_node = other_resource_node
+        #             if len(singular_named_resource_node.name) > len(
+        #                 plural_named_resource_node.name
+        #             ):
+        #                 singular_named_resource_node, plural_named_resource_node = (
+        #                     plural_named_resource_node,
+        #                     singular_named_resource_node,
+        #                 )
+        #             _used_for_combining_resource_nodes.append(
+        #                 plural_named_resource_node
+        #             )
+        #             singular_named_resource_node.operation_names.extend(
+        #                 plural_named_resource_node.operation_names
+        #             )
 
-            if gen_resource_node not in _used_for_combining_resource_nodes:
-                combined_resource_nodes.append(gen_resource_node)
+        #     if gen_resource_node not in _used_for_combining_resource_nodes:
+        #         combined_resource_nodes.append(gen_resource_node)
 
-        return combined_resource_nodes
+        # return combined_resource_nodes
+        return generated_resouce_nodes
 
     def get_read_operation_name_to_tokens_map(self) -> Dict:
         """Generate `operation name to word tokens` map for the

@@ -133,7 +133,7 @@ def interactive_help(balcony_aws: BalconyAWS, service: str, resource_name: str):
         console.print(
             f"[red bold]No operations found for {service}.{resource_name}[/red bold]"
         )
-        raise typer.Exit(1)
+        raise typer.Exit(code=-1)
 
     console.print()
     console.rule("[bold cyan underline]Operation Selection")
