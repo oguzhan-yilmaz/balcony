@@ -1,5 +1,18 @@
 # Cookbook
 
+### Export AWS API Operation Names
+
+balcony parses the boto3, and `export-aws-api-operations` command will export the operation names by service as JSON. 
+
+```bash
+balcony -d export-aws-api-operations
+```
+
+You can also save it to a file:
+
+```bash
+balcony -d export-aws-api-operations -o aws-operation-names.json
+```
 
 ### Terraform Import Multiple Resources
 
