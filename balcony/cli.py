@@ -1,5 +1,6 @@
 import json
 import textwrap
+from boto3_data_export import export_boto3_operations_by_service
 from utils import (
     get_all_available_services,
     ifind_similar_names_in_list,
@@ -200,7 +201,7 @@ def _list_service_or_resource(
 
 @app.command(
     "aws",
-    help="Read your AWS Resource Nodes as JSON. Use --debug option if you're stuck!",
+    help="List and read AWS Services & Resources as json. Use --debug option if you're stuck!",
 )
 def aws_main_command(  # noqa
     service: Optional[str] = typer.Argument(
@@ -614,6 +615,29 @@ def clear_cache_command(
     for deleted_service in deleted_service_caches:
         logger.info(f"[green]Deleted[/] {deleted_service}")
 
+@app.command(
+    "export-aws-api-operations",
+    help="todo",
+)
+def export_command(
+     output_file: str = typer.Option(
+        None,
+        "--output",
+        "-o",
+        show_default=False,
+        help="Output JSON file name. If not provided, will print to console.")
+):
+    service_and_operations = export_boto3_operations_by_service(balcony_aws)
+    if output_file:
+        output_filepath = Path(output_file).resolve()
+        logger.info(f"Saving output to: {output_filepath}")
+        save_dict_to_output_file(output_filepath, service_and_operations)
+        raise typer.Exit(code=0)
+    else:
+        # print to console
+        console.print_json(data=service_and_operations, default=str)
+        raise typer.Exit(code=0)
+
 
 @app.command(
     "info",
@@ -621,24 +645,27 @@ def clear_cache_command(
 )
 def info_command():
     created_session = balcony_aws.boto3_session
+    console.print("[bold underline]Current Profile:[/]")
     console.print(
-        f"[bold underline]AWS Region:[/] [bold blue]{created_session.region_name}[/]"
+        f"    [bold ]AWS Region:[/] [bold blue]{created_session.region_name}[/]"
     )
     console.print(
-        f"[bold underline]AWS Profile:[/] [bold blue]{created_session.profile_name}"
+        f"    [bold ]AWS Profile:[/] [bold blue]{created_session.profile_name}"
     )
     console.print()
     console.print("[bold underline]Available Profiles:[/]")
 
     for available_profile in created_session.available_profiles or []:
         console.print(f"  - [green bold]{available_profile}[/]")
+    console.print("")
     console.print(
-        textwrap.dedent(
-            """
-        [yellow]You can configure the AWS Profile and Region by setting the
-        the $[bold]AWS_DEFAULT_REGION[/] and $[bold]AWS_PROFILE[/] environment variables.[/]
-    """
-        )
+            textwrap.dedent("""
+            [yellow]You can configure the AWS Profile and Region by setting the
+            the $[bold]AWS_DEFAULT_REGION[/] and $[bold]AWS_PROFILE[/] environment variables.[/]
+            
+            export AWS_DEFAULT_REGION=eu-central-1
+            export AWS_PROFILE=default
+            """),
     )
 
 
