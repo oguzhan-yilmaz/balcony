@@ -617,7 +617,7 @@ def clear_cache_command(
 
 @app.command(
     "export-aws-api-operations",
-    help="todo",
+    help="Export all AWS API operations by service as JSON",
 )
 def export_command(
      output_file: str = typer.Option(
