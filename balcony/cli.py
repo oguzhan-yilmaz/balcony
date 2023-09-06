@@ -391,7 +391,7 @@ def terraform_import_support_matrix(
 ):
     service_resource_list = get_importable_resources()
 
-    header = f"# Balcony Terraform Import Support Matrix\n".format()
+    header = f"# Balcony Terraform Import Support Matrix\n\n\n".format()
     header += f"| {'TerraformResourceType':<50} | {'Service':>15} | {'Resource':45} |\n".format()
     header += f"| {'---':50} | {'---':15} | {'---':45} |\n".format()
     result = header
@@ -399,8 +399,8 @@ def terraform_import_support_matrix(
     for i, (terraform_type, service_name, resource_name) in enumerate(
         service_resource_list
     ):
-        cur_line = f"| {terraform_type:<50} | {service_name:>15} | {resource_name:45} |"
-        result += cur_line + "\n"
+        cur_line = f"| {terraform_type:<50} | {service_name:>15} | {resource_name:45} |\n"
+        result += cur_line
 
     if no_markdown_render:
         console.print(result)
