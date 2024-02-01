@@ -1,0 +1,8 @@
+service_name: dynamodb
+resource_nodes:
+- resource_node_name: Table
+  operations:
+    - operation_name: ListTables
+      pagination_token_mapping:
+        parameter_name: ExclusiveStartTableName
+        output_key: LastEvaluatedTableName
