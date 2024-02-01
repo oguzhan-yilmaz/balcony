@@ -5,4 +5,4 @@ resource_nodes:
     - operation_name: ListTables
       pagination_token_mapping:
         parameter_name: ExclusiveStartTableName
-        output_key: LastEvaluatedTableName
+        output_key: LastEvaluatedTableName 
