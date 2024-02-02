@@ -1,0 +1,78 @@
+maintainers:
+- name: Oguzhan Yilmaz
+import_configurations:
+  - service: elasticache
+    resource_node: CacheClusters
+    operation_name: DescribeCacheClusters
+    to_resource_type: aws_elasticache_cluster
+    jmespath_query: '[].CacheClusters[*].CacheClusterId[]'
+    to_resource_name_jinja2_template: '{{ item }}'
+    id_generator_jinja2_template: '{{ item }}'
+
+  - service: elasticache
+    resource_node: GlobalReplicationGroups
+    operation_name: DescribeGlobalReplicationGroups
+    to_resource_type: aws_elasticache_global_replication_group
+    jmespath_query: '[].GlobalReplicationGroups[*].GlobalReplicationGroupId[]'
+    to_resource_name_jinja2_template: '{{ item }}'
+    id_generator_jinja2_template: '{{ item }}'
+
+  - service: elasticache
+    resource_node: CacheParameterGroups
+    operation_name: DescribeCacheParameterGroups
+    to_resource_type: aws_elasticache_parameter_group
+    jmespath_query: '[].CacheParameterGroups[*].CacheParameterGroupName[]'
+    to_resource_name_jinja2_template: '{{ item }}'
+    id_generator_jinja2_template: '{{ item }}'
+
+  - service: elasticache
+    resource_node: ReplicationGroups
+    operation_name: DescribeReplicationGroups
+    to_resource_type: aws_elasticache_replication_group
+    jmespath_query: '[].ReplicationGroups[*].ReplicationGroupId[]'
+    to_resource_name_jinja2_template: '{{ item }}'
+    id_generator_jinja2_template: '{{ item }}'
+
+  - service: elasticache
+    resource_node: CacheSubnetGroups  
+    operation_name: DescribeCacheSubnetGroups
+    to_resource_type: aws_elasticache_subnet_group
+    jmespath_query: '[].CacheSubnetGroups[*].CacheSubnetGroupName[]'
+    to_resource_name_jinja2_template: '{{ item }}'
+    id_generator_jinja2_template: '{{ item }}'
+
+  - service: elasticache
+    resource_node: Users
+    operation_name: DescribeUsers
+    to_resource_type: aws_elasticache_user
+    jmespath_query: '[].Users[*].UserId[]'
+    to_resource_name_jinja2_template: '{{ item }}'
+    id_generator_jinja2_template: '{{ item }}'
+
+  - service: elasticache
+    resource_node: UserGroups
+    operation_name: DescribeUserGroups
+    to_resource_type: aws_elasticache_user_group
+    jmespath_query: '[].UserGroups[*].UserGroupId[]'
+    to_resource_name_jinja2_template: '{{ item }}'
+    id_generator_jinja2_template: '{{ item }}'
+
+    
+  - service: elasticache
+    resource_node: UserGroups
+    operation_name: DescribeUserGroups
+    to_resource_type: aws_elasticache_user_group_association
+    jmespath_query: '[].UserGroups[]'
+    multiline_output: true
+    to_resource_name_jinja2_template: "
+        {% for uid in item.UserIds %}
+            {{ item.UserGroupId }}_{{ uid }}
+        {% endfor %}
+      "
+    id_generator_jinja2_template: "
+        {% for uid in item.UserIds %}
+            {{ item.UserGroupId }},{{ uid }}
+        {% endfor %}
+      "
+       
+      

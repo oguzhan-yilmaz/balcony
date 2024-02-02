@@ -22,6 +22,14 @@
 | aws_ecs_cluster                                    |             ecs | Clusters                                      |
 | aws_ecs_service                                    |             ecs | Services                                      |
 | aws_ecs_task_definition                            |             ecs | TaskDefinition                                |
+| aws_elasticache_cluster                            |     elasticache | CacheClusters                                 |
+| aws_elasticache_parameter_group                    |     elasticache | CacheParameterGroups                          |
+| aws_elasticache_subnet_group                       |     elasticache | CacheSubnetGroups                             |
+| aws_elasticache_global_replication_group           |     elasticache | GlobalReplicationGroups                       |
+| aws_elasticache_replication_group                  |     elasticache | ReplicationGroups                             |
+| aws_elasticache_user_group                         |     elasticache | UserGroups                                    |
+| aws_elasticache_user_group_association             |     elasticache | UserGroups                                    |
+| aws_elasticache_user                               |     elasticache | Users                                         |
 | aws_lb_listener_certificate                        |           elbv2 | ListenerCertificates                          |
 | aws_lb_listener                                    |           elbv2 | Listeners                                     |
 | aws_lb                                             |           elbv2 | LoadBalancers                                 |
