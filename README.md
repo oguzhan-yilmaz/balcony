@@ -58,6 +58,32 @@ Related Docs: [QuickStart](https://oguzhan-yilmaz.github.io/balcony/quickstart/)
 
 ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/aws-read-resource.gif)
 
+---
+
+### Filter and Exclude by Tags
+
+### Filter tags
+
+- Find named EC2 Instances
+  ```bash
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].filter_tags(`["Name="]`, @)'
+  ```
+- Find AWS MAP migration tagged EC2 Instances
+  ```bash
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].filter_tags(`["map-migrated="]`, @)'
+  ```
+
+### Exclude tags
+
+- Find un-named EC2 Instances
+  ```bash
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].exclude_tags(`["Name="]`, @)'
+  ```
+- Find AWS MAP migration un-tagged EC2 Instances
+  ```bash
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].exclude_tags(`["map-migrated="]`, @)'
+  ```
+
 
 ---
 
