@@ -12,29 +12,29 @@ balcony = "balcony.cli:run_app"
 
 
 [tool.poetry.dependencies]
-python = "^3.7"
-typer = "^0.7.0"
-rich = "^13.3.4"
-boto3 = "^1.24.80"
-jmespath = "^1.0.1"
-inflect = "^6.0.0"
-mkdocstrings = {version = "^0.21.2", extras = ["python"]}
-mkdocs-material = ">=8.5.7,<10.0.0"
-mkdocs-autorefs = "^0.4.1"
-PyYAML = "^6.0"
-pydantic = "^1.10.7"
-Jinja2 = "^3.1.2"
-aws-jmespath-utils = "^1.1.0"
+python                      = "^3.7"
+typer                       = "^0.7.0"
+rich                        = "^13.3.4"
+boto3                       = "^1.24.80"
+jmespath                    = "^1.0.1"
+inflect                     = "^6.0.0"
+mkdocstrings                = {version = "^0.21.2", extras = ["python"]}
+mkdocs-material             = ">=8.5.7,<10.0.0"
+mkdocs-autorefs             = "^0.4.1"
+PyYAML                      = "^6.0"
+pydantic                    = "^1.10.7"
+Jinja2                      = "^3.1.2"
+aws-jmespath-utils          = "^1.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
 
 
 [tool.poetry.urls]
-"Github" = "https://github.com/oguzhan-yilmaz/balcony"
-"Documentation" = "https://oguzhan-yilmaz.github.io/balcony/"
-"Releases" = "https://github.com/oguzhan-yilmaz/balcony/releases"
-"aws-jmespath-utils Github": "https://github.com/oguzhan-yilmaz/aws-jmespath-utils"
+"Github"                        = "https://github.com/oguzhan-yilmaz/balcony"
+"Documentation"                 = "https://oguzhan-yilmaz.github.io/balcony/"
+"Releases"                      = "https://github.com/oguzhan-yilmaz/balcony/releases"
+"aws-jmespath-utils Github"     = "https://github.com/oguzhan-yilmaz/aws-jmespath-utils"
 
 
 [build-system]

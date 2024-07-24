@@ -1,0 +1,27 @@
+{
+    "value": [
+        {
+            "id": "94ee0725-0f71-4db3-8b49-b5ccfcf2c8df",
+            "name": "WebFrameworkPoC",
+            "url": "https://code.digiturk.net/ITCollection/9ee639d9-1fc3-4438-a314-01a843a067d6/_apis/git/repositories/94ee0725-0f71-4db3-8b49-b5ccfcf2c8df",
+            "project": {
+                "id": "9ee639d9-1fc3-4438-a314-01a843a067d6",
+                "name": "WebFrameworkPoC",
+                "description": "Bitbucket RepoName : WebFrameworkPoC",
+                "url": "https://code.digiturk.net/ITCollection/_apis/projects/9ee639d9-1fc3-4438-a314-01a843a067d6",
+                "state": "wellFormed",
+                "revision": 520,
+                "visibility": "private",
+                "lastUpdateTime": "2020-03-04T10:34:33.267Z"
+            },
+            "defaultBranch": "refs/heads/master",
+            "size": 354178,
+            "remoteUrl": "https://code.digiturk.net/ITCollection/WebFrameworkPoC/_git/WebFrameworkPoC",
+            "sshUrl": "ssh://code.digiturk.net:22/ITCollection/WebFrameworkPoC/_git/WebFrameworkPoC",
+            "webUrl": "https://code.digiturk.net/ITCollection/WebFrameworkPoC/_git/WebFrameworkPoC",
+            "isDisabled": false,
+            "isInMaintenance": false
+        }
+    ],
+    "count": 1
+}
