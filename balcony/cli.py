@@ -21,6 +21,7 @@ from aws import BalconyAWS
 from rich.text import Text
 import typer
 import jmespath
+from aws_jmespath_utils import jmespath_options
 from typing import Optional, List, Dict, Generator
 from rich.columns import Columns
 from rich.panel import Panel
@@ -336,7 +337,7 @@ def aws_main_command(  # noqa
             logger.debug(
                 f"Using jmespath selector: {jmespath_selector} to query the returned data."
             )
-            read_data = jmespath.search(jmespath_selector, read_data)
+            read_data = jmespath.search(jmespath_selector, read_data, options=jmespath_options)
 
         if formatter:
             if read_data:

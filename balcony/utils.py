@@ -7,7 +7,7 @@ import os
 import boto3
 from config import get_logger, YAML_IGNORE_PREFIX
 import botocore
-
+from aws_jmespath_utils import jmespath_options
 # from functools import lru_cache
 
 inflect_engine = inflect.engine()  # used for singular/plural word comparing
@@ -18,6 +18,13 @@ _camel_case_regex_compiled = compile(
 )
 _terraform_aws_resource_type_pattern_compiled = compile(r"^aws_[a-zA-Z0-9_-]+$")
 
+
+def jmespath_search(jmespath_expression, data):
+    return jmespath.search(
+        jmespath_expression,
+        data,
+        options=jmespath_options
+    )
 
 def is_terraform_aws_resource_type(resource_type: str) -> bool:
     """Check for terraform aws resource type being valid
@@ -102,7 +109,7 @@ def is_word_in_a_list_of_words(word: str, list_of_words: List[str]) -> bool:
     return word.lower() in []
 
 
-def inform_about_develeoping_custom_resource_nodes():
+def inform_about_developing_custom_resource_nodes():
     logger.debug(
         textwrap.dedent(
             """

@@ -2,6 +2,7 @@ import re
 import textwrap
 from typing import Dict, List, Tuple, Union
 import jmespath
+from aws_jmespath_utils import jmespath_options
 from terraform_import.models import TerraformImportConfig
 from terraform_import.parsers import (
     parse_custom_terraform_import_configs_from_files,
@@ -87,7 +88,7 @@ def gen_resource_name_and_import_id_from_op_data_(
         # filter the operation data if jmespath_query is given
         # and render them one by one
         if jmespath_query:
-            resource_data = jmespath.search(jmespath_query, operation_data)
+            resource_data = jmespath.search(jmespath_query, operation_data, options=jmespath_options)
             logger.debug(
                 f"Filtered data using jmespath query: [bold]{jmespath_query}[/]"
             )
