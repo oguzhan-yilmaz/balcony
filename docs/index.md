@@ -2,7 +2,7 @@
 
 balcony is a modern CLI tool that with some killer features:
 
-- Auto-fill the required parameters for AWS API calls 
+- Auto-fill the required parameters for AWS API calls
 - Read the JSON data of any AWS resource in your account
 - Generate [Terraform Import Blocks](https://developer.hashicorp.com/terraform/language/import)
 - Generate actual `.tf` Terraform Resource code
@@ -33,15 +33,69 @@ balcony aws s3 Buckets
 balcony terraform-import s3 Buckets
 ```
 
-
 ## Features
 
 ### Read any AWS Resource
-Related Docs: [QuickStart](quickstart.md)
 
+Related Docs: [QuickStart](quickstart.md)
 
 !!! tip ""
     ![](visuals/reading-a-resource-node.gif)
+
+---
+
+### Filter and Exclude by Tags
+
+- [aws-jmespath-utils](https://github.com/oguzhan-yilmaz/aws-jmespath-utils) dependency is used to enable JMESPath expressions to filter and exclude resources by tags
+- Following expressions are used to select anything: (`=`, `*=`, `=*`, `*=*`)
+  - You can leave one side empty or put a `*` there to discard that sides value
+-
+
+### Filter tags
+
+- Select everything
+
+  ```bash
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].filter_tags(`["="]`, @).Tags'
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].filter_tags(`["*="]`, @).Tags'
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].filter_tags(`["=*"]`, @).Tags'
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].filter_tags(`["*=*"]`, @).Tags'
+  ```
+
+- Find named EC2 Instances
+
+  ```bash
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].filter_tags(`["Name="]`, @)'
+  ```
+
+- Find AWS MAP migration tagged EC2 Instances
+
+  ```bash
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].filter_tags(`["map-migrated="]`, @)'
+  ```
+
+### Exclude tags
+
+- Exclude everything
+
+  ```bash
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].exclude_tags(`["="]`, @).Tags'
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].exclude_tags(`["*="]`, @).Tags'
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].exclude_tags(`["=*"]`, @).Tags'
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].exclude_tags(`["*=*"]`, @).Tags'  
+  ```
+
+- Find un-named EC2 Instances
+
+  ```bash
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].exclude_tags(`["Name="]`, @)'
+  ```
+
+- Find AWS MAP migration un-tagged EC2 Instances
+
+  ```bash
+  balcony aws ec2 Instances -js 'DescribeInstances[].Reservations[].Instances[].exclude_tags(`["map-migrated="]`, @)'
+  ```
 
 ---
 
@@ -59,10 +113,9 @@ Related Docs: [Balcony Terraform Import Support Matrix](https://oguzhan-yilmaz.g
 !!! warning ""
     ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/terraform-import-blocks-example.gif)
 
-
 ---
 
-### Generate actual Terraform Resource Code 
+### Generate actual Terraform Resource Code
 
 If you have:
 
@@ -78,10 +131,9 @@ Related Docs: [Generate Terraform Code with Docker Image](terraform-import-docke
 !!! info ""
     ![](https://raw.githubusercontent.com/oguzhan-yilmaz/balcony-assets/main/gifs/docker-gen-tf-code-ec2-insances-example.gif)
 
-
 ---
 
-### Interactive Wizard to create balcony import configurations 
+### Interactive Wizard to create balcony import configurations
 
 Balcony doesn't know how to create terraform `import blocks` for all of the AWS resources.
 
