@@ -1,6 +1,6 @@
 from config import get_logger, get_rich_console
 from errors import Error
-from utils import inform_about_develeoping_custom_resource_nodes
+from utils import inform_about_developing_custom_resource_nodes
 import fnmatch  # unix like pattern matching
 from collections.abc import Iterable
 from typing import List, Dict, Tuple, Optional, Union
@@ -253,7 +253,7 @@ class ServiceReader:
             logger.debug(
                 f"Failed to find the Relations for operation, required parameters: {req_param_markup}"
             )
-            inform_about_develeoping_custom_resource_nodes()
+            inform_about_developing_custom_resource_nodes()
             return False, relations_error
 
         if (
@@ -271,7 +271,7 @@ class ServiceReader:
                 logger.debug(
                     f"Failed to generate api parameters for {operation_markup}. Error: {generation_error}"
                 )
-                inform_about_develeoping_custom_resource_nodes()
+                inform_about_developing_custom_resource_nodes()
                 return False, generation_error
             if isinstance(generated_api_parameters, Iterable):
                 logger.debug(
@@ -307,7 +307,7 @@ class ServiceReader:
                 logger.debug(
                     f"[red]Failed to read related operation[/]: {rel.resource_node_name}.{rel.operation_name}"
                 )
-                inform_about_develeoping_custom_resource_nodes()
+                inform_about_developing_custom_resource_nodes()
                 return False
 
             # gather all their related operations data, put it under a dict
@@ -331,7 +331,7 @@ class ServiceReader:
             logger.debug(
                 f"Failed to generate api parameters for {operation_markup}: {generation_error}"
             )
-            inform_about_develeoping_custom_resource_nodes()
+            inform_about_developing_custom_resource_nodes()
 
             return False
         elif isinstance(generated_api_parameters, Iterable):

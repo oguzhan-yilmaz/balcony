@@ -9,7 +9,7 @@ from utils import (
     compare_two_camel_case_words,
     str_relations,
     is_word_in_a_list_of_words,
-    inform_about_develeoping_custom_resource_nodes,
+    inform_about_developing_custom_resource_nodes,
 )
 from botocore_utils import (
     get_input_shape,
@@ -125,8 +125,8 @@ class ResourceNode:
 
         Returns:
             Tuple[Union[List[Dict], bool], Union[Error, None]]: Returns value and error.
-                                                                True: No required parameters
-                                                                False: Failure
+                                                                    True: No required parameters
+                                                                    False: Failure
                                                                 List[Dict]: List of relations
         """
 
@@ -164,7 +164,7 @@ class ResourceNode:
                 logger.debug(
                     f"Failed to generate relations. {operation_markup} has a required parameters: {req_param_markup}"
                 )
-                inform_about_develeoping_custom_resource_nodes()
+                inform_about_developing_custom_resource_nodes()
                 return False, Error(
                     "failed to generate relations",
                     {
@@ -189,7 +189,7 @@ class ResourceNode:
                 logger.debug(
                     f"Failed to choose the best relation for operation. {operation_markup} has required parameters: {req_param_markup}"
                 )
-                inform_about_develeoping_custom_resource_nodes()
+                inform_about_developing_custom_resource_nodes()
                 return False, Error(
                     "failed to choose the best relation",
                     {
@@ -280,7 +280,7 @@ class ResourceNode:
             logger.debug(
                 f"Not supported: jmespath selector genereation for multiple relations: {operation_name}"
             )
-            inform_about_develeoping_custom_resource_nodes()
+            inform_about_developing_custom_resource_nodes()
             return False, Error(
                 "multiple parameters - must be extended with a subclass",
                 {
@@ -303,7 +303,7 @@ class ResourceNode:
             logger.debug(
                 f"Failed to generate JMESPATH selector for [bold][blue][{resource_node.name}[/].[green]{operation_name}[/]]"
             )
-            inform_about_develeoping_custom_resource_nodes()
+            inform_about_developing_custom_resource_nodes()
             return False, Error(
                 "failed to generate jmespath selector",
                 {
@@ -320,7 +320,7 @@ class ResourceNode:
             logger.debug(
                 "Failed to find related operations data. Can't generate api parameters with the generated JMESPATH Selector"
             )
-            inform_about_develeoping_custom_resource_nodes()
+            inform_about_developing_custom_resource_nodes()
 
         # the first relation we will get
         direct_related_operation = direct_relation.operation_name
@@ -328,7 +328,7 @@ class ResourceNode:
             direct_related_operation
         )
         found_api_paramaters = jmespath.search(
-            generated_jmespath_nested_selector, directly_related_operation_data
+            generated_jmespath_nested_selector, directly_related_operation_data, options=jmespath_options
         )
         raw_api_parameters_list = found_api_paramaters
         # for r_api_param in found_api_paramaters:
@@ -349,7 +349,7 @@ class ResourceNode:
             logger.debug(
                 f"CANT GENERATE API PARAMETERS LIST WITH [bold][red]{generated_jmespath_nested_selector}[/] {related_operations_data=}"
             )
-            inform_about_develeoping_custom_resource_nodes()
+            inform_about_developing_custom_resource_nodes()
             return False, Error(
                 "failed to generate api parameters",
                 {
@@ -414,7 +414,7 @@ class ResourceNode:
             logger.debug(
                 f"FAILED TO CREATE VALID API PARAMETERS. Required Parameters are: [bold]{required_parameter_names}[/]"
             )
-            inform_about_develeoping_custom_resource_nodes()
+            inform_about_developing_custom_resource_nodes()
             return False
 
         return api_params
