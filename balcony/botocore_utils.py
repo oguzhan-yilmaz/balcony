@@ -240,30 +240,12 @@ def annotate_shape_and_its_members_with_target_path(
 
     return shape
 
-    # members = get_members_shapes(shape)
-    # for member in members:
-    #     # create the target path for the member
-    #     member_key_name = getattr(member, "key_name", False)
-    #     new_target_str = target_str
-    #     if member_key_name:
-    #         if target_str == "":
-    #             new_target_str = f"{member_key_name}"
-    #         else:
-    #             new_target_str = f"{target_str}[*].{member_key_name}"
-    #     setattr(member, "target_path", new_target_str)
-    #     # if member.type_name in ("structure", "list"):
-    #     # if the member is a collection type, recurse into it
-    #     # inner_list = _flatten_shape_to_its_members_and_target_paths(
-    #     #     member, new_target_str
-    #     # )
-
-    # return shape
 
 
 def _flatten_shape_to_its_members_and_target_paths(
     shape: Shape, target_str: str = ""
 ) -> List[ShapeAndTargetPath]:
-    """Recursive function to get a shape's all members with targetpaths.
+    """Recursive function to get a shape's all members with target paths.
     Generates target_str JMESPath selector for each member as it's located in the hierarchy.
     Returns a flat list of (shape, target_path) namedtuples
 
@@ -329,8 +311,8 @@ def cleanhtml(raw_html: str) -> str:
     Returns:
         str: HTML with tags removed
     """
-    cleantext = re.sub(HTML_CLEANER_REGEX, "", raw_html)
-    return cleantext
+    clean_text = re.sub(HTML_CLEANER_REGEX, "", raw_html)
+    return clean_text
 
 
 def rich_str_shape(shape: Shape, remove_documentation=False) -> str:
