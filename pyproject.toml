@@ -1,30 +1,30 @@
 [tool.poetry]
-name = "balcony"
-version = "0.2.7"
-description = "Read any resource in your AWS Account. You can generate terraform code for them, too."
-authors = ["Oguzhan Yilmaz <oguzhanylmz271@gmail.com>"]
-license = "Apache-2.0"
-readme = "README.md"
+name                            = "balcony"
+version                         = "0.3.0"
+description                     = "Read any resource in your AWS Account. You can generate terraform code for them, too."
+authors                         = ["Oguzhan Yilmaz <oguzhanylmz271@gmail.com>"]
+license                         = "Apache-2.0"
+readme                          = "README.md"
 
 
 [tool.poetry.scripts]
-balcony = "balcony.cli:run_app"
+balcony                         = "balcony.cli:run_app"
 
 
 [tool.poetry.dependencies]
-python                      = "^3.7"
-typer                       = "^0.7.0"
-rich                        = "^13.3.4"
-boto3                       = "^1.24.80"
-jmespath                    = "^1.0.1"
-inflect                     = "^6.0.0"
-mkdocstrings                = {version = "^0.21.2", extras = ["python"]}
-mkdocs-material             = ">=8.5.7,<10.0.0"
-mkdocs-autorefs             = "^0.4.1"
-PyYAML                      = "^6.0"
-pydantic                    = "^1.10.7"
-Jinja2                      = "^3.1.2"
-aws-jmespath-utils          = "^1.1.0"
+python                          = "^3.7"
+typer                           = "^0.7.0"
+rich                            = "^13.3.4"
+boto3                           = "^1.24.80"
+jmespath                        = "^1.0.1"
+inflect                         = "^6.0.0"
+mkdocstrings                    = {version = "^0.21.2", extras = ["python"]}
+mkdocs-material                 = ">=8.5.7,<10.0.0"
+mkdocs-autorefs                 = "^0.4.1"
+PyYAML                          = "^6.0"
+pydantic                        = "^1.10.7"
+Jinja2                          = "^3.1.2"
+aws-jmespath-utils              = "^1.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -38,5 +38,5 @@ aws-jmespath-utils          = "^1.1.0"
 
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires                        = ["poetry-core"]
+build-backend                   = "poetry.core.masonry.api"
