@@ -38,6 +38,7 @@ from rich.panel import Panel
 from rich.console import Group
 from rich.padding import Padding
 import jmespath
+from aws_jmespath_utils import jmespath_options
 
 logger = get_logger(__name__)
 
