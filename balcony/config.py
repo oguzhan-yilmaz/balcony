@@ -22,16 +22,24 @@ def get_logger(name: str) -> logging.Logger:
         logging.Logger: Logger obj
     """
     supress_other_module_logs()
-    logging.basicConfig(
-        level=LOG_LEVEL,
-        format="%(message)s",
-        datefmt="[%X]",
-        handlers=[RichHandler(markup=True, console=_console)],
-    )
-
+    
     _logger = logging.getLogger(name)
+    
+    # Check if this logger already has a RichHandler
+    has_rich_handler = any(isinstance(handler, RichHandler) for handler in _logger.handlers)
+    
+    if not has_rich_handler:
+        # Create and add RichHandler to this specific logger
+        rich_handler = RichHandler(markup=True, console=_console)
+        rich_handler.setFormatter(logging.Formatter("%(message)s"))
+        _logger.addHandler(rich_handler)
+        _logger.setLevel(LOG_LEVEL)
+        # Prevent propagation to root logger to avoid duplicate messages
+        _logger.propagate = False
+    
     # keep track of the created loggers
-    _balcony_loggers.append(_logger)
+    if _logger not in _balcony_loggers:
+        _balcony_loggers.append(_logger)
     return _logger
 
 
