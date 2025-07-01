@@ -85,6 +85,8 @@ if (
     )
     USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY = False
 
+if USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY != False:
+    YAML_TF_IMPORT_CONFIGS_DIRECTORY = Path(USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY)
 
 def clear_relations_cache() -> None:
     """Removes the cached relations of services in the  `$BALCONY_RELATIONS_DIR/<service>.json` files."""
