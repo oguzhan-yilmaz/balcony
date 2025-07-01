@@ -1,6 +1,6 @@
 [tool.poetry]
 name                            = "balcony"
-version                         = "0.3.3"
+version                         = "0.3.4"
 description                     = "Read any resource in your AWS Account. You can generate terraform code for them, too."
 authors                         = ["Oguzhan Yilmaz <oguzhanylmz271@gmail.com>"]
 license                         = "Apache-2.0"
@@ -13,22 +13,22 @@ balcony                         = "balcony.cli:run_app"
 
 [tool.poetry.dependencies]
 python                          = "^3.9"
-typer                           = "^0.7.0"
-rich                            = "^13.3.4"
-boto3                           = "^1.24.80"
+typer                           = "^0.16.0"
+rich                            = "^13.9.4"
+boto3                           = "^1.38.46"
 jmespath                        = "^1.0.1"
 inflect                         = "^6.0.0"
-mkdocstrings                    = {version = "^0.21.2", extras = ["python"]}
-mkdocs-material                 = ">=8.5.7,<10.0.0"
-mkdocs-autorefs                 = "^0.4.1"
-PyYAML                          = "^6.0"
-pydantic                        = "^1.10.7"
-Jinja2                          = "^3.1.2"
+PyYAML                          = "^6.0.2"
+pydantic                        = "^2.11.7"
+Jinja2                          = "^3.1.6"
 aws-jmespath-utils              = "^1.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
-
+mkdocstrings                    = {version = "^0.21.2", extras = ["python"]}
+mkdocs-autorefs                 = "^0.4.1"
+mkdocs-material                 = ">=8.5.7,<10.0.0"
+types-boto3                     = "^1.38.18"
 
 [tool.poetry.urls]
 "Github"                        = "https://github.com/oguzhan-yilmaz/balcony"

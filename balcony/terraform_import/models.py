@@ -6,11 +6,11 @@ class TerraformImportConfig(BaseModel):
     service: str  # ec2
     resource_node: str  # Instances
     operation_name: str  # DescribeInstances
-    jmespath_query: Optional[str]  # Reservations[].Instances[]
+    jmespath_query: Optional[str] = None  # Reservations[].Instances[]
     to_resource_type: str  # aws_instance
     to_resource_name_jinja2_template: str  # "{{ InstanceId }}"
     id_generator_jinja2_template: str
-    multiline_output: Optional[bool]
+    multiline_output: Optional[bool] = False
 
     # TODO: code the validators
     # @validator("to_resource_name_jinja2_template")
@@ -30,10 +30,10 @@ class MaintainersBlock(BaseModel):
     """List of maintainers for the terraform import config file."""
 
     name: str
-    github: Optional[str]
-    email: Optional[str]
+    github: Optional[str] = None
+    email: Optional[str] = None
 
 
 class CustomTerraformImportConfigFile(BaseModel):
-    maintainers: Optional[List[MaintainersBlock]]
+    maintainers: Optional[List[MaintainersBlock]] = None
     import_configurations: List[TerraformImportConfig]

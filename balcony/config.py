@@ -22,16 +22,24 @@ def get_logger(name: str) -> logging.Logger:
         logging.Logger: Logger obj
     """
     supress_other_module_logs()
-    logging.basicConfig(
-        level=LOG_LEVEL,
-        format="%(message)s",
-        datefmt="[%X]",
-        handlers=[RichHandler(markup=True, console=_console)],
-    )
-
+    
     _logger = logging.getLogger(name)
+    
+    # Check if this logger already has a RichHandler
+    has_rich_handler = any(isinstance(handler, RichHandler) for handler in _logger.handlers)
+    
+    if not has_rich_handler:
+        # Create and add RichHandler to this specific logger
+        rich_handler = RichHandler(markup=True, console=_console)
+        rich_handler.setFormatter(logging.Formatter("%(message)s"))
+        _logger.addHandler(rich_handler)
+        _logger.setLevel(LOG_LEVEL)
+        # Prevent propagation to root logger to avoid duplicate messages
+        _logger.propagate = False
+    
     # keep track of the created loggers
-    _balcony_loggers.append(_logger)
+    if _logger not in _balcony_loggers:
+        _balcony_loggers.append(_logger)
     return _logger
 
 
@@ -53,6 +61,12 @@ LOG_LEVEL = "INFO"
 # YamlResourceNode customization parameters
 YAML_IGNORE_PREFIX = "_"
 YAML_SERVICES_DIRECTORY = Path(__file__).parent / "custom_yamls"
+USER_DEFINED_YAML_SERVICES_DIRECTORY = os.getenv(
+    "BALCONY_YAML_SERVICES_DIR", False
+)
+
+if USER_DEFINED_YAML_SERVICES_DIRECTORY and Path(USER_DEFINED_YAML_SERVICES_DIRECTORY).exists():
+    YAML_SERVICES_DIRECTORY = USER_DEFINED_YAML_SERVICES_DIRECTORY
 
 # Terraform Import Config customization parameters
 YAML_TF_IMPORT_CONFIGS_DIRECTORY = Path(__file__).parent / "custom_tf_import_configs"
@@ -71,6 +85,8 @@ if (
     )
     USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY = False
 
+if USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY != False:
+    YAML_TF_IMPORT_CONFIGS_DIRECTORY = Path(USER_DEFINED_YAML_TF_IMPORT_CONFIGS_DIRECTORY)
 
 def clear_relations_cache() -> None:
     """Removes the cached relations of services in the  `$BALCONY_RELATIONS_DIR/<service>.json` files."""
