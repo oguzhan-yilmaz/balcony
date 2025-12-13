@@ -320,7 +320,7 @@ def aws_main_command(  # noqa
             operation_name = types_to_op_names.get(operation, False)
             if not operation_name:
                 console.print(
-                    f"[red bold]Given {operation} is not supported by {resource_node}. Try: {supported_operation_types}"
+                    f"[red bold]Error: Given operation '{operation}' is not supported by '{resource_node}'. Try: {' or '.join(supported_operation_types)}"
                 )
                 raise typer.Exit(code=-1)
 
