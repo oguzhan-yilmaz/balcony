@@ -1,42 +1,72 @@
-[tool.poetry]
-name                            = "balcony"
-version                         = "0.3.3"
-description                     = "Read any resource in your AWS Account. You can generate terraform code for them, too."
-authors                         = ["Oguzhan Yilmaz <oguzhanylmz271@gmail.com>"]
-license                         = "Apache-2.0"
-readme                          = "README.md"
+# https://docs.astral.sh/uv/concepts/projects/init/#packaged-applications
 
+[project]
+name = "balcony"
+version = "0.3.5"
+description = "Read any resource in your AWS Account. You can generate terraform code for them, too."
+readme = "README.md"
+authors = [{name = "Oguzhan Yilmaz", email = "oguzhanylmz271@gmail.com"}]
+license = "Apache-2.0"
+# include = ["balcony/",]
+# https://docs.astral.sh/uv/guides/package/#next-steps
+requires-python = ">=3.12"
+dependencies = [
+    "aws-jmespath-utils>=1.1.0",
+    "boto3>=1.42.9",
+    "inflect>=7.5.0",
+    "jinja2<4",
+    "mkdocs-autorefs>=1.4.3",
+    "mkdocs-material>=9.7.0",
+    "mkdocstrings>=1.0.0",
+    "pydantic<2",
+    "pyyaml>=6.0.3",
+    "typer>=0.20.0",
+]
 
-[tool.poetry.scripts]
+[project.scripts]
 balcony                         = "balcony.cli:run_app"
 
 
-[tool.poetry.dependencies]
-python                          = "^3.9"
-typer                           = "^0.7.0"
-rich                            = "^13.3.4"
-boto3                           = "^1.24.80"
-jmespath                        = "^1.0.1"
-inflect                         = "^6.0.0"
-mkdocstrings                    = {version = "^0.21.2", extras = ["python"]}
-mkdocs-material                 = ">=8.5.7,<10.0.0"
-mkdocs-autorefs                 = "^0.4.1"
-PyYAML                          = "^6.0"
-pydantic                        = "^1.10.7"
-Jinja2                          = "^3.1.2"
-aws-jmespath-utils              = "^1.1.0"
 
 
-[tool.poetry.group.dev.dependencies]
 
 
-[tool.poetry.urls]
-"Github"                        = "https://github.com/oguzhan-yilmaz/balcony"
-"Documentation"                 = "https://oguzhan-yilmaz.github.io/balcony/"
-"Releases"                      = "https://github.com/oguzhan-yilmaz/balcony/releases"
-"aws-jmespath-utils Github"     = "https://github.com/oguzhan-yilmaz/aws-jmespath-utils"
+
+
+
+# [[tool.uv.index]]
+# name = "testpypi"
+# url = "https://test.pypi.org/simple/"
+# publish-url = "https://test.pypi.org/legacy/"
+# explicit = true
+
+
+
+
+
+
+
+
+
+# [build-system]
+# requires = ["setuptools"]
+# build-backend = "setuptools.build_meta"
+
 
 
 [build-system]
-requires                        = ["poetry-core"]
-build-backend                   = "poetry.core.masonry.api"
+requires = ["uv_build>=0.9.17,<0.10.0"]
+build-backend = "uv_build"
+
+
+[tool.uv.build-backend]
+module-name = "balcony"
+module-root = ""
+
+
+[project.urls]
+"Github"                        = "https://github.com/oguzhan-yilmaz/balcony"
+"Documentation"                 = "https://oguzhan-yilmaz.github.io/balcony/"
+"Releases"                      = "https://github.com/oguzhan-yilmaz/balcony/releases"
+"aws-jmespath-utils"     = "https://github.com/oguzhan-yilmaz/aws-jmespath-utils"
+
