@@ -2,6 +2,8 @@
 source .venv/bin/activate
 uv pip install -e .
 balcony 
+
+typer balcony.cli utils docs  --output typer.README.md
 ```
 
 
