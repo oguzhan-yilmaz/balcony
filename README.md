@@ -21,11 +21,22 @@ balcony uses _read-only_ operations, it does not take any action on the used AWS
 
 ### Installation
 
+Visit [**Installation & QuickStart Page**](https://oguzhan-yilmaz.github.io/balcony/quickstart/) to get started using _balcony_
+
+
 ```bash
 pip3 install balcony
 ```
 
-Visit [**Installation & QuickStart Page**](https://oguzhan-yilmaz.github.io/balcony/quickstart/) to get started using _balcony_
+You can also use [uv](https://formulae.brew.sh/formula/uv) to get balcony.
+
+```bash
+brew install uv
+
+uvx balcony info
+```
+
+
 
 ```bash  title="Basic usage"
 # see options
