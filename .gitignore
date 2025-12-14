@@ -6,6 +6,7 @@ docs/_publishing_pypi_package.md
 balcony/custom_tf_import_configs/*wizard.yaml
 *.cast
 *.asc
+testt/
 *.gif
 relations/
 .vscode/
