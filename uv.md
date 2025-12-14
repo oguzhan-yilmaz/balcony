@@ -18,10 +18,12 @@ typer balcony.cli utils docs  --output typer.README.md
 uv version --bump patch
 # git commit 
 uv build
+rm dist/*.whl
+rm dist/*.tar.gz
+
 # export UV_PUBLISH_TOKEN=pypi-
 uv publish
 echo "tagging: v$(uv version --short)"
 git tag v$(uv version --short) && git push --tags
-
 # create gh release
 ```
