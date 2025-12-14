@@ -54,6 +54,20 @@ LOG_LEVEL = "INFO"
 YAML_IGNORE_PREFIX = "_"
 YAML_SERVICES_DIRECTORY = Path(__file__).parent / "custom_yamls"
 
+
+USER_DEFINED_YAML_SERVICES_DIRECTORY = os.getenv(
+    "BALCONY_YAML_SERVICES_DIR", False
+)
+
+if USER_DEFINED_YAML_SERVICES_DIRECTORY and not Path(USER_DEFINED_YAML_SERVICES_DIRECTORY).exists():
+    get_logger(__name__).warning(
+        f"Given YAML_SERVICES_DIRECTORY: \
+            {USER_DEFINED_YAML_SERVICES_DIRECTORY} don't exist."
+    )
+    USER_DEFINED_YAML_SERVICES_DIRECTORY = False
+
+
+
 # Terraform Import Config customization parameters
 YAML_TF_IMPORT_CONFIGS_DIRECTORY = Path(__file__).parent / "custom_tf_import_configs"
 

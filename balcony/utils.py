@@ -51,7 +51,7 @@ def find_all_yaml_files(directory: str) -> List[str]:
     for root, _, files in os.walk(directory):
         for file in files:
             # support any yaml file with the exception of files starting with "YAML_IGNORE_PREFIX"
-            if file.endswith(".yaml") and not file.startswith(YAML_IGNORE_PREFIX):
+            if (file.endswith(".yaml") or file.endswith(".yml"))and not file.startswith(YAML_IGNORE_PREFIX):
                 yaml_files.append(os.path.join(root, file))
     return yaml_files
 

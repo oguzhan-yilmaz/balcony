@@ -1,4 +1,4 @@
-from config import get_logger, YAML_IGNORE_PREFIX, YAML_SERVICES_DIRECTORY
+from config import get_logger, YAML_IGNORE_PREFIX, YAML_SERVICES_DIRECTORY, USER_DEFINED_YAML_SERVICES_DIRECTORY
 from yaml_validators import YamlService
 from utils import find_all_yaml_files
 import yaml
@@ -39,8 +39,20 @@ def find_and_parse_yaml_services() -> List[YamlService]:
     found_yaml_services = []
     yaml_files = find_all_yaml_files(YAML_SERVICES_DIRECTORY)
     logger.debug(
-        f"Terraform Import Configuration Registry: Found {len(yaml_files)} yaml files in {YAML_SERVICES_DIRECTORY}. Starting to parse & validate them."
+        f"ResourceNodeRegistry: Found {len(yaml_files)} yaml files in {YAML_SERVICES_DIRECTORY}. Starting to parse & validate them."
     )
+
+    if USER_DEFINED_YAML_SERVICES_DIRECTORY is not False:
+        user_def_yaml_files = find_all_yaml_files(USER_DEFINED_YAML_SERVICES_DIRECTORY)
+        logger.debug(
+            f"User defined ResourceNodeYaml: Found {len(yaml_files)} yaml files in {USER_DEFINED_YAML_SERVICES_DIRECTORY}."
+        )
+        logger.debug(f"Found user defined user_def_yaml_files={user_def_yaml_files}")
+
+        for user_rn_yml in user_def_yaml_files:
+            if user_rn_yml not in yaml_files:
+                yaml_files.append(user_rn_yml)
+
     for yaml_file in yaml_files:
         yaml_service, error = parse_yaml_file_to_service(yaml_file)
         if error is None and yaml_service:
