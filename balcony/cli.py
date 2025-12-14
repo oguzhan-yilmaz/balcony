@@ -204,9 +204,15 @@ def _list_service_or_resource(
 @app.command('version', help='Show version info' )                                                     
 def version_command():                                                                                
     from importlib.metadata import version                                                            
-    current_version=version('balcony')                                                              
-    console.print(f"balcony version: v{str(current_version)}")                                    
-      
+    v = {
+        'balcony': version('balcony'),
+        'boto3': version('boto3'),
+        'typer': version('typer'),
+        'aws-jmespath-utils': version('aws-jmespath-utils'),
+        'mkdocs-material': version('mkdocs-material'),
+    }                                                              
+    console.print_json(data=v, default=str)
+
 @app.command(
     "aws",
     help="List and read AWS Services & Resources as json. Use --debug option if you're stuck!",
