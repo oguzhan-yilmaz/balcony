@@ -17,9 +17,10 @@ typer balcony.cli utils docs  --output typer.README.md
 # uv version --bump minor
 uv version --bump patch
 # git commit 
-uv build
 rm dist/*.whl
 rm dist/*.tar.gz
+
+uv build
 
 # export UV_PUBLISH_TOKEN=pypi-
 uv publish
