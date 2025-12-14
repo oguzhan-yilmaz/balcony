@@ -672,15 +672,18 @@ def info_command():
     for available_profile in created_session.available_profiles or []:
         console.print(f"  - [green bold]{available_profile}[/]")
     console.print("")
-    console.print(
-            textwrap.dedent("""
-            [yellow]You can configure the AWS Profile and Region by setting the
-            the $[bold]AWS_DEFAULT_REGION[/] and $[bold]AWS_PROFILE[/] environment variables.[/]
-            
-            export AWS_DEFAULT_REGION=eu-central-1
-            export AWS_PROFILE=default
-            """),
-    )
+    
+    if not created_session.profile_name or not created_session.region_name:
+        console.print(
+                textwrap.dedent("""
+                ----------------------
+                [yellow]You can configure the AWS Profile and Region by setting the
+                the $[bold]AWS_DEFAULT_REGION[/] and $[bold]AWS_PROFILE[/] environment variables.[/]
+                
+                export AWS_DEFAULT_REGION=eu-central-1
+                export AWS_PROFILE=default
+                """),
+        )
 
 
 # @app.command('version', help='Show version info' )
