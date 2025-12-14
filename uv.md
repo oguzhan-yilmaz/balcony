@@ -16,7 +16,12 @@ typer balcony.cli utils docs  --output typer.README.md
 ```bash
 # uv version --bump minor
 uv version --bump patch
+# git commit 
 uv build
-git tag v0.3.5 && git push --tags
+# export UV_PUBLISH_TOKEN=pypi-
 uv publish
+echo "tagging: v$(uv version --short)"
+git tag v$(uv version --short) && git push --tags
+
+# create gh release
 ```
