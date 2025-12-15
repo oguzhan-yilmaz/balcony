@@ -1,7 +1,7 @@
 FROM python:3.13-slim-bullseye
 
 
-ENV GEN_TF_DIR /terraform-app
+ENV GEN_TF_DIR=/terraform-app
 
 WORKDIR $GEN_TF_DIR
 
