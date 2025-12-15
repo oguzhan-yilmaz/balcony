@@ -2,7 +2,7 @@
 
 [project]
 name = "balcony"
-version = "0.3.9"
+version = "0.3.10"
 description = "Read any resource in your AWS Account. You can generate terraform code for them, too."
 readme = "README.md"
 license = "Apache-2.0"
